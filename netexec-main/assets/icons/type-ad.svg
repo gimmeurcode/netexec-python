@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+  <rect x="9" y="10" width="30" height="20" rx="1.5"></rect>
+  <line x1="18" y1="30" x2="18" y2="38"></line>
+  <line x1="30" y1="30" x2="30" y2="38"></line>
+  <text x="24" y="26" font-family="&#39;Courier New&#39;,monospace" font-size="18" font-weight="700" text-anchor="middle" fill="currentColor" stroke="none">$</text>
+</svg>

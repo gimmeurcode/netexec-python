@@ -1,0 +1,563 @@
+{
+  "version": "2.0.0",
+  "notes": "Wildcard show and ad configuration data. ability_templates provides the two-step roll UI: roll_wildcard_types() → roll_wildcard_abilities(type) → resolve_wildcard(name, type, ability). All effect magnitudes must stay within the caps defined in core/constants.py (WILDCARD_MAX_V_FLAT=80, WILDCARD_MAX_V_MULT=1.35, WILDCARD_MAX_INCOME=20, WILDCARD_MIN_UPKEEP=-4).",
+
+  "wildcard_show": {
+    "base_cost":       30,
+    "base_upkeep":     6,
+    "base_views":      150,
+    "base_star_slots": 2,
+    "base_ad_slots":   2,
+
+    "genre_options": [
+      {
+        "id":        "SITCOM",
+        "label":     "Sitcom",
+        "cost_mod":  0,
+        "views_mod": 0,
+        "rec_slots": [0, 1],
+        "desc":      "A comedy series. Balanced cost and moderate base views."
+      },
+      {
+        "id":        "DRAMA",
+        "label":     "Drama",
+        "cost_mod":  8,
+        "views_mod": 30,
+        "rec_slots": [2],
+        "desc":      "A prestige drama. Costs more, delivers more views."
+      },
+      {
+        "id":        "SCIFI",
+        "label":     "Sci-Fi",
+        "cost_mod":  6,
+        "views_mod": 20,
+        "rec_slots": [2, 1],
+        "desc":      "A science-fiction series. Strong base views and star synergy."
+      },
+      {
+        "id":        "REALITY",
+        "label":     "Reality",
+        "cost_mod":  -6,
+        "views_mod": -20,
+        "rec_slots": [0, 1],
+        "desc":      "A reality show. Cheapest option; relies on ad income."
+      },
+      {
+        "id":        "SPORTS",
+        "label":     "Sports",
+        "cost_mod":  10,
+        "views_mod": 40,
+        "rec_slots": [2],
+        "desc":      "Live sports coverage. Highest views, highest cost."
+      },
+      {
+        "id":        "NEWS",
+        "label":     "News",
+        "cost_mod":  -4,
+        "views_mod": -15,
+        "rec_slots": [1, 3],
+        "desc":      "A news programme. Lower views but unique monopoly perk."
+      },
+      {
+        "id":        "COOKING",
+        "label":     "Cooking",
+        "cost_mod":  -2,
+        "views_mod": -10,
+        "rec_slots": [0, 1],
+        "desc":      "A food and cooking show. Steady income, strong ad synergy."
+      }
+    ],
+
+    "rec_slot_options": [
+      {"index": 0, "label": "Morning",    "desc": "Ad Income +20%"},
+      {"index": 1, "label": "Afternoon",  "desc": "Base Views +10%"},
+      {"index": 2, "label": "Prime Time", "desc": "Star Bonus x1.5"},
+      {"index": 3, "label": "Late Night", "desc": "Upkeep -50%"}
+    ],
+
+    "max_rec_slots": 2,
+
+    "ability_templates": {
+      "SITCOM": [
+        {
+          "id":    "wa_sitcom_catchphrase",
+          "label": "Catchphrase Moment",
+          "desc":  "+60 base views: the tagline goes viral across social feeds.",
+          "effect": {"v_flat": 60}
+        },
+        {
+          "id":    "wa_sitcom_ensemble",
+          "label": "Ensemble Cast Chemistry",
+          "desc":  "x1.25 view multiplier from the full cast dynamic.",
+          "effect": {"v_mult": 1.25}
+        },
+        {
+          "id":    "wa_sitcom_merchandise",
+          "label": "Merchandise Deal",
+          "desc":  "+12 seasonal income from licensing rights.",
+          "effect": {"income": 12}
+        },
+        {
+          "id":    "wa_sitcom_backlot",
+          "label": "Backlot Production",
+          "desc":  "+50 views and -3 upkeep: cheap studio lot deal cuts costs.",
+          "effect": {"v_flat": 50, "upkeep": -3}
+        },
+        {
+          "id":    "wa_sitcom_fan_club",
+          "label": "Fan Club Surge",
+          "desc":  "+40 views and +8 income from a dedicated viewer community.",
+          "effect": {"v_flat": 40, "income": 8}
+        }
+      ],
+
+      "DRAMA": [
+        {
+          "id":    "wa_drama_awards",
+          "label": "Award Season Contender",
+          "desc":  "+70 base views from festival buzz and critical acclaim.",
+          "effect": {"v_flat": 70}
+        },
+        {
+          "id":    "wa_drama_method",
+          "label": "Method Acting Lead",
+          "desc":  "x1.30 view multiplier driven by a transformative star performance.",
+          "effect": {"v_mult": 1.30}
+        },
+        {
+          "id":    "wa_drama_streaming",
+          "label": "Streaming Rights Sale",
+          "desc":  "+15 seasonal income sold to an international streaming platform.",
+          "effect": {"income": 15}
+        },
+        {
+          "id":    "wa_drama_limited",
+          "label": "Prestige Limited Format",
+          "desc":  "+55 views and -2 upkeep: condensed run reduces production waste.",
+          "effect": {"v_flat": 55, "upkeep": -2}
+        },
+        {
+          "id":    "wa_drama_critics",
+          "label": "Critics' Darling",
+          "desc":  "+45 views and +10 income: critical buzz converts to ad revenue.",
+          "effect": {"v_flat": 45, "income": 10}
+        }
+      ],
+
+      "SCIFI": [
+        {
+          "id":    "wa_scifi_worldbuilding",
+          "label": "Worldbuilding Hype",
+          "desc":  "+65 base views: universe-building drives audience curiosity.",
+          "effect": {"v_flat": 65}
+        },
+        {
+          "id":    "wa_scifi_sfx",
+          "label": "SFX Spectacle",
+          "desc":  "x1.30 view multiplier from spectacular visual effects.",
+          "effect": {"v_mult": 1.30}
+        },
+        {
+          "id":    "wa_scifi_franchise",
+          "label": "Franchise Licensing",
+          "desc":  "+14 seasonal income from toys, games, and tie-in products.",
+          "effect": {"income": 14}
+        },
+        {
+          "id":    "wa_scifi_cult",
+          "label": "Cult Classic Appeal",
+          "desc":  "+50 views and -3 upkeep: rabid fanbase reduces per-episode churn cost.",
+          "effect": {"v_flat": 50, "upkeep": -3}
+        },
+        {
+          "id":    "wa_scifi_ar",
+          "label": "AR Experience Launch",
+          "desc":  "+40 views and +8 income from a companion augmented-reality app deal.",
+          "effect": {"v_flat": 40, "income": 8}
+        }
+      ],
+
+      "REALITY": [
+        {
+          "id":    "wa_reality_viral",
+          "label": "Viral Clip Machine",
+          "desc":  "+55 base views: episode moments spread across social media instantly.",
+          "effect": {"v_flat": 55}
+        },
+        {
+          "id":    "wa_reality_trending",
+          "label": "Social Media Storm",
+          "desc":  "x1.30 view multiplier while the hashtag is trending.",
+          "effect": {"v_mult": 1.30}
+        },
+        {
+          "id":    "wa_reality_brand",
+          "label": "Brand Integration Lock-In",
+          "desc":  "+14 seasonal income from a locked-in sponsor deal.",
+          "effect": {"income": 14}
+        },
+        {
+          "id":    "wa_reality_lean",
+          "label": "Lean Production",
+          "desc":  "+45 views and -4 upkeep: minimal crew, maximum drama.",
+          "effect": {"v_flat": 45, "upkeep": -4}
+        },
+        {
+          "id":    "wa_reality_reunion",
+          "label": "Guaranteed Reunion Deal",
+          "desc":  "+40 views and +10 income from a pre-signed reunion special contract.",
+          "effect": {"v_flat": 40, "income": 10}
+        }
+      ],
+
+      "SPORTS": [
+        {
+          "id":    "wa_sports_championship",
+          "label": "Championship Run",
+          "desc":  "+80 base views during the championship push.",
+          "effect": {"v_flat": 80}
+        },
+        {
+          "id":    "wa_sports_stadium",
+          "label": "Stadium Atmosphere",
+          "desc":  "x1.35 view multiplier from live crowd energy.",
+          "effect": {"v_mult": 1.35}
+        },
+        {
+          "id":    "wa_sports_sponsorship",
+          "label": "Sponsorship Package",
+          "desc":  "+16 seasonal income from a multi-brand sponsorship deal.",
+          "effect": {"income": 16}
+        },
+        {
+          "id":    "wa_sports_doubleheader",
+          "label": "Double-Header Rights",
+          "desc":  "+60 views and -2 upkeep: consolidated broadcast production deal.",
+          "effect": {"v_flat": 60, "upkeep": -2}
+        },
+        {
+          "id":    "wa_sports_primetime",
+          "label": "Prime-Time Broadcast Rights",
+          "desc":  "+50 views and +10 income from exclusive prime-time slot rights.",
+          "effect": {"v_flat": 50, "income": 10}
+        }
+      ],
+
+      "NEWS": [
+        {
+          "id":    "wa_news_breaking",
+          "label": "Breaking Story Exclusive",
+          "desc":  "+60 base views from exclusive breaking coverage rights.",
+          "effect": {"v_flat": 60}
+        },
+        {
+          "id":    "wa_news_anchor",
+          "label": "Trusted Anchor Effect",
+          "desc":  "x1.25 view multiplier from anchor brand recognition.",
+          "effect": {"v_mult": 1.25}
+        },
+        {
+          "id":    "wa_news_network",
+          "label": "Corporate Network Backing",
+          "desc":  "+14 seasonal income from parent-company cross-promotion.",
+          "effect": {"income": 14}
+        },
+        {
+          "id":    "wa_news_rolling",
+          "label": "Rolling 24-Hour Coverage",
+          "desc":  "+50 views and -3 upkeep: reduced cost per story segment.",
+          "effect": {"v_flat": 50, "upkeep": -3}
+        },
+        {
+          "id":    "wa_news_investigative",
+          "label": "Investigative Exclusive",
+          "desc":  "+45 views and +10 income from exclusive exposé rights.",
+          "effect": {"v_flat": 45, "income": 10}
+        }
+      ],
+
+      "COOKING": [
+        {
+          "id":    "wa_cooking_celebrity",
+          "label": "Celebrity Chef Host",
+          "desc":  "+65 base views: a famous chef headliner drives audience curiosity.",
+          "effect": {"v_flat": 65}
+        },
+        {
+          "id":    "wa_cooking_primetime",
+          "label": "Prime-Time Kitchen",
+          "desc":  "x1.25 view multiplier in the coveted dining-hour slot.",
+          "effect": {"v_mult": 1.25}
+        },
+        {
+          "id":    "wa_cooking_cookbook",
+          "label": "Cookbook & Media Deal",
+          "desc":  "+14 seasonal income from tied cookbook publishing rights.",
+          "effect": {"income": 14}
+        },
+        {
+          "id":    "wa_cooking_local",
+          "label": "Farm-to-Table Appeal",
+          "desc":  "+50 views and -3 upkeep: sponsored by local producers.",
+          "effect": {"v_flat": 50, "upkeep": -3}
+        },
+        {
+          "id":    "wa_cooking_bingeable",
+          "label": "Bingeable Episode Format",
+          "desc":  "+45 views and +8 income: optimized episode structure for multi-session viewing.",
+          "effect": {"v_flat": 45, "income": 8}
+        }
+      ]
+    }
+  },
+
+  "wildcard_ad": {
+    "base_cost":       15,
+    "base_upfront":    10,
+    "match_income":    20,
+    "fallback_income": 10,
+
+    "target_genre_options": [
+      {"id": "SITCOM",  "label": "Sitcom",  "desc": "Targets Comedy shows."},
+      {"id": "DRAMA",   "label": "Drama",   "desc": "Targets Prestige Drama."},
+      {"id": "SCIFI",   "label": "Sci-Fi",  "desc": "Targets Science Fiction."},
+      {"id": "REALITY", "label": "Reality", "desc": "Targets Reality programming."},
+      {"id": "SPORTS",  "label": "Sports",  "desc": "Targets Live Sports."},
+      {"id": "NEWS",    "label": "News",    "desc": "Targets News programming."},
+      {"id": "COOKING", "label": "Cooking", "desc": "Targets Cooking & food shows."}
+    ],
+
+    "ability_templates": {
+      "SITCOM": [
+        {
+          "id":    "wa_ad_sitcom_1",
+          "label": "Laugh-Track Sponsorship",
+          "desc":  "+18 income: comedy block-matched sponsor placement.",
+          "effect": {"income": 18}
+        },
+        {
+          "id":    "wa_ad_sitcom_2",
+          "label": "Merch Integration",
+          "desc":  "+14 income and +20 views: product woven into the set.",
+          "effect": {"income": 14, "v_flat": 20}
+        },
+        {
+          "id":    "wa_ad_sitcom_3",
+          "label": "Comedy Brand Deal",
+          "desc":  "+16 income: brand aligned with the show's comedic tone.",
+          "effect": {"income": 16}
+        },
+        {
+          "id":    "wa_ad_sitcom_4",
+          "label": "Character Product Placement",
+          "desc":  "+12 income and +30 views: character uses the product on-air.",
+          "effect": {"income": 12, "v_flat": 30}
+        },
+        {
+          "id":    "wa_ad_sitcom_5",
+          "label": "Sitcom Block Package",
+          "desc":  "+20 income: bundled ad deal across the comedy time block.",
+          "effect": {"income": 20}
+        }
+      ],
+
+      "DRAMA": [
+        {
+          "id":    "wa_ad_drama_1",
+          "label": "Prestige Brand Partnership",
+          "desc":  "+20 income: luxury brand aligned with prestige drama.",
+          "effect": {"income": 20}
+        },
+        {
+          "id":    "wa_ad_drama_2",
+          "label": "Luxury Product Placement",
+          "desc":  "+16 income and +20 views: aspirational product woven into scenes.",
+          "effect": {"income": 16, "v_flat": 20}
+        },
+        {
+          "id":    "wa_ad_drama_3",
+          "label": "Streaming Bundle Tie-In",
+          "desc":  "+18 income: bundled promotion with a streaming platform.",
+          "effect": {"income": 18}
+        },
+        {
+          "id":    "wa_ad_drama_4",
+          "label": "Award Season Sponsorship",
+          "desc":  "+14 income and +25 views: awards buzz amplifies ad reach.",
+          "effect": {"income": 14, "v_flat": 25}
+        },
+        {
+          "id":    "wa_ad_drama_5",
+          "label": "Drama Premiere Package",
+          "desc":  "+18 income and +10 views: exclusive premiere-night ad deal.",
+          "effect": {"income": 18, "v_flat": 10}
+        }
+      ],
+
+      "SCIFI": [
+        {
+          "id":    "wa_ad_scifi_1",
+          "label": "Tech Brand Integration",
+          "desc":  "+18 income: technology brand matched to the sci-fi setting.",
+          "effect": {"income": 18}
+        },
+        {
+          "id":    "wa_ad_scifi_2",
+          "label": "Franchise Merch Ad",
+          "desc":  "+14 income and +25 views: action figure and game tie-in spot.",
+          "effect": {"income": 14, "v_flat": 25}
+        },
+        {
+          "id":    "wa_ad_scifi_3",
+          "label": "Gaming Crossover Deal",
+          "desc":  "+16 income: video game cross-promotion with the same IP.",
+          "effect": {"income": 16}
+        },
+        {
+          "id":    "wa_ad_scifi_4",
+          "label": "Collector's Edition Spot",
+          "desc":  "+12 income and +30 views: limited-run merch drives audience sampling.",
+          "effect": {"income": 12, "v_flat": 30}
+        },
+        {
+          "id":    "wa_ad_scifi_5",
+          "label": "Sci-Fi Convention Package",
+          "desc":  "+20 income: convention sponsorship bundle.",
+          "effect": {"income": 20}
+        }
+      ],
+
+      "REALITY": [
+        {
+          "id":    "wa_ad_reality_1",
+          "label": "Social Media Brand Deal",
+          "desc":  "+18 income: influencer-aligned sponsor in feed and show.",
+          "effect": {"income": 18}
+        },
+        {
+          "id":    "wa_ad_reality_2",
+          "label": "Contestant Sponsor",
+          "desc":  "+14 income and +20 views: sponsor tied to on-screen talent.",
+          "effect": {"income": 14, "v_flat": 20}
+        },
+        {
+          "id":    "wa_ad_reality_3",
+          "label": "Voting App Sponsorship",
+          "desc":  "+16 income: branded audience participation platform.",
+          "effect": {"income": 16}
+        },
+        {
+          "id":    "wa_ad_reality_4",
+          "label": "Challenge Sponsor",
+          "desc":  "+12 income and +30 views: brand sponsors the headline challenge.",
+          "effect": {"income": 12, "v_flat": 30}
+        },
+        {
+          "id":    "wa_ad_reality_5",
+          "label": "Reality Block Package",
+          "desc":  "+20 income: bundled deal across the full reality programming block.",
+          "effect": {"income": 20}
+        }
+      ],
+
+      "SPORTS": [
+        {
+          "id":    "wa_ad_sports_1",
+          "label": "Official Equipment Sponsor",
+          "desc":  "+20 income: category-exclusive equipment partner deal.",
+          "effect": {"income": 20}
+        },
+        {
+          "id":    "wa_ad_sports_2",
+          "label": "Stadium Naming Rights",
+          "desc":  "+15 income and +20 views: stadium brand boosts on-air presence.",
+          "effect": {"income": 15, "v_flat": 20}
+        },
+        {
+          "id":    "wa_ad_sports_3",
+          "label": "Broadcast Sponsor",
+          "desc":  "+18 income: title sponsorship of the broadcast itself.",
+          "effect": {"income": 18}
+        },
+        {
+          "id":    "wa_ad_sports_4",
+          "label": "Official League Partner",
+          "desc":  "+12 income and +30 views: league-sanctioned partner placement.",
+          "effect": {"income": 12, "v_flat": 30}
+        },
+        {
+          "id":    "wa_ad_sports_5",
+          "label": "Championship Ad Spot",
+          "desc":  "+16 income and +15 views: exclusive championship-round ad slot.",
+          "effect": {"income": 16, "v_flat": 15}
+        }
+      ],
+
+      "NEWS": [
+        {
+          "id":    "wa_ad_news_1",
+          "label": "Financial News Sponsor",
+          "desc":  "+18 income: financial sector brand matched to news credibility.",
+          "effect": {"income": 18}
+        },
+        {
+          "id":    "wa_ad_news_2",
+          "label": "Breaking Alert Sponsor",
+          "desc":  "+14 income and +20 views: logo appears on every push notification.",
+          "effect": {"income": 14, "v_flat": 20}
+        },
+        {
+          "id":    "wa_ad_news_3",
+          "label": "Network Backing Deal",
+          "desc":  "+16 income: affiliated network cross-promotion deal.",
+          "effect": {"income": 16}
+        },
+        {
+          "id":    "wa_ad_news_4",
+          "label": "Political Ad Package",
+          "desc":  "+12 income and +25 views: election-cycle campaign placement.",
+          "effect": {"income": 12, "v_flat": 25}
+        },
+        {
+          "id":    "wa_ad_news_5",
+          "label": "News Hour Package",
+          "desc":  "+20 income: hour-block exclusive sponsor deal.",
+          "effect": {"income": 20}
+        }
+      ],
+
+      "COOKING": [
+        {
+          "id":    "wa_ad_cooking_1",
+          "label": "Kitchen Appliance Partner",
+          "desc":  "+18 income: appliance brand perfectly matched to your demo.",
+          "effect": {"income": 18}
+        },
+        {
+          "id":    "wa_ad_cooking_2",
+          "label": "Food Delivery Sponsor",
+          "desc":  "+14 income and +20 views: on-demand food delivery tie-in.",
+          "effect": {"income": 14, "v_flat": 20}
+        },
+        {
+          "id":    "wa_ad_cooking_3",
+          "label": "Restaurant Chain Deal",
+          "desc":  "+16 income: national restaurant chain sponsor placement.",
+          "effect": {"income": 16}
+        },
+        {
+          "id":    "wa_ad_cooking_4",
+          "label": "Cookware Exclusive",
+          "desc":  "+12 income and +30 views: branded cookware used on-screen every episode.",
+          "effect": {"income": 12, "v_flat": 30}
+        },
+        {
+          "id":    "wa_ad_cooking_5",
+          "label": "Food Network Package",
+          "desc":  "+20 income: block-bundled sponsorship deal.",
+          "effect": {"income": 20}
+        }
+      ]
+    }
+  }
+}

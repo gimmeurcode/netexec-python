@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "notes": "Two bailout tiers, offered when budget < 0 at end of season. Each tier offers two choices: LOAN (budget injection + binding contract) or GRANT (budget injection + upfront views loss). Terms escalate from tier 1 to tier 2. Bailouts are capped at two per run.",
+
+  "tiers": [
+    {
+      "tier":         1,
+      "name":         "First Lifeline",
+      "grant_amount": 50,
+      "desc":         "The board is still rooting for you. One last chance before the restructuring team arrives.",
+
+      "loan": {
+        "name":    "Parent Company Loan",
+        "desc":    "An immediate cash injection from the parent company. Hit a modest views target over the next 3 seasons or pay it back with interest.",
+        "requirement": {
+          "type":  "reach_views",
+          "value": 2000
+        },
+        "window_seasons": 3,
+        "penalty": { "budget_loss": 40 }
+      },
+
+      "grant": {
+        "name":      "Arts Council Emergency Subsidy",
+        "desc":      "A public arts body will fund you  -  but only if you air some low-rated public-interest programming this season. No ongoing obligations, but your ratings cushion will shrink.",
+        "views_loss": 200
+      }
+    },
+
+    {
+      "tier":         2,
+      "name":         "Last Resort",
+      "grant_amount": 65,
+      "desc":         "The CFO is on the phone. This is it. Miss the target and the lawyers move in.",
+
+      "loan": {
+        "name":    "Investor Emergency Injection",
+        "desc":    "A venture-capital investor will bail you out  -  but they want a turnaround story. Reach a demanding views target in just 2 seasons or the repayment clause destroys your budget.",
+        "requirement": {
+          "type":  "reach_views",
+          "value": 4000
+        },
+        "window_seasons": 2,
+        "penalty": { "budget_loss": 60 }
+      },
+
+      "grant": {
+        "name":      "Emergency Broadcasting Grant",
+        "desc":      "A government emergency arts fund will cover your deficit  -  in exchange for airing a full season of grant-mandated content. Your ratings take a serious hit.",
+        "views_loss": 450
+      }
+    }
+  ]
+}

@@ -1,0 +1,346 @@
+{
+  "version": "2.0.0",
+  "notes": "Each upgrade is self-contained: the 'effects' list fully describes its behavior. No Python edits needed to add a new upgrade  -  add the entry here and it works automatically. See data/schema/upgrades.schema.json for the full effect vocabulary.",
+
+  "upgrades": [
+    {
+      "id": "upg_laugh",
+      "name": "Laugh Track",
+      "cost": 25,
+      "desc": "All SITCOMs gain +50 Base Views. Even when nothing is funny. ESPECIALLY when nothing is funny. Ha.",
+      "effects": [
+        {
+          "when":  {"type": "genre", "genres": ["SITCOM"]},
+          "apply": {"v_flat": 50}
+        }
+      ]
+    },
+    {
+      "id": "upg_sweeps",
+      "name": "Sweeps Week",
+      "cost": 30,
+      "desc": "PRIME TIME shows gain x1.3 Views. Networks have been gaming your emotions this way since 1954.",
+      "effects": [
+        {
+          "when":  {"type": "slot", "slots": [2]},
+          "scope": "live",
+          "apply": {"v_mult": 1.3}
+        }
+      ]
+    },
+    {
+      "id": "upg_synd",
+      "name": "Syndication Deal",
+      "cost": 20,
+      "desc": "Vault shows earn x0.5 Views (up from x0.25) & +$5 Income/season. The show ended 15 years ago. The residuals are eternal.",
+      "effects": [
+        {
+          "when":  {"type": "always"},
+          "scope": "vault",
+          "apply": {"rerun_vmult": 0.25, "income_flat": 5}
+        }
+      ]
+    },
+    {
+      "id": "upg_merch",
+      "name": "Merchandising Empire",
+      "cost": 20,
+      "desc": "All SCIFI shows generate +$8 Income/season. The T-shirt costs $3 to make and sells for $45. This is the way.",
+      "effects": [
+        {
+          "when":  {"type": "genre", "genres": ["SCIFI"]},
+          "scope": "live",
+          "apply": {"income_flat": 8}
+        }
+      ]
+    },
+    {
+      "id": "upg_drama",
+      "name": "Award Season",
+      "cost": 35,
+      "desc": "All DRAMAs gain x1.25 Views. A golden trophy validates an entire season of suffering. Critics weep. Ratings soar.",
+      "effects": [
+        {
+          "when":  {"type": "genre", "genres": ["DRAMA"]},
+          "apply": {"v_mult": 1.25}
+        }
+      ]
+    },
+    {
+      "id": "upg_spinoff",
+      "name": "The Spinoff",
+      "cost": 28,
+      "desc": "Shows in Season 3+ gain +80 Base Views. Good IP never truly dies. It just gets a prequel, a sequel, and a podcast.",
+      "effects": [
+        {
+          "when":  {"type": "age_min", "value": 3},
+          "apply": {"v_flat": 80}
+        }
+      ]
+    },
+    {
+      "id": "upg_algorithm",
+      "name": "The Algorithm",
+      "cost": 20,
+      "desc": "All shows gain +(Current Season x 5) bonus Views each season. The machine knows what you want before you do.",
+      "effects": [
+        {
+          "when":  {"type": "always"},
+          "apply": {"v_per_season": 5}
+        }
+      ]
+    },
+    {
+      "id": "upg_product",
+      "name": "Product Placement",
+      "cost": 15,
+      "desc": "Every attached Ad generates +$2 Extra Income per season. Tony Stark drinks Audi. Bond uses Sony. The check never bounces.",
+      "effects": [
+        {
+          "when":  {"type": "always"},
+          "scope": "live",
+          "apply": {"income_per_ad": 2}
+        }
+      ]
+    },
+    {
+      "id": "upg_feuds",
+      "name": "Celebrity Feud",
+      "cost": 18,
+      "desc": "PRIME TIME shows with 1+ Star gain +40 Views. Beef sells advertising. Always has. Taylor knows this.",
+      "effects": [
+        {
+          "when":  {"type": "and", "conditions": [
+                     {"type": "slot", "slots": [2]},
+                     {"type": "has_stars"}
+                   ]},
+          "scope": "live",
+          "apply": {"v_flat": 40}
+        }
+      ]
+    },
+    {
+      "id": "upg_streaming",
+      "name": "Streaming Threat",
+      "cost": 22,
+      "desc": "All REALITY and SPORTS shows gain x1.2 Views. Panic-buy eyeballs before the streamers do. Act now.",
+      "effects": [
+        {
+          "when":  {"type": "genre", "genres": ["REALITY", "SPORTS"]},
+          "apply": {"v_mult": 1.2}
+        }
+      ]
+    },
+    {
+      "id": "upg_awards",
+      "name": "Awards Circuit",
+      "cost": 35,
+      "desc": "All DRAMAs gain x1.25 Views. Stacks with Award Season for x1.5625 total. An extra trophy shelf has been ordered.",
+      "effects": [
+        {
+          "when":  {"type": "genre", "genres": ["DRAMA"]},
+          "apply": {"v_mult": 1.25}
+        }
+      ]
+    },
+    {
+      "id": "upg_tailgate",
+      "name": "Sports Bar Network",
+      "cost": 26,
+      "desc": "All SPORTS shows gain +$10 Income/season. The bar sponsors everything with a TV.",
+      "effects": [
+        {
+          "when":  {"type": "genre", "genres": ["SPORTS"]},
+          "scope": "live",
+          "apply": {"income_flat": 10}
+        }
+      ]
+    },
+    {
+      "id": "upg_daytime",
+      "name": "Daytime Dominance",
+      "cost": 18,
+      "desc": "Morning and Afternoon shows gain +25 Views. Coffee-fueled audiences are loyal.",
+      "effects": [
+        {
+          "when":  {"type": "slot", "slots": [0, 1]},
+          "scope": "live",
+          "apply": {"v_flat": 25}
+        }
+      ]
+    },
+    {
+      "id": "upg_press",
+      "name": "Press Tour",
+      "cost": 24,
+      "desc": "Shows with at least 1 Star gain +40 Views. The late-night circuit delivers.",
+      "effects": [
+        {
+          "when":  {"type": "has_stars"},
+          "apply": {"v_flat": 40}
+        }
+      ]
+    },
+    {
+      "id": "upg_nightowl",
+      "name": "Night Owl Writers Room",
+      "cost": 20,
+      "desc": "Late Night shows gain +$6 Income/season. The staff never sleeps anyway.",
+      "effects": [
+        {
+          "when":  {"type": "slot", "slots": [3]},
+          "scope": "live",
+          "apply": {"income_flat": 6}
+        }
+      ]
+    },
+    {
+      "id": "upg_color",
+      "name": "Color Broadcast Rollout",
+      "cost": 22,
+      "desc": "All shows gain +20 Base Views. The 1965 color switch made everything pop.",
+      "effects": [
+        {
+          "when":  {"type": "always"},
+          "apply": {"v_flat": 20}
+        }
+      ]
+    },
+    {
+      "id": "upg_hd",
+      "name": "HDTV Transition (2009)",
+      "cost": 28,
+      "desc": "PRIME TIME shows gain x1.15 Views. It is so crisp you can see the stage lights.",
+      "effects": [
+        {
+          "when":  {"type": "slot", "slots": [2]},
+          "scope": "live",
+          "apply": {"v_mult": 1.15}
+        }
+      ]
+    },
+    {
+      "id": "upg_caption",
+      "name": "Closed Captioning Act (1990)",
+      "cost": 18,
+      "desc": "All shows gain +10 Views. Shows with 1+ Ad gain +$3 Income. Accessibility wins ratings.",
+      "effects": [
+        {
+          "when":  {"type": "always"},
+          "apply": {"v_flat": 10}
+        },
+        {
+          "when":  {"type": "has_ads"},
+          "scope": "live",
+          "apply": {"income_flat": 3}
+        }
+      ]
+    },
+    {
+      "id": "upg_dvr",
+      "name": "DVR Revolution (TiVo 1999)",
+      "cost": 24,
+      "desc": "Vault reruns gain +0.1 view multiplier & +$3 Income/season. Appointment viewing is optional now.",
+      "effects": [
+        {
+          "when":  {"type": "always"},
+          "scope": "vault",
+          "apply": {"rerun_vmult": 0.10, "income_flat": 3}
+        }
+      ]
+    },
+    {
+      "id": "upg_news_desk",
+      "name": "24-Hour News Cycle",
+      "cost": 22,
+      "desc": "All NEWS shows gain +35 Base Views & +$5 Income/season. Something is always happening. We cover all of it.",
+      "effects": [
+        {
+          "when":  {"type": "genre", "genres": ["NEWS"]},
+          "scope": "live",
+          "apply": {"v_flat": 35, "income_flat": 5}
+        }
+      ]
+    },
+
+    // ── NEW UPGRADES ──────────────────────────────────────────────────────────
+    {
+      "id": "upg_cookblock",
+      "name": "Cooking Block",
+      "cost": 22,
+      "desc": "All COOKING shows gain x1.2 Views. Schedule three back to back and the audience refuses to leave the couch.",
+      "effects": [
+        {
+          "when":  {"type": "genre", "genres": ["COOKING"]},
+          "apply": {"v_mult": 1.2}
+        }
+      ]
+    },
+    {
+      "id": "upg_testkitchen",
+      "name": "Test Kitchen Sponsorship",
+      "cost": 18,
+      "desc": "All COOKING shows gain +$8 Income/season. A major appliance brand funds the kitchen. The blender is always on screen.",
+      "effects": [
+        {
+          "when":  {"type": "genre", "genres": ["COOKING"]},
+          "scope": "live",
+          "apply": {"income_flat": 8}
+        }
+      ]
+    },
+    {
+      "id": "upg_tabloid",
+      "name": "Tabloid Coverage",
+      "cost": 20,
+      "desc": "Shows with 1+ Star gain +55 Views. A star-studded lineup generates gossip column inches. Every inch is an eyeball.",
+      "effects": [
+        {
+          "when":  {"type": "has_stars"},
+          "apply": {"v_flat": 55}
+        }
+      ]
+    },
+    {
+      "id": "upg_tripleplatinum",
+      "name": "Triple Platinum Contract",
+      "cost": 26,
+      "desc": "Live shows with 1+ Star AND 1+ Ad gain x1.15 Views. Star power and sponsorship in the same slot  -  executives call it synergy.",
+      "effects": [
+        {
+          "when":  {"type": "and", "conditions": [
+                     {"type": "has_stars"},
+                     {"type": "has_ads"}
+                   ]},
+          "scope": "live",
+          "apply": {"v_mult": 1.15}
+        }
+      ]
+    },
+    {
+      "id": "upg_goldenage",
+      "name": "Golden Age Revival",
+      "cost": 26,
+      "desc": "Shows in Season 3+ gain x1.2 Views. A vintage aesthetic is trending. Your older shows are now 'prestige classics.'",
+      "effects": [
+        {
+          "when":  {"type": "age_min", "value": 3},
+          "apply": {"v_mult": 1.2}
+        }
+      ]
+    },
+    {
+      "id": "upg_latenightwar",
+      "name": "Late Night Ratings War",
+      "cost": 18,
+      "desc": "Late Night shows gain +55 Views. The midnight slot is contested. Monologues are sharper. The band plays louder.",
+      "effects": [
+        {
+          "when":  {"type": "slot", "slots": [3]},
+          "scope": "live",
+          "apply": {"v_flat": 55}
+        }
+      ]
+    }
+  ]
+}

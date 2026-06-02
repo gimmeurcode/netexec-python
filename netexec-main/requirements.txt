@@ -1,0 +1,2 @@
+pygame>=2.5
+cairosvg>=2.7        # SVG rasterizer; requires native libcairo — Phase 6 must bundle

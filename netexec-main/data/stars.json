@@ -1,0 +1,371 @@
+{
+  "version": "1.0.0",
+  "notes": "Add new stars here without touching Python logic. Condition types: 'always', 'genre' (genres list), 'size_min' (value), 'ad_slots_min' (value), 'age_min' (value). Effect/fallback fields: v_flat (int), v_mult (float, omit=1.0), income (int), upkeep (int, positive=more cost, negative=discount).",
+
+  "stars": [
+    {
+      "id": "st_ryan",
+      "name": "Ryan Branston",
+      "cost": 25,
+      "condition": {"type": "genre", "genres": ["DRAMA"]},
+      "condition_text": "If on DRAMA: Views x1.5",
+      "effect":   {"v_mult": 1.5},
+      "fallback": {"v_flat": 50, "upkeep": 5},
+      "desc": "Sells gin, superhero suits, and everything in between. Brings devastating charm to every role. Also owns a football club."
+    },
+    {
+      "id": "st_donny",
+      "name": "Donny Deviti",
+      "cost": 18,
+      "condition": {"type": "genre", "genres": ["SITCOM"]},
+      "condition_text": "If on SITCOM: +120 Views",
+      "effect":   {"v_flat": 120},
+      "fallback": {"v_flat": 40, "upkeep": 3},
+      "desc": "Tiny. Chaotic. Shows up unexpectedly in everything since 1975. The fans are thrilled every single time."
+    },
+    {
+      "id": "st_chef",
+      "name": "Chef Gordon Rampsey",
+      "cost": 15,
+      "condition": {"type": "genre", "genres": ["REALITY"]},
+      "condition_text": "If on REALITY: +80 Views, Upkeep $0",
+      "effect":   {"v_flat": 80, "upkeep": 0},
+      "fallback": {"v_flat": 80, "upkeep": 8},
+      "desc": "Generates so much TV revenue that his salary is technically tax-deductible. THE RISOTTO IS RAW AND SO IS MY DISAPPOINTMENT."
+    },
+    {
+      "id": "st_timsprint",
+      "name": "Tim Sprint",
+      "cost": 30,
+      "condition": {"type": "genre", "genres": ["SCIFI", "SPORTS"]},
+      "condition_text": "If on SCIFI/SPORTS: Views x1.7 (Upkeep +$10)",
+      "effect":   {"v_mult": 1.7, "upkeep": 10},
+      "fallback": {"v_mult": 1.1, "upkeep": 10},
+      "desc": "Does all his own stunts. Every single one. Nobody asked him to. He cannot be stopped. He will not stop."
+    },
+    {
+      "id": "st_generic_a",
+      "name": "A-List Celeb",
+      "cost": 20,
+      "condition": {"type": "always"},
+      "condition_text": "Always: +100 Views (Upkeep +$5)",
+      "effect":   {"v_flat": 100, "upkeep": 5},
+      "fallback": {},
+      "desc": "Won two Oscars. You've seen every film. Still can't quite remember their name. It's the vibe that counts."
+    },
+    {
+      "id": "st_washed",
+      "name": "Washed-Up Icon",
+      "cost": 8,
+      "condition": {"type": "always"},
+      "condition_text": "Always: +40 Views (Upkeep +$1)",
+      "effect":   {"v_flat": 40, "upkeep": 1},
+      "fallback": {},
+      "desc": "Had ONE viral moment in 2003. Mentions it in every interview. The nostalgia demographic is loyal to a fault."
+    },
+    {
+      "id": "st_kieran",
+      "name": "Kieran Royalty",
+      "cost": 28,
+      "condition": {"type": "genre", "genres": ["DRAMA"]},
+      "condition_text": "If on DRAMA: +180 Views & +$10 Income",
+      "effect":   {"v_flat": 180, "income": 10},
+      "fallback": {"v_flat": 60, "upkeep": 4},
+      "desc": "Zero notes from directors. Multiple award-winning. Probably a Roman. Disgusting, and we mean that as the highest compliment."
+    },
+    {
+      "id": "st_pebble",
+      "name": "The Pebble",
+      "cost": 30,
+      "condition": {"type": "genre", "genres": ["SPORTS", "DRAMA"]},
+      "condition_text": "If on DRAMA/SPORTS: Views x1.8 (Upkeep +$12)",
+      "effect":   {"v_mult": 1.8, "upkeep": 12},
+      "fallback": {"v_flat": 90, "upkeep": 12},
+      "desc": "Motivated. Enormously jacked. Owns three production companies. Smells like success and fresh coconut oil."
+    },
+    {
+      "id": "st_realityqueen",
+      "name": "Reality TV Royalty",
+      "cost": 22,
+      "condition": {"type": "genre", "genres": ["REALITY"]},
+      "condition_text": "If on REALITY: Views x1.6 & +$8 Income",
+      "effect":   {"v_mult": 1.6, "income": 8},
+      "fallback": {"v_flat": 70, "upkeep": 5},
+      "desc": "Built a billion-dollar empire from a single TV appearance. Her publicist earns more than your network's annual budget."
+    },
+    {
+      "id": "st_satirist",
+      "name": "Political Satirist",
+      "cost": 16,
+      "condition": {"type": "genre", "genres": ["SITCOM"]},
+      "condition_text": "If on SITCOM: +100 Views & Upkeep -$2",
+      "effect":   {"v_flat": 100, "upkeep": -2},
+      "fallback": {"v_flat": 50, "upkeep": 3},
+      "desc": "Hosts a fake news show. Somehow better journalism than actual news. Has won a Peabody Award ironically and meant it."
+    },
+    {
+      "id": "st_scifilegend",
+      "name": "Sci-Fi Convention Legend",
+      "cost": 20,
+      "condition": {"type": "genre", "genres": ["SCIFI"]},
+      "condition_text": "If on SCIFI: +130 Views & Upkeep -$3",
+      "effect":   {"v_flat": 130, "upkeep": -3},
+      "fallback": {"v_flat": 50, "upkeep": 4},
+      "desc": "Has attended every Comic-Con since 1987. The fanbase would literally die for them. Several have tried."
+    },
+    {
+      "id": "st_influencer",
+      "name": "Social Media Influencer",
+      "cost": 12,
+      "condition": {"type": "genre", "genres": ["REALITY"]},
+      "condition_text": "If on REALITY: +90 Views. Otherwise: -10 Views",
+      "effect":   {"v_flat": 90},
+      "fallback": {"v_flat": -10},
+      "desc": "40 million followers. Zero acting range. Somehow this is fine. The engagement metrics are undeniably real."
+    },
+    {
+      "id": "st_method",
+      "name": "Method Maverick",
+      "cost": 26,
+      "condition": {"type": "genre", "genres": ["DRAMA"]},
+      "condition_text": "If on DRAMA: Views x1.6 (Upkeep +$8)",
+      "effect":   {"v_mult": 1.6, "upkeep": 8},
+      "fallback": {"v_flat": 60, "upkeep": 6},
+      "desc": "Stays in character through budget meetings. Craft services now offers emotional support snacks."
+    },
+    {
+      "id": "st_quipster",
+      "name": "Sitcom Quipster",
+      "cost": 18,
+      "condition": {"type": "genre", "genres": ["SITCOM"]},
+      "condition_text": "If on SITCOM: +140 Views (Upkeep +$4)",
+      "effect":   {"v_flat": 140, "upkeep": 4},
+      "fallback": {"v_flat": 50, "upkeep": 4},
+      "desc": "Punchline every six seconds. The laugh track union has filed a grievance."
+    },
+    {
+      "id": "st_cosmo",
+      "name": "Cosmo Captain",
+      "cost": 24,
+      "condition": {"type": "genre", "genres": ["SCIFI"]},
+      "condition_text": "If on SCIFI: Views x1.5 (Upkeep +$7)",
+      "effect":   {"v_mult": 1.5, "upkeep": 7},
+      "fallback": {"v_flat": 70, "upkeep": 5},
+      "desc": "Knows every star system and every merch SKU. Insists the ship is real."
+    },
+    {
+      "id": "st_reality",
+      "name": "Reality Gremlin",
+      "cost": 14,
+      "condition": {"type": "genre", "genres": ["REALITY"]},
+      "condition_text": "If on REALITY: +90 Views & Upkeep $0",
+      "effect":   {"v_flat": 90, "upkeep": 0},
+      "fallback": {"v_flat": 60, "upkeep": 6},
+      "desc": "Thrives on chaos, confessionals, and dramatic music stings."
+    },
+    {
+      "id": "st_sports",
+      "name": "Sports Legend",
+      "cost": 28,
+      "condition": {"type": "genre", "genres": ["SPORTS"]},
+      "condition_text": "If on SPORTS: Views x1.4 & +80 Views (Upkeep +$10)",
+      "effect":   {"v_mult": 1.4, "v_flat": 80, "upkeep": 10},
+      "fallback": {"v_flat": 50, "upkeep": 8},
+      "desc": "Retired jersey, still demands Gatorade baths and prime-time billing."
+    },
+    {
+      "id": "st_event",
+      "name": "Event-Only Diva",
+      "cost": 30,
+      "condition": {"type": "size_min", "value": 2},
+      "condition_text": "If on 2-SLOT show: Views x1.5 (Upkeep +$12)",
+      "effect":   {"v_mult": 1.5, "upkeep": 12},
+      "fallback": {"v_flat": 70, "upkeep": 6},
+      "desc": "Only shows up for blockbuster nights and demands extra fog machines."
+    },
+    {
+      "id": "st_cardshark",
+      "name": "Card Shark Cameo",
+      "cost": 20,
+      "condition": {"type": "ad_slots_min", "value": 2},
+      "condition_text": "If show has 2+ Ad slots: Views x1.3 (Upkeep +$5)",
+      "effect":   {"v_mult": 1.3, "upkeep": 5},
+      "fallback": {"v_flat": 55, "upkeep": 5},
+      "desc": "Appears for sponsor-heavy episodes and exits with a suitcase of swag."
+    },
+    {
+      "id": "st_streamer",
+      "name": "Streamer Turned Actor",
+      "cost": 16,
+      "condition": {"type": "always"},
+      "condition_text": "Always: +85 Views (Upkeep +$4)",
+      "effect":   {"v_flat": 85, "upkeep": 4},
+      "fallback": {},
+      "desc": "Brings millions of followers and one confusing emote to every scene."
+    },
+    {
+      "id": "st_showrunner",
+      "name": "Sweeps Whisperer",
+      "cost": 22,
+      "condition": {"type": "age_min", "value": 3},
+      "condition_text": "If show age 3+: Views x1.3 (Upkeep +$6)",
+      "effect":   {"v_mult": 1.3, "upkeep": 6},
+      "fallback": {"v_flat": 65, "upkeep": 5},
+      "desc": "Knows exactly when to kill a character for ratings."
+    },
+    {
+      "id": "st_stunt",
+      "name": "Stunt Casting",
+      "cost": 24,
+      "condition": {"type": "size_min", "value": 2},
+      "condition_text": "If on 2-SLOT show: Views x1.4 (Upkeep +$9)",
+      "effect":   {"v_mult": 1.4, "upkeep": 9},
+      "fallback": {"v_flat": 70, "upkeep": 6},
+      "desc": "Does the big stunts so you don't have to pay for CGI twice."
+    },
+    {
+      "id": "st_ball",
+      "name": "Lucille Ball",
+      "cost": 26,
+      "condition": {"type": "genre", "genres": ["SITCOM"]},
+      "condition_text": "If on SITCOM: Views x1.6 & +$5 Income (Upkeep +$8)",
+      "effect":   {"v_mult": 1.6, "income": 5, "upkeep": 8},
+      "fallback": {"v_flat": 70, "upkeep": 4},
+      "desc": "The original sitcom titan. I Love Lucy reruns still hold the couch. Desi would approve the back-end."
+    },
+    {
+      "id": "st_cranston",
+      "name": "Bryan Cranston",
+      "cost": 28,
+      "condition": {"type": "genre", "genres": ["DRAMA"]},
+      "condition_text": "If on DRAMA: +160 Views & Views x1.2 (Upkeep +$8)",
+      "effect":   {"v_flat": 160, "v_mult": 1.2, "upkeep": 8},
+      "fallback": {"v_flat": 60, "upkeep": 4},
+      "desc": "He is the danger. Critics agree. Emmy shelf required."
+    },
+    {
+      "id": "st_stewart",
+      "name": "Patrick Stewart",
+      "cost": 24,
+      "condition": {"type": "genre", "genres": ["SCIFI"]},
+      "condition_text": "If on SCIFI: +140 Views & Upkeep -$3",
+      "effect":   {"v_flat": 140, "upkeep": -3},
+      "fallback": {"v_flat": 50, "upkeep": 5},
+      "desc": "Captain-level gravitas. The Ready Room is now booked solid."
+    },
+    {
+      "id": "st_newscaster",
+      "name": "Veteran Newscaster",
+      "cost": 18,
+      "condition": {"type": "genre", "genres": ["NEWS"]},
+      "condition_text": "If on NEWS: +110 Views & Upkeep -$2",
+      "effect":   {"v_flat": 110, "upkeep": -2},
+      "fallback": {"v_flat": 45, "upkeep": 3},
+      "desc": "30 years behind the desk. The credibility is real. The hair is also real, which is frankly impressive."
+    },
+
+    // ── NEW STARS ─────────────────────────────────────────────────────────────
+    // Mix of COOKING-genre specialists, less-used conditions (age_min,
+    // size_min, ad_slots_min), and cross-genre generalists.
+    {
+      "id": "st_flambe",
+      "name": "Gordon Flambe",
+      "cost": 18,
+      "condition": {"type": "genre", "genres": ["COOKING"]},
+      "condition_text": "If on COOKING: +125 Views & Upkeep $0",
+      "effect":   {"v_flat": 125, "upkeep": 0},
+      "fallback": {"v_flat": 45, "upkeep": 4},
+      "desc": "Screams at raw scallops with an intensity previously reserved for geopolitics. The COOKING audience loves every second of it."
+    },
+    {
+      "id": "st_humblehost",
+      "name": "The Humble Host",
+      "cost": 15,
+      "condition": {"type": "age_min", "value": 4},
+      "condition_text": "If show age 4+: Views x1.35 (Upkeep +$5)",
+      "effect":   {"v_mult": 1.35, "upkeep": 5},
+      "fallback": {"v_flat": 50, "upkeep": 3},
+      "desc": "Has been on television continuously since 1978. Nobody knows which show is which anymore. The audience stays out of pure loyalty."
+    },
+    {
+      "id": "st_admagnet",
+      "name": "Ad Magnet",
+      "cost": 20,
+      "condition": {"type": "ad_slots_min", "value": 2},
+      "condition_text": "If show has 2+ Ad slots: Views x1.3 & +$8 Income",
+      "effect":   {"v_mult": 1.3, "income": 8},
+      "fallback": {"v_flat": 60, "upkeep": 4},
+      "desc": "Sponsors adore this face. Cameras adore it more. Place them on an ad-heavy show and every product sells itself."
+    },
+    {
+      "id": "st_crossoverking",
+      "name": "Crossover King",
+      "cost": 22,
+      "condition": {"type": "size_min", "value": 2},
+      "condition_text": "If on 2-SLOT show: Views x1.5 (Upkeep +$8)",
+      "effect":   {"v_mult": 1.5, "upkeep": 8},
+      "fallback": {"v_flat": 65, "upkeep": 5},
+      "desc": "Only shows up for blockbuster two-slot productions. Demands a trailer the size of a second studio and craft services in writing."
+    },
+    {
+      "id": "st_daytimedarling",
+      "name": "Daytime Darling",
+      "cost": 16,
+      "condition": {"type": "genre", "genres": ["COOKING", "SITCOM"]},
+      "condition_text": "If on COOKING/SITCOM: +95 Views & +$5 Income",
+      "effect":   {"v_flat": 95, "income": 5},
+      "fallback": {"v_flat": 50, "upkeep": 3},
+      "desc": "The kind of warmth that sells household products and wins regional Emmy awards simultaneously. Exceptional on light daytime programming."
+    },
+    {
+      "id": "st_newsanchor",
+      "name": "News Anchor Emeritus",
+      "cost": 20,
+      "condition": {"type": "genre", "genres": ["NEWS"]},
+      "condition_text": "If on NEWS: Views x1.5 & +$8 Income",
+      "effect":   {"v_mult": 1.5, "income": 8},
+      "fallback": {"v_flat": 60, "upkeep": 4},
+      "desc": "Forty years of credibility in one silver-haired package. The demographics follow the hair."
+    },
+    {
+      "id": "st_comebackkid",
+      "name": "The Comeback Kid",
+      "cost": 24,
+      "condition": {"type": "age_min", "value": 3},
+      "condition_text": "If show age 3+: +125 Views & Upkeep -$3",
+      "effect":   {"v_flat": 125, "upkeep": -3},
+      "fallback": {"v_flat": 55, "upkeep": 4},
+      "desc": "Audiences root for any show that survives past season three. They root harder when this star shows up for it."
+    },
+    {
+      "id": "st_controversy",
+      "name": "Controversy Machine",
+      "cost": 12,
+      "condition": {"type": "genre", "genres": ["REALITY", "NEWS"]},
+      "condition_text": "If on REALITY/NEWS: +95 Views (Upkeep +$5)",
+      "effect":   {"v_flat": 95, "upkeep": 5},
+      "fallback": {"v_flat": 30, "upkeep": 4},
+      "desc": "Does not know what 'not my place to say' means. The publicist earns hazard pay. The ratings are extraordinary."
+    },
+    {
+      "id": "st_networkveteran",
+      "name": "Network Veteran",
+      "cost": 28,
+      "condition": {"type": "ad_slots_min", "value": 1},
+      "condition_text": "If show has 1+ Ad slot: Views x1.4 (Upkeep +$10)",
+      "effect":   {"v_mult": 1.4, "upkeep": 10},
+      "fallback": {"v_flat": 80, "upkeep": 8},
+      "desc": "Has appeared in so many ads they count as infrastructure. Any show with a sponsor sees a 40% viewing bump on their arrival."
+    },
+    {
+      "id": "st_superfancameo",
+      "name": "Superfan Cameo",
+      "cost": 14,
+      "condition": {"type": "genre", "genres": ["SCIFI", "COOKING"]},
+      "condition_text": "If on SCIFI/COOKING: +90 Views & +$3 Income",
+      "effect":   {"v_flat": 90, "income": 3},
+      "fallback": {"v_flat": 40, "upkeep": 2},
+      "desc": "Won the fan lottery. Brings a homemade replica prop and needs no direction. The internet clips their scene immediately."
+    }
+  ]
+}

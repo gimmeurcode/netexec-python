@@ -1,0 +1,395 @@
+{
+  "version": "1.0.0",
+  "notes": "Seasonal events roll at the END of every season and take effect the following season. Kinds: modifier (passive effect each active season), mandate (requirement checked each active season  -  penalty if unmet), contract (requirement checked each season  -  reward if met in window, optional penalty if window closes unmet), instant (one-time effect using existing event registry). Offerable contracts (is_offerable: true) appear on the player offers board and must be explicitly accepted.",
+
+  "events": [
+
+    // ── MODIFIER EVENTS ───────────────────────────────────────────────────────
+
+    {
+      "id":         "sev_pandemic",
+      "name":       "Global Pandemic",
+      "desc":       "Everyone's home watching TV. Ratings tick up  -  but production costs skyrocket.",
+      "weight":     4,
+      "min_season": 2,
+      "duration":   2,
+      "kind":       "modifier",
+      "effects": {
+        "view_mult":   1.12,
+        "upkeep_mult": 1.35
+      }
+    },
+
+    {
+      "id":         "sev_ad_boom",
+      "name":       "Ad Market Surge",
+      "desc":       "Brands are spending heavily. Modest income bump across all live shows.",
+      "weight":     5,
+      "min_season": 2,
+      "duration":   2,
+      "kind":       "modifier",
+      "effects": {
+        "view_mult":   1.0,
+        "upkeep_mult": 1.0,
+        "income_flat": 6
+      }
+    },
+
+    {
+      "id":         "sev_budget_audit",
+      "name":       "Budget Audit",
+      "desc":       "The board dispatched accountants. Every department is haemorrhaging money on upkeep.",
+      "weight":     6,
+      "min_season": 2,
+      "duration":   2,
+      "kind":       "modifier",
+      "effects": {
+        "view_mult":   1.0,
+        "upkeep_mult": 1.50
+      }
+    },
+
+    {
+      "id":         "sev_tech_disruption",
+      "name":       "Tech Sector Ad Blitz",
+      "desc":       "Every startup is buying airtime. Modest income rise; Sci-Fi and News benefit a little.",
+      "weight":     4,
+      "min_season": 3,
+      "duration":   2,
+      "kind":       "modifier",
+      "effects": {
+        "view_mult":   1.0,
+        "upkeep_mult": 1.0,
+        "income_flat": 5,
+        "genre_view_mult": {
+          "SCIFI": 1.10,
+          "NEWS":  1.08
+        }
+      }
+    },
+
+    {
+      "id":         "sev_streaming_wars",
+      "name":       "Streaming Wars",
+      "desc":       "Rival platforms are poaching viewers. Everyone's cord-cutting. Views shrink across the board.",
+      "weight":     7,
+      "min_season": 3,
+      "duration":   2,
+      "kind":       "modifier",
+      "effects": {
+        "view_mult":   0.85,
+        "upkeep_mult": 1.0
+      }
+    },
+
+    {
+      "id":         "sev_ratings_slump",
+      "name":       "Summer Ratings Slump",
+      "desc":       "Audiences are outdoors. Every network is struggling. Views are down system-wide.",
+      "weight":     7,
+      "min_season": 2,
+      "duration":   2,
+      "kind":       "modifier",
+      "effects": {
+        "view_mult":   0.88,
+        "upkeep_mult": 1.0
+      }
+    },
+
+    {
+      "id":         "sev_production_strike",
+      "name":       "Production Strike",
+      "desc":       "Set workers walked out. Upkeep just got brutal. Views are unaffected  -  barely.",
+      "weight":     5,
+      "min_season": 3,
+      "duration":   3,
+      "kind":       "modifier",
+      "effects": {
+        "view_mult":   1.0,
+        "upkeep_mult": 1.60
+      }
+    },
+
+    {
+      "id":         "sev_ratings_golden_age",
+      "name":       "Television Golden Age",
+      "desc":       "Critics and audiences alike have rediscovered appointment TV. Views are slightly up.",
+      "weight":     3,
+      "min_season": 5,
+      "duration":   2,
+      "kind":       "modifier",
+      "effects": {
+        "view_mult":   1.10,
+        "upkeep_mult": 1.0
+      }
+    },
+
+    {
+      "id":         "sev_food_craze",
+      "name":       "National Food Obsession",
+      "desc":       "Everyone's a home chef now. Cooking shows are the talk of the nation.",
+      "weight":     4,
+      "min_season": 2,
+      "duration":   2,
+      "kind":       "modifier",
+      "effects": {
+        "view_mult":   1.0,
+        "upkeep_mult": 1.0,
+        "genre_view_mult": {
+          "COOKING": 1.20,
+          "REALITY": 1.08
+        }
+      }
+    },
+
+    // ── MANDATE EVENTS ────────────────────────────────────────────────────────
+
+    {
+      "id":         "sev_writers_strike",
+      "name":       "Writers' Strike",
+      "desc":       "Script supply has collapsed. The union demands respect. Air at least 2 Reality shows or pay the settlement.",
+      "weight":     4,
+      "min_season": 2,
+      "duration":   2,
+      "kind":       "mandate",
+      "requirement": {
+        "type":  "air_genre_count",
+        "genre": "REALITY",
+        "count": 2
+      },
+      "penalty": { "budget_loss": 20 }
+    },
+
+    {
+      "id":         "sev_news_mandate",
+      "name":       "Public Interest Directive",
+      "desc":       "Regulators are watching. Air at least one News programme each season or face a compliance fine.",
+      "weight":     4,
+      "min_season": 3,
+      "duration":   3,
+      "kind":       "mandate",
+      "requirement": {
+        "type":  "air_genre_count",
+        "genre": "NEWS",
+        "count": 1
+      },
+      "penalty": { "budget_loss": 15 }
+    },
+
+    {
+      "id":         "sev_prime_time_mandate",
+      "name":       "Prime Time Commitment",
+      "desc":       "Advertisers are paying a premium for Prime Time. The board insists you keep it filled.",
+      "weight":     4,
+      "min_season": 3,
+      "duration":   2,
+      "kind":       "mandate",
+      "requirement": {
+        "type": "air_in_slot",
+        "slot": 2
+      },
+      "penalty": { "budget_loss": 12 }
+    },
+
+    {
+      "id":         "sev_talent_mandate",
+      "name":       "Talent Showcase Deal",
+      "desc":       "Your agent has lined up a deal: keep at least 3 stars attached across your shows or forfeit the contract fee.",
+      "weight":     3,
+      "min_season": 4,
+      "duration":   2,
+      "kind":       "mandate",
+      "requirement": {
+        "type":  "attach_stars_count",
+        "count": 3
+      },
+      "penalty": { "budget_loss": 18 }
+    },
+
+    // ── AUTO-FIRED CONTRACT EVENTS ─────────────────────────────────────────────
+
+    {
+      "id":         "sev_streaming_acquisition",
+      "name":       "Streaming Acquisition Offer",
+      "desc":       "StreamVault wants your back catalogue. Reach 3,000 total views in the window and they'll cut a cheque.",
+      "weight":     3,
+      "min_season": 4,
+      "duration":   4,
+      "kind":       "contract",
+      "is_offerable": false,
+      "requirement": { "type": "reach_views", "value": 3000 },
+      "reward":  { "budget_bonus": 60 },
+      "penalty": { "budget_loss":  25 }
+    },
+
+    {
+      "id":         "sev_network_merger",
+      "name":       "Network Merger Talks",
+      "desc":       "A rival network is sniffing around. Show them a diverse genre lineup  -  avoid running any genre monopoly.",
+      "weight":     3,
+      "min_season": 5,
+      "duration":   3,
+      "kind":       "contract",
+      "is_offerable": false,
+      "requirement": { "type": "avoid_genre", "genre": "REALITY" },
+      "reward":  { "budget_bonus": 40 },
+      "penalty": { "budget_loss":  15 }
+    },
+
+    // ── OFFERABLE CONTRACTS (player accepts voluntarily) ──────────────────────
+
+    {
+      "id":         "sev_offer_sports_deal",
+      "name":       "Live Sports Exclusivity",
+      "desc":       "A sports rights consortium wants prime-time coverage. Air 2+ Sports shows within the window.",
+      "weight":     5,
+      "min_season": 2,
+      "duration":   3,
+      "kind":       "contract",
+      "is_offerable": true,
+      "requirement": {
+        "type":  "air_genre_count",
+        "genre": "SPORTS",
+        "count": 2
+      },
+      "reward":  { "budget_bonus": 30 },
+      "penalty": { "budget_loss":  15 }
+    },
+
+    {
+      "id":         "sev_offer_drama_prestige",
+      "name":       "Prestige Drama Commission",
+      "desc":       "A studio wants Drama prestige content. Keep 2+ Drama shows on air to collect the co-production fee.",
+      "weight":     5,
+      "min_season": 2,
+      "duration":   3,
+      "kind":       "contract",
+      "is_offerable": true,
+      "requirement": {
+        "type":  "air_genre_count",
+        "genre": "DRAMA",
+        "count": 2
+      },
+      "reward":  { "budget_bonus": 28 },
+      "penalty": { "budget_loss":  12 }
+    },
+
+    {
+      "id":         "sev_offer_cooking_sponsor",
+      "name":       "Culinary Brand Sponsorship",
+      "desc":       "FreshMart wants Cooking content front and centre. Air 2+ Cooking shows within the window.",
+      "weight":     5,
+      "min_season": 2,
+      "duration":   3,
+      "kind":       "contract",
+      "is_offerable": true,
+      "requirement": {
+        "type":  "air_genre_count",
+        "genre": "COOKING",
+        "count": 2
+      },
+      "reward":  { "budget_bonus": 26 },
+      "penalty": { "budget_loss":  10 }
+    },
+
+    {
+      "id":         "sev_offer_views_milestone",
+      "name":       "Ratings Agency Challenge",
+      "desc":       "A national ratings body will grant a prestige award and a bonus if you reach 6,000 total views.",
+      "weight":     4,
+      "min_season": 5,
+      "duration":   4,
+      "kind":       "contract",
+      "is_offerable": true,
+      "requirement": { "type": "reach_views", "value": 6000 },
+      "reward":  { "budget_bonus": 40 },
+      "penalty": {}
+    },
+
+    {
+      "id":         "sev_offer_star_showcase",
+      "name":       "Talent Agency Showcase",
+      "desc":       "An agency wants a showcase. Keep 4+ stars attached across your lineup for the window.",
+      "weight":     4,
+      "min_season": 3,
+      "duration":   3,
+      "kind":       "contract",
+      "is_offerable": true,
+      "requirement": {
+        "type":  "attach_stars_count",
+        "count": 4
+      },
+      "reward":  { "budget_bonus": 32 },
+      "penalty": { "budget_loss":  14 }
+    },
+
+    {
+      "id":         "sev_offer_news_grant",
+      "name":       "Public Broadcasting Grant",
+      "desc":       "A public broadcaster offers co-funding if you keep News on air in every season of the window.",
+      "weight":     4,
+      "min_season": 2,
+      "duration":   4,
+      "kind":       "contract",
+      "is_offerable": true,
+      "requirement": {
+        "type":  "air_genre_count",
+        "genre": "NEWS",
+        "count": 1
+      },
+      "reward":  { "budget_bonus": 30 },
+      "penalty": { "budget_loss":  10 }
+    },
+
+    // ── INSTANT EVENTS (reuse existing event-pool handlers) ───────────────────
+
+    {
+      "id":           "sev_viral_clip",
+      "name":         "Clip Goes Viral",
+      "desc":         "Something from your network exploded online. Modest ratings bump.",
+      "weight":       4,
+      "min_season":   1,
+      "duration":     1,
+      "kind":         "instant",
+      "effect_type":  "add_views",
+      "effect_params": { "views": 150 }
+    },
+
+    {
+      "id":           "sev_emergency_grant",
+      "name":         "Emergency Arts Council Grant",
+      "desc":         "The government funded an emergency arts initiative. Your network qualifies for a small subsidy.",
+      "weight":       3,
+      "min_season":   2,
+      "duration":     1,
+      "kind":         "instant",
+      "effect_type":  "add_budget",
+      "effect_params": { "amount": 20 }
+    },
+
+    {
+      "id":           "sev_industry_boost",
+      "name":         "Industry Convention Buzz",
+      "desc":         "Your network was the talk of the trade show. Views and budget get a small lift.",
+      "weight":       2,
+      "min_season":   3,
+      "duration":     1,
+      "kind":         "instant",
+      "effect_type":  "add_budget_and_views",
+      "effect_params": { "budget": 15, "views": 120 }
+    },
+
+    {
+      "id":           "sev_rejuvenation",
+      "name":         "Creative Reinvention",
+      "desc":         "A cultural moment breathes new life into your shows. Your lineup feels fresh again.",
+      "weight":       2,
+      "min_season":   4,
+      "duration":     1,
+      "kind":         "instant",
+      "effect_type":  "reduce_lineup_age",
+      "effect_params": { "amount": 1, "min_age": 1 }
+    }
+
+  ]
+}

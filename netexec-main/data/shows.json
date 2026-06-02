@@ -1,0 +1,1074 @@
+{
+  "version": "1.0.0",
+  "notes": "Add new shows here without touching any Python logic. Fields: id, name, genre, size (1 or 2), cost, upkeep, base_views, star_slots, ad_slots, rec_slots (list of 0-3), desc.",
+
+  "genre_registry": {
+    "SITCOM": {
+      "label": "Sitcom",
+      "monopoly": {
+        "type": "views_income",
+        "views_mult": 1.15,
+        "income_bonus": 10,
+        "desc": "Sitcom Sweep  -  all shows x1.15 Views & +$10 Income per season."
+      }
+    },
+    "DRAMA": {
+      "label": "Drama",
+      "monopoly": {
+        "type": "views_income",
+        "views_mult": 1.22,
+        "income_bonus": 18,
+        "desc": "Drama Dynasty  -  all shows x1.22 Views & +$18 Income per season."
+      }
+    },
+    "SCIFI": {
+      "label": "Sci-Fi",
+      "monopoly": {
+        "type": "views_income",
+        "views_mult": 1.25,
+        "income_bonus": 14,
+        "desc": "Sci-Fi Stranglehold  -  all shows x1.25 Views & +$14 Income per season."
+      }
+    },
+    "REALITY": {
+      "label": "Reality",
+      "monopoly": {
+        "type": "views_income",
+        "views_mult": 1.10,
+        "income_bonus": 10,
+        "desc": "Reality Lock  -  all shows x1.10 Views & +$10 Income per season."
+      }
+    },
+    "SPORTS": {
+      "label": "Sports",
+      "monopoly": {
+        "type": "views_income",
+        "views_mult": 1.30,
+        "income_bonus": 20,
+        "desc": "Sports Monopoly  -  all shows x1.30 Views & +$20 Income per season."
+      }
+    },
+    "NEWS": {
+      "label": "News",
+      "monopoly": {
+        "type": "target_reduction",
+        "target_mult": 0.88,
+        "income_bonus": 5,
+        "desc": "News Dominance  -  next milestone target x0.88 & +$5 Income per season. The facts are on your side."
+      }
+    },
+    "COOKING": {
+      "label": "Cooking",
+      "monopoly": {
+        "type": "views_income",
+        "views_mult": 1.18,
+        "income_bonus": 12,
+        "desc": "Cooking Channel Takeover  -  all shows x1.18 Views & +$12 Income per season. The network smells like butter now."
+      }
+    }
+  },
+
+  "wildcard": {
+    "id": "sh_wildcard",
+    "name": "???",
+    "genre": null,
+    "size": 1,
+    "cost": 30,
+    "upkeep": 6,
+    "base_views": 150,
+    "star_slots": 2,
+    "ad_slots": 2,
+    "rec_slots": null,
+    "is_wildcard": true,
+    "desc": "A blank slate. Name it, choose its genre, and pick its recommended time slot. Anything could air here  -  and probably will."
+  },
+
+  "shows": [
+
+    // ── SITCOMS ──────────────────────────────────────────────────────────────
+    // Low cost, low upkeep, moderate views. Strong in ad-heavy builds and as
+    // early-game anchors. Several have 0 star slots and 3 ad slots for pure
+    // revenue extraction. Comedy monopoly rewards audience retention.
+    {
+      "id": "sh_cubicle",
+      "name": "The Cubicle",
+      "genre": "SITCOM",
+      "size": 1,
+      "cost": 15,
+      "upkeep": 4,
+      "base_views": 110,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "Documentary crew follows office workers in their natural habitat. Printer malfunction causes existential crisis. Somehow ran 9 seasons."
+    },
+    {
+      "id": "sh_acquaintances",
+      "name": "Acquaintances",
+      "genre": "SITCOM",
+      "size": 1,
+      "cost": 20,
+      "upkeep": 6,
+      "base_views": 140,
+      "star_slots": 2,
+      "ad_slots": 1,
+      "rec_slots": [2],
+      "desc": "Six unemployed adults share a luxury Manhattan apartment on a barista's salary. It is absolutely Friends, down to the Central Perk couch and the Ross hair."
+    },
+    {
+      "id": "sh_northlawn",
+      "name": "North Lawn",
+      "genre": "SITCOM",
+      "size": 1,
+      "cost": 12,
+      "upkeep": 2,
+      "base_views": 80,
+      "star_slots": 0,
+      "ad_slots": 3,
+      "rec_slots": [2, 3],
+      "desc": "Animated fourth-graders say things no child has ever said. Budget: $11. Writers: chaotic."
+    },
+    {
+      "id": "sh_bronzegals",
+      "name": "The Bronze Gals",
+      "genre": "SITCOM",
+      "size": 1,
+      "cost": 18,
+      "upkeep": 5,
+      "base_views": 125,
+      "star_slots": 2,
+      "ad_slots": 1,
+      "rec_slots": [0, 1],
+      "desc": "Four retirees eat cheesecake and destroy each other emotionally. Betty White would approve."
+    },
+    {
+      "id": "sh_parkplace",
+      "name": "Park Place",
+      "genre": "SITCOM",
+      "size": 1,
+      "cost": 16,
+      "upkeep": 4,
+      "base_views": 115,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "Idealistic city planner meets the concept of budgets. 'Treat yo self' is the only economic policy."
+    },
+    {
+      "id": "sh_elementaryschool",
+      "name": "Elementary, My Dear",
+      "genre": "SITCOM",
+      "size": 1,
+      "cost": 19,
+      "upkeep": 5,
+      "base_views": 130,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "New teacher at a chronically underfunded school. The WiFi is the final boss. The kids are alright."
+    },
+    {
+      "id": "sh_whatstheway",
+      "name": "What's The Way?",
+      "genre": "SITCOM",
+      "size": 1,
+      "cost": 22,
+      "upkeep": 6,
+      "base_views": 145,
+      "star_slots": 2,
+      "ad_slots": 2,
+      "rec_slots": [2, 3],
+      "desc": "A man spends 9 seasons telling his kids how he met their mother. The answer will disappoint everyone."
+    },
+    {
+      "id": "sh_smartproblems",
+      "name": "Smart Guys, Dumb Problems",
+      "genre": "SITCOM",
+      "size": 1,
+      "cost": 14,
+      "upkeep": 3,
+      "base_views": 95,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "Physicists have social awkwardness played for laughs every 22 minutes. It is the Big Bang Theory, and Bazinga is still not a word."
+    },
+    {
+      "id": "sh_ninenien",
+      "name": "Nine-Nien!",
+      "genre": "SITCOM",
+      "size": 1,
+      "cost": 18,
+      "upkeep": 5,
+      "base_views": 130,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "A precinct that solves crimes and also its own HR violations. Brooklyn Nine-Nine, but louder."
+    },
+    {
+      "id": "sh_laughtrack",
+      "name": "Laugh Track 3000",
+      "genre": "SITCOM",
+      "size": 1,
+      "cost": 12,
+      "upkeep": 3,
+      "base_views": 95,
+      "star_slots": 0,
+      "ad_slots": 3,
+      "rec_slots": [0, 1, 2],
+      "desc": "The audience laughs even when the joke is about taxes. Zero star slots, maximum ad revenue potential."
+    },
+    {
+      "id": "sh_budgetbuddies",
+      "name": "Budget Buddies",
+      "genre": "SITCOM",
+      "size": 1,
+      "cost": 15,
+      "upkeep": 4,
+      "base_views": 110,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [0, 1],
+      "desc": "Office pals dodge HR while the copier applies for PTO."
+    },
+
+    // ── DRAMAS ───────────────────────────────────────────────────────────────
+    // Higher cost and upkeep. Star-slot heavy  -  designed to be amplified by
+    // talent. Drama monopoly pays the strongest income bonus in the game but
+    // requires sustained budget investment to maintain.
+    {
+      "id": "sh_fixinggood",
+      "name": "Fixing Good",
+      "genre": "DRAMA",
+      "size": 1,
+      "cost": 30,
+      "upkeep": 10,
+      "base_views": 220,
+      "star_slots": 2,
+      "ad_slots": 1,
+      "rec_slots": [2],
+      "desc": "Chemistry teacher makes catastrophically bad life choices for 5 seasons. A cautionary tale of pride and chemistry gone wrong."
+    },
+    {
+      "id": "sh_rulesreg",
+      "name": "Rules & Regs",
+      "genre": "DRAMA",
+      "size": 1,
+      "cost": 20,
+      "upkeep": 6,
+      "base_views": 135,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [1, 3],
+      "desc": "DUN-DUN. 'In the criminal justice system...' is the most comforting sentence in television history."
+    },
+    {
+      "id": "sh_musicalchairs",
+      "name": "Musical Chairs",
+      "genre": "DRAMA",
+      "size": 2,
+      "cost": 62,
+      "upkeep": 18,
+      "base_views": 450,
+      "star_slots": 2,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "EXTENDED 2-SLOT EPIC. Dragons, betrayal, and a finale that will make you unfollow dragons forever. The Red Wedding is still trending."
+    },
+    {
+      "id": "sh_thesuccessors",
+      "name": "The Successors",
+      "genre": "DRAMA",
+      "size": 1,
+      "cost": 35,
+      "upkeep": 12,
+      "base_views": 250,
+      "star_slots": 2,
+      "ad_slots": 1,
+      "rec_slots": [2, 3],
+      "desc": "Wealthy dysfunctional family argues about who inherits the company. Everyone is awful. Nobody changes. We love it."
+    },
+    {
+      "id": "sh_creamstone",
+      "name": "Cream Stone",
+      "genre": "DRAMA",
+      "size": 1,
+      "cost": 28,
+      "upkeep": 9,
+      "base_views": 190,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [2],
+      "desc": "Sun-drenched resort. Guests check in with secrets; check out with trauma. Buffet is complimentary."
+    },
+    {
+      "id": "sh_thebeartrap",
+      "name": "The Bear Trap",
+      "genre": "DRAMA",
+      "size": 1,
+      "cost": 32,
+      "upkeep": 11,
+      "base_views": 230,
+      "star_slots": 2,
+      "ad_slots": 1,
+      "rec_slots": [2, 3],
+      "desc": "Michelin-starred chef runs a failing beef sandwich shop. Every episode someone screams YES CHEF for 40 minutes."
+    },
+    {
+      "id": "sh_shampoo",
+      "name": "Agents of S.H.A.M.P.O.O.",
+      "genre": "DRAMA",
+      "size": 1,
+      "cost": 22,
+      "upkeep": 6,
+      "base_views": 150,
+      "star_slots": 2,
+      "ad_slots": 2,
+      "rec_slots": [3],
+      "desc": "Government agents fight supervillains while dealing with budget cuts and HR complaints. Clean espionage."
+    },
+    {
+      "id": "sh_thronebones",
+      "name": "Throne of Bones",
+      "genre": "DRAMA",
+      "size": 1,
+      "cost": 34,
+      "upkeep": 11,
+      "base_views": 245,
+      "star_slots": 2,
+      "ad_slots": 1,
+      "rec_slots": [2],
+      "desc": "Everyone wants the chair. The chair wants back."
+    },
+    {
+      "id": "sh_midnightcourt",
+      "name": "Midnight Court",
+      "genre": "DRAMA",
+      "size": 1,
+      "cost": 24,
+      "upkeep": 7,
+      "base_views": 170,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [3],
+      "desc": "Late-night verdicts, loud gavel ASMR."
+    },
+    {
+      "id": "sh_boardroom",
+      "name": "Boardroom Bloodlines",
+      "genre": "DRAMA",
+      "size": 1,
+      "cost": 26,
+      "upkeep": 8,
+      "base_views": 185,
+      "star_slots": 2,
+      "ad_slots": 1,
+      "rec_slots": [2],
+      "desc": "A dying patriarch pits his three children against each other in a live-broadcast shareholder meeting. Succession, but louder."
+    },
+    {
+      "id": "sh_breakingpoint",
+      "name": "Breaking Point",
+      "genre": "DRAMA",
+      "size": 1,
+      "cost": 29,
+      "upkeep": 9,
+      "base_views": 200,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [2, 3],
+      "desc": "A forensic accountant discovers his firm launders money for a drug cartel. Paperwork has never been this tense."
+    },
+
+    // ── SCI-FI ───────────────────────────────────────────────────────────────
+    // Mid-to-high cost. Strong base views and good star synergy.
+    // 2-slot Sci-Fi shows are the priciest in the game but deliver the best
+    // burst views for a monopoly or Sweeps push.
+    {
+      "id": "sh_starpath",
+      "name": "Star Path",
+      "genre": "SCIFI",
+      "size": 1,
+      "cost": 25,
+      "upkeep": 8,
+      "base_views": 180,
+      "star_slots": 2,
+      "ad_slots": 1,
+      "rec_slots": [2, 3],
+      "desc": "Crew of a generational colony ship argues about governance for 7 seasons. Nobody reaches the planet. Critics love it."
+    },
+    {
+      "id": "sh_androidblues",
+      "name": "Android Blues",
+      "genre": "SCIFI",
+      "size": 1,
+      "cost": 28,
+      "upkeep": 9,
+      "base_views": 195,
+      "star_slots": 2,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "An android cop questions its own humanity while solving crimes in a rain-soaked megacity. Blade Runner, but with union benefits."
+    },
+    {
+      "id": "sh_herocomplex",
+      "name": "Hero Complex",
+      "genre": "SCIFI",
+      "size": 2,
+      "cost": 55,
+      "upkeep": 16,
+      "base_views": 410,
+      "star_slots": 2,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "EXTENDED 2-SLOT. Superheroes behave badly and satirize capitalism. Funded by a multinational corporation."
+    },
+    {
+      "id": "sh_cyberslug",
+      "name": "Cyberslug vs. Mecho Earthworm",
+      "genre": "SCIFI",
+      "size": 1,
+      "cost": 20,
+      "upkeep": 5,
+      "base_views": 155,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "An animated battle for the ages. Somehow better storytelling than most dramas. The earthworm is complex."
+    },
+    {
+      "id": "sh_spacecarpool",
+      "name": "Space Carpool Karaoke",
+      "genre": "SCIFI",
+      "size": 1,
+      "cost": 20,
+      "upkeep": 6,
+      "base_views": 150,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [0, 1],
+      "desc": "Zero gravity, maximum harmonies, zero seatbelts."
+    },
+    {
+      "id": "sh_mechafarm",
+      "name": "Mecha Farm",
+      "genre": "SCIFI",
+      "size": 1,
+      "cost": 22,
+      "upkeep": 7,
+      "base_views": 165,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [3],
+      "desc": "Giant robots harvest corn and existential dread."
+    },
+    {
+      "id": "sh_signalnoise",
+      "name": "Signal Noise",
+      "genre": "SCIFI",
+      "size": 1,
+      "cost": 24,
+      "upkeep": 7,
+      "base_views": 175,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "An alien hijacks the local affiliate to complain about ad targeting."
+    },
+    {
+      "id": "sh_quantumtelethon",
+      "name": "Quantum Telethon",
+      "genre": "SCIFI",
+      "size": 2,
+      "cost": 58,
+      "upkeep": 17,
+      "base_views": 435,
+      "star_slots": 2,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "EXTENDED 2-SLOT. A charity stream that accidentally opens a portal. Pledge drives will never be the same."
+    },
+
+    // ── REALITY ──────────────────────────────────────────────────────────────
+    // Cheapest genre. Low upkeep. Several shows have 0 star slots and 3 ad
+    // slots  -  ideal for dual-income ad stacking strategies. Reality monopoly
+    // is the easiest to assemble and the most cash-efficient per slot.
+    {
+      "id": "sh_outcaster",
+      "name": "The Outcaster",
+      "genre": "REALITY",
+      "size": 1,
+      "cost": 10,
+      "upkeep": 2,
+      "base_views": 90,
+      "star_slots": 0,
+      "ad_slots": 3,
+      "rec_slots": [1, 2],
+      "desc": "Strangers vote each other off an island over rice portions. Democracy in action."
+    },
+    {
+      "id": "sh_kitchenyell",
+      "name": "Kitchen Yelling",
+      "genre": "REALITY",
+      "size": 1,
+      "cost": 14,
+      "upkeep": 3,
+      "base_views": 115,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [2, 3],
+      "desc": "Scottish man screams at raw risotto. It is Hell's Kitchen with Gordon Ramsay at maximum volume."
+    },
+    {
+      "id": "sh_squidleague",
+      "name": "Squid League",
+      "genre": "REALITY",
+      "size": 1,
+      "cost": 25,
+      "upkeep": 7,
+      "base_views": 190,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [2, 3],
+      "desc": "Debt-ridden contestants play deadly children's games. Squid Game, but with network standards & practices screaming in the control room."
+    },
+    {
+      "id": "sh_dragrace",
+      "name": "Drag My Race",
+      "genre": "REALITY",
+      "size": 1,
+      "cost": 20,
+      "upkeep": 5,
+      "base_views": 155,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "Charisma, Uniqueness, Nerve, and a craft budget of $50. RuPaul's Drag Race would absolutely read this lineup."
+    },
+    {
+      "id": "sh_breathmints",
+      "name": "Breath Mints Around the Globe",
+      "genre": "REALITY",
+      "size": 1,
+      "cost": 10,
+      "upkeep": 2,
+      "base_views": 90,
+      "star_slots": 0,
+      "ad_slots": 3,
+      "rec_slots": [1, 2],
+      "desc": "A man travels the world reviewing breath mints. Renewed for 7 seasons. Nobody asked why."
+    },
+    {
+      "id": "sh_bakeoff",
+      "name": "The Great Bake-Off-By-One",
+      "genre": "REALITY",
+      "size": 1,
+      "cost": 16,
+      "upkeep": 4,
+      "base_views": 120,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [1],
+      "desc": "One baker short, twice the panic. Mary Berry was unavailable. The tent remains."
+    },
+    {
+      "id": "sh_infgarage",
+      "name": "Infinite Garage",
+      "genre": "REALITY",
+      "size": 1,
+      "cost": 12,
+      "upkeep": 3,
+      "base_views": 95,
+      "star_slots": 0,
+      "ad_slots": 3,
+      "rec_slots": [3],
+      "desc": "Collectors hoard every nostalgia toy ever printed. The garage grows. The family does not approve."
+    },
+    {
+      "id": "sh_sweepshouse",
+      "name": "Sweeps Week House",
+      "genre": "REALITY",
+      "size": 1,
+      "cost": 14,
+      "upkeep": 3,
+      "base_views": 115,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [2, 3],
+      "desc": "Contestants fight for the last working Nielsen box. The winner gets a cameo in a different show."
+    },
+
+    // ── SPORTS ───────────────────────────────────────────────────────────────
+    // Highest raw view counts. Expensive, upkeep-heavy, and the Sports
+    // monopoly bonus is the strongest in the game  -  but filling all slots
+    // is a genuine late-game achievement.
+    {
+      "id": "sh_concussions",
+      "name": "Sunday Concussions",
+      "genre": "SPORTS",
+      "size": 2,
+      "cost": 40,
+      "upkeep": 12,
+      "base_views": 350,
+      "star_slots": 1,
+      "ad_slots": 3,
+      "rec_slots": [0, 1],
+      "desc": "EXTENDED 2-SLOT. Men collide at high speed with profound legal liability for the league."
+    },
+    {
+      "id": "sh_steelchair",
+      "name": "Steel Chair Spectacular",
+      "genre": "SPORTS",
+      "size": 1,
+      "cost": 22,
+      "upkeep": 6,
+      "base_views": 160,
+      "star_slots": 2,
+      "ad_slots": 2,
+      "rec_slots": [2, 3],
+      "desc": "Theatrical combat featuring folding chairs, dramatic entrances, and outcomes predetermined by writers who absolutely exist."
+    },
+    {
+      "id": "sh_premierkicking",
+      "name": "Premier Kicking",
+      "genre": "SPORTS",
+      "size": 1,
+      "cost": 18,
+      "upkeep": 5,
+      "base_views": 135,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [0, 1],
+      "desc": "Men fall over in agony. VAR overturns the goal. Fans weep into their pints. Repeated 38 weeks per year."
+    },
+    {
+      "id": "sh_goodlad",
+      "name": "Good Lad",
+      "genre": "SPORTS",
+      "size": 1,
+      "cost": 26,
+      "upkeep": 8,
+      "base_views": 185,
+      "star_slots": 2,
+      "ad_slots": 1,
+      "rec_slots": [1, 2],
+      "desc": "An impossibly optimistic American coaches a failing soccer team. It is Ted Lasso in all but name, with Jason Sudeikis levels of wholesomeness."
+    },
+    {
+      "id": "sh_fainting",
+      "name": "Ultimate Fainting Championship",
+      "genre": "SPORTS",
+      "size": 2,
+      "cost": 45,
+      "upkeep": 13,
+      "base_views": 300,
+      "star_slots": 1,
+      "ad_slots": 3,
+      "rec_slots": [0, 1],
+      "desc": "EXTENDED 2-SLOT. Competitive synchronized fainting. A sport that deserves more respect than it receives."
+    },
+    {
+      "id": "sh_grapplemania",
+      "name": "GrappleMania",
+      "genre": "SPORTS",
+      "size": 1,
+      "cost": 22,
+      "upkeep": 6,
+      "base_views": 160,
+      "star_slots": 2,
+      "ad_slots": 2,
+      "rec_slots": [3],
+      "desc": "The annual championship event. Pyrotechnics, entrance themes, and a main event that goes two hours over schedule."
+    },
+    {
+      "id": "sh_chessboxing",
+      "name": "Chessboxing Nights",
+      "genre": "SPORTS",
+      "size": 1,
+      "cost": 18,
+      "upkeep": 5,
+      "base_views": 140,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [2],
+      "desc": "Checkmate, uppercut, repeat. A legitimate sport that demands both brain and brawn."
+    },
+    {
+      "id": "sh_officeolympics",
+      "name": "Office Overtime Olympics",
+      "genre": "SPORTS",
+      "size": 1,
+      "cost": 20,
+      "upkeep": 6,
+      "base_views": 155,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [0, 1],
+      "desc": "Ergonomic chair racing and high-stakes stapling finals. The water-cooler relay is genuinely suspenseful."
+    },
+    {
+      "id": "sh_meteorbowl",
+      "name": "Meteor Bowl XL",
+      "genre": "SPORTS",
+      "size": 2,
+      "cost": 55,
+      "upkeep": 16,
+      "base_views": 420,
+      "star_slots": 2,
+      "ad_slots": 2,
+      "rec_slots": [2, 3],
+      "desc": "EXTENDED 2-SLOT. An interstellar championship with a suspiciously on-time meteor. Halftime show to follow."
+    },
+
+    // ── NEWS ─────────────────────────────────────────────────────────────────
+    // A new genre added in this rebuild. Moderate views, low upkeep, ad-heavy.
+    // The NEWS monopoly is unique: instead of boosting views, it reduces the
+    // next milestone target  -  letting a News network survive on fewer ratings
+    // by dominating the narrative. Recommended for morning/afternoon.
+    {
+      "id": "sh_eveningbrief",
+      "name": "The Evening Briefing",
+      "genre": "NEWS",
+      "size": 1,
+      "cost": 14,
+      "upkeep": 3,
+      "base_views": 100,
+      "star_slots": 1,
+      "ad_slots": 3,
+      "rec_slots": [0, 1],
+      "desc": "Sober anchor, three graphs, and sponsored content dressed up as analysis. Runs every weeknight. Nobody has ever missed an episode."
+    },
+    {
+      "id": "sh_globalcrisis",
+      "name": "Global Crisis Network",
+      "genre": "NEWS",
+      "size": 1,
+      "cost": 18,
+      "upkeep": 4,
+      "base_views": 135,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [0, 1, 2],
+      "desc": "BREAKING NEWS. Always breaking news. There has been a crisis every day for 40 years and GCN was there for all of them."
+    },
+    {
+      "id": "sh_theanchor",
+      "name": "The Anchor",
+      "genre": "NEWS",
+      "size": 1,
+      "cost": 22,
+      "upkeep": 5,
+      "base_views": 155,
+      "star_slots": 2,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "A prime-time personality-driven newscast. The anchor has opinions. They are not hiding them. Ratings surge whenever there is controversy."
+    },
+    {
+      "id": "sh_weatherornot",
+      "name": "Weather or Not",
+      "genre": "NEWS",
+      "size": 1,
+      "cost": 12,
+      "upkeep": 2,
+      "base_views": 85,
+      "star_slots": 0,
+      "ad_slots": 3,
+      "rec_slots": [0],
+      "desc": "The forecast is always partly cloudy. The meteorologist is always confident. These two facts have never aligned."
+    },
+    {
+      "id": "sh_spinzone",
+      "name": "The Spin Zone",
+      "genre": "NEWS",
+      "size": 1,
+      "cost": 20,
+      "upkeep": 5,
+      "base_views": 140,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [2, 3],
+      "desc": "Two pundits argue about whether arguing is productive. Nobody wins. Both networks claim victory. Ad revenue is unaffected."
+    },
+
+    // ── COOKING ───────────────────────────────────────────────────────────────
+    // Mid-range cost and views  -  between SITCOM and DRAMA in power. Strong ad
+    // synergy; several shows lean on income rather than raw views. The COOKING
+    // monopoly is the steadiest income multiplier in the game. Best in morning
+    // and afternoon where the demographic is home and hungry.
+    {
+      "id": "sh_coolingzone",
+      "name": "The Cooling Zone",
+      "genre": "COOKING",
+      "size": 1,
+      "cost": 11,
+      "upkeep": 2,
+      "base_views": 82,
+      "star_slots": 0,
+      "ad_slots": 3,
+      "rec_slots": [0],
+      "desc": "A soft-spoken chef explains garlic butter in extreme detail every episode. The ASMR community has found its show. Renewed indefinitely."
+    },
+    {
+      "id": "sh_fridgewars",
+      "name": "Fridge Wars",
+      "genre": "COOKING",
+      "size": 1,
+      "cost": 14,
+      "upkeep": 3,
+      "base_views": 105,
+      "star_slots": 0,
+      "ad_slots": 2,
+      "rec_slots": [0, 1],
+      "desc": "Contestants cook three-course meals from whatever is currently in America's refrigerators. Results have included peanut butter steak."
+    },
+    {
+      "id": "sh_burntofferings",
+      "name": "Burnt Offerings",
+      "genre": "COOKING",
+      "size": 1,
+      "cost": 17,
+      "upkeep": 4,
+      "base_views": 125,
+      "star_slots": 1,
+      "ad_slots": 1,
+      "rec_slots": [1, 2],
+      "desc": "Home cooks attempt gourmet dishes with one broken oven and a smoke detector that has opinions on everything."
+    },
+    {
+      "id": "sh_lastrestaurant",
+      "name": "Last Resort Restaurant",
+      "genre": "COOKING",
+      "size": 1,
+      "cost": 20,
+      "upkeep": 5,
+      "base_views": 148,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "A celebrity chef opens a restaurant with network money and is shocked when it nearly fails."
+    },
+    {
+      "id": "sh_celebritydryrun",
+      "name": "Celebrity Dry Run",
+      "genre": "COOKING",
+      "size": 1,
+      "cost": 25,
+      "upkeep": 7,
+      "base_views": 180,
+      "star_slots": 2,
+      "ad_slots": 1,
+      "rec_slots": [2],
+      "desc": "A-list celebrities attempt to cook a single dish without assistance. Several have required building evacuation."
+    },
+    {
+      "id": "sh_culinarygames",
+      "name": "The Culinary Games",
+      "genre": "COOKING",
+      "size": 1,
+      "cost": 32,
+      "upkeep": 9,
+      "base_views": 230,
+      "star_slots": 2,
+      "ad_slots": 2,
+      "rec_slots": [2, 3],
+      "desc": "An elimination cooking tournament where the prize is a restaurant, the judges are unhinged, and the host weeps every single finale."
+    },
+
+    // ── NEW SITCOMS ───────────────────────────────────────────────────────────
+    {
+      "id": "sh_serverdown",
+      "name": "Server Down!",
+      "genre": "SITCOM",
+      "size": 1,
+      "cost": 14,
+      "upkeep": 3,
+      "base_views": 100,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "IT department of a company where technology actively hates everyone. The WiFi router is the main villain. It won a Writers Guild award."
+    },
+    {
+      "id": "sh_goldenglitches",
+      "name": "Golden Glitches",
+      "genre": "SITCOM",
+      "size": 1,
+      "cost": 12,
+      "upkeep": 3,
+      "base_views": 88,
+      "star_slots": 0,
+      "ad_slots": 3,
+      "rec_slots": [0, 1],
+      "desc": "Retirees navigate smartphones, streaming passwords, and grandchildren. The sequel nobody asked for. It is better than the original."
+    },
+    {
+      "id": "sh_suburbanspydad",
+      "name": "Suburban Spy Dad",
+      "genre": "SITCOM",
+      "size": 1,
+      "cost": 17,
+      "upkeep": 4,
+      "base_views": 120,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "A CIA field agent maintains an aggressively normal suburban cover. His cover currently involves coaching a U8 soccer team."
+    },
+
+    // ── NEW DRAMAS ────────────────────────────────────────────────────────────
+    {
+      "id": "sh_flatlinefine",
+      "name": "Flatline & Fine",
+      "genre": "DRAMA",
+      "size": 1,
+      "cost": 23,
+      "upkeep": 7,
+      "base_views": 168,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [2],
+      "desc": "A hospital drama questioned for medical accuracy by three cardiologists and the showrunner's physician. Ran twelve seasons anyway."
+    },
+    {
+      "id": "sh_legaleagle",
+      "name": "Legal Eagle Loophole",
+      "genre": "DRAMA",
+      "size": 1,
+      "cost": 20,
+      "upkeep": 6,
+      "base_views": 148,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "A defense attorney has never lost a case and has never once followed a rule. The bar association is looking into this."
+    },
+    {
+      "id": "sh_longfarewell",
+      "name": "The Long Farewell",
+      "genre": "DRAMA",
+      "size": 1,
+      "cost": 30,
+      "upkeep": 10,
+      "base_views": 215,
+      "star_slots": 2,
+      "ad_slots": 1,
+      "rec_slots": [2],
+      "desc": "An extended family gathers after a patriarch's will goes missing. Everyone has a motive. Nobody thought to hire a lawyer."
+    },
+
+    // ── NEW SCI-FI ────────────────────────────────────────────────────────────
+    {
+      "id": "sh_algorithmblues",
+      "name": "Algorithm & Blues",
+      "genre": "SCIFI",
+      "size": 1,
+      "cost": 22,
+      "upkeep": 6,
+      "base_views": 168,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "An AI is granted full network programming authority. Ratings improve by 22% immediately. Nobody is allowed to ask how."
+    },
+    {
+      "id": "sh_moonbasemal",
+      "name": "Moonbase Malfunction",
+      "genre": "SCIFI",
+      "size": 2,
+      "cost": 42,
+      "upkeep": 13,
+      "base_views": 315,
+      "star_slots": 2,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "EXTENDED 2-SLOT. A lunar colony's life support is managed by an AI with a customer-service protocol. Hold time: seventeen minutes."
+    },
+
+    // ── NEW REALITY ───────────────────────────────────────────────────────────
+    {
+      "id": "sh_survivefamily",
+      "name": "Survive My Family",
+      "genre": "REALITY",
+      "size": 1,
+      "cost": 13,
+      "upkeep": 3,
+      "base_views": 105,
+      "star_slots": 0,
+      "ad_slots": 3,
+      "rec_slots": [0, 1, 2],
+      "desc": "Contestants spend 72 hours with someone else's dysfunctional family. The therapy bills are separate from the prize fund."
+    },
+    {
+      "id": "sh_influencerisland",
+      "name": "Influencer Island",
+      "genre": "REALITY",
+      "size": 1,
+      "cost": 18,
+      "upkeep": 5,
+      "base_views": 140,
+      "star_slots": 1,
+      "ad_slots": 1,
+      "rec_slots": [1, 2],
+      "desc": "Forty influencers are stranded without WiFi. Day three: mass crying. Day seven: one discovers fire."
+    },
+
+    // ── NEW SPORTS ────────────────────────────────────────────────────────────
+    {
+      "id": "sh_armchairqb",
+      "name": "Armchair QB Supreme",
+      "genre": "SPORTS",
+      "size": 1,
+      "cost": 16,
+      "upkeep": 4,
+      "base_views": 120,
+      "star_slots": 0,
+      "ad_slots": 2,
+      "rec_slots": [0, 1],
+      "desc": "Retired coaches argue every play call from luxury recliners. The post-game analysis runs four hours. Advertisers love it."
+    },
+    {
+      "id": "sh_esportsnoon",
+      "name": "Esports at Noon",
+      "genre": "SPORTS",
+      "size": 1,
+      "cost": 15,
+      "upkeep": 3,
+      "base_views": 115,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [0, 1],
+      "desc": "Competitive gaming broadcast mid-day for corporate wellness synergy. Energy drink sponsorships are structurally mandatory."
+    },
+
+    // ── NEW NEWS ──────────────────────────────────────────────────────────────
+    {
+      "id": "sh_opinionoverdrive",
+      "name": "Opinion Overdrive",
+      "genre": "NEWS",
+      "size": 1,
+      "cost": 16,
+      "upkeep": 4,
+      "base_views": 120,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [1, 2],
+      "desc": "Six pundits fight for one microphone. The winner changes the topic. The debate has never ended and never will."
+    },
+    {
+      "id": "sh_morningpanic",
+      "name": "The Morning Panic",
+      "genre": "NEWS",
+      "size": 1,
+      "cost": 13,
+      "upkeep": 3,
+      "base_views": 98,
+      "star_slots": 0,
+      "ad_slots": 3,
+      "rec_slots": [0],
+      "desc": "Everything is a crisis by 7 AM. A format perfected over forty years of morning television. The coffee is complimentary."
+    }
+
+  ]
+}

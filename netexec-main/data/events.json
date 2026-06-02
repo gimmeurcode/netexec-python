@@ -1,0 +1,153 @@
+{
+  "version": "1.0.0",
+  "notes": "Add new events here. Events fire immediately on purchase and are consumed. The 'effect_type' determines which handler in events.py runs. 'effect_params' passes data to that handler. Consumed = removed from shop on purchase.",
+
+  "events": [
+    {
+      "id": "ev_viral",
+      "name": "Viral Cold Open",
+      "cost": 12,
+      "effect_type": "add_views",
+      "effect_params": {"views": 250},
+      "desc": "Instant +250 lifetime views. A clip goes viral before the show even airs. The internet is chaotic. This is a gift."
+    },
+    {
+      "id": "ev_sponsor",
+      "name": "Surprise Sponsorship",
+      "cost": 15,
+      "effect_type": "add_budget",
+      "effect_params": {"amount": 30},
+      "desc": "Gain +$30 budget immediately. A mysterious corporation liked your lineup. Don't ask why. Just cash the check."
+    },
+    {
+      "id": "ev_retool",
+      "name": "Midseason Retool",
+      "cost": 10,
+      "effect_type": "reduce_lineup_age",
+      "effect_params": {"amount": 1, "min_age": 1},
+      "desc": "Reduce the age of all scheduled shows by 1 (minimum 1). New showrunner, new energy, same set. Like injecting youth into your lineup."
+    },
+    {
+      "id": "ev_pilot",
+      "name": "Pilot Panic",
+      "cost": 8,
+      "effect_type": "free_reroll",
+      "effect_params": {},
+      "desc": "Refresh the shop for free. The development slate was scrapped. Again. At least it didn't cost anything."
+    },
+    {
+      "id": "ev_focus",
+      "name": "Focus Group Frenzy",
+      "cost": 14,
+      "effect_type": "boost_lineup_base_views",
+      "effect_params": {"amount": 40},
+      "desc": "All scheduled shows gain +40 permanent Base Views. The research said 'more explosions and pets.' The writers compromised."
+    },
+    {
+      "id": "ev_crossover",
+      "name": "Sweeps Crossover",
+      "cost": 18,
+      "effect_type": "boost_lineup_base_views",
+      "effect_params": {"amount": 50},
+      "desc": "All scheduled shows gain +50 permanent Base Views. Two universes collide. Fans lose their minds. Advertisers gain revenue."
+    },
+    {
+      "id": "ev_hotline",
+      "name": "Ratings Hotline",
+      "cost": 9,
+      "effect_type": "add_budget_and_views",
+      "effect_params": {"budget": 20, "views": 150},
+      "desc": "Gain +$20 budget and +150 lifetime views. Nielsen called. The numbers are in. They are good. Mostly."
+    },
+    {
+      "id": "ev_superbowl",
+      "name": "Super Bowl Halftime Show",
+      "cost": 22,
+      "effect_type": "add_budget_and_views",
+      "effect_params": {"budget": 35, "views": 400},
+      "desc": "Instant +400 lifetime views and +$35 budget. The left shark is back. Nobody knows why. Everyone is watching."
+    },
+    {
+      "id": "ev_moon",
+      "name": "Moon Landing Broadcast (1969)",
+      "cost": 20,
+      "effect_type": "add_views",
+      "effect_params": {"views": 500},
+      "desc": "Instant +500 lifetime views. One small step, one giant rating. Every television in America is on. Including the broken ones."
+    },
+    {
+      "id": "ev_strike",
+      "name": "Writers' Strike 2007",
+      "cost": 8,
+      "effect_type": "budget_boost_views_penalty",
+      "effect_params": {"budget": 40, "base_views_loss": 20, "min_base_views": 10},
+      "desc": "Gain +$40 budget, but all scheduled shows permanently lose -20 Base Views (min 10). The scripted drama is now unscripted. This was not planned."
+    },
+    {
+      "id": "ev_probe",
+      "name": "FCC Investigation",
+      "cost": 6,
+      "effect_type": "reduce_all_upkeep",
+      "effect_params": {"amount": 2, "min_upkeep": 0},
+      "desc": "All scheduled shows reduce upkeep by $2 (min 0). The FCC arrived. The network lawyers arrived faster. The outcome is technically a win."
+    },
+    {
+      "id": "ev_finale",
+      "name": "Series Finale Event",
+      "cost": 16,
+      "effect_type": "age_show_and_boost_views",
+      "effect_params": {"age_increase": 1, "views_bonus": 200, "target": "oldest_lineup"},
+      "desc": "The oldest scheduled show ages +1 but generates +200 lifetime views immediately. A farewell tour. The fans showed up. The critics cried."
+    },
+
+    // ── NEW EVENTS ────────────────────────────────────────────────────────────
+    {
+      "id": "ev_tastetestnat",
+      "name": "Nationwide Taste Test",
+      "cost": 14,
+      "effect_type": "add_budget_and_views",
+      "effect_params": {"budget": 25, "views": 200},
+      "desc": "A live cooking segment goes viral. Viewers tune in expecting disaster. The food is actually good. Everyone is confused but watching."
+    },
+    {
+      "id": "ev_chefmeltdown",
+      "name": "Celebrity Chef Meltdown",
+      "cost": 10,
+      "effect_type": "boost_lineup_base_views",
+      "effect_params": {"amount": 35},
+      "desc": "A celebrity chef has an extremely public meltdown in your studio kitchen. All scheduled shows permanently gain +35 Base Views from the exposure."
+    },
+    {
+      "id": "ev_streamauction",
+      "name": "Streaming Rights Auction",
+      "cost": 18,
+      "effect_type": "add_budget",
+      "effect_params": {"amount": 50},
+      "desc": "A streaming platform wants your back catalog. Cash upfront, no questions. Gain +$50 immediately. What they stream is not your concern."
+    },
+    {
+      "id": "ev_clipeverywhere",
+      "name": "The Clip That Went Everywhere",
+      "cost": 10,
+      "effect_type": "add_views",
+      "effect_params": {"views": 350},
+      "desc": "A twelve-second clip from one of your shows is now the internet's most-watched video of the week. Instant +350 lifetime views."
+    },
+    {
+      "id": "ev_adboycott",
+      "name": "Advertiser Boycott",
+      "cost": 5,
+      "effect_type": "budget_boost_views_penalty",
+      "effect_params": {"budget": 50, "base_views_loss": 30, "min_base_views": 10},
+      "desc": "Three advertisers pulled out after that episode. But the controversy brought +$50 in replacement revenue. The views took a hit. The check cleared."
+    },
+    {
+      "id": "ev_taxbreak",
+      "name": "Production Tax Incentive",
+      "cost": 8,
+      "effect_type": "reduce_all_upkeep",
+      "effect_params": {"amount": 3, "min_upkeep": 0},
+      "desc": "Film in a state that really, really wants film production. All shows reduce upkeep by $3. The governor cut the ribbon personally."
+    }
+  ]
+}

@@ -1,0 +1,354 @@
+{
+  "version": "2.0.0",
+  "notes": "Redesigned ad economy. FREE ads (cost=0): advertisers PAY you  -  upfront_cash is instant sign-on income, income is seasonal. PREMIUM ads (cost>0): you invest for view bonuses (v_flat/v_mult) on top of income. Tradeoff: high upfront vs high seasonal. Premium ads grant views but cost money upfront.",
+
+  "wildcard": {
+    "id": "ad_wildcard",
+    "name": "???",
+    "cost": 0,
+    "upfront_cash": 10,
+    "condition": null,
+    "condition_text": "User-defined genre: +$20/season. Otherwise: +$10/season",
+    "effect":   {"income": 20},
+    "fallback": {"income": 10},
+    "is_wildcard": true,
+    "desc": "An open-ended advertising deal. Specify the target genre  -  the client will brief you on arrival. Sign-on paid immediately."
+  },
+
+  "ads": [
+    {
+      "id": "ad_sludge",
+      "name": "Sludge Cola",
+      "cost": 0,
+      "upfront_cash": 5,
+      "condition": {"type": "always"},
+      "condition_text": "Always: +$12/season. Views x0.9 (viewer annoyance)",
+      "effect":   {"income": 12, "v_mult": 0.9},
+      "fallback": {},
+      "desc": "Tastes like carbonated regret. Steady revenue from people who know better and keep buying it anyway. Their ad is loud. Your viewers are annoyed."
+    },
+    {
+      "id": "ad_lizard",
+      "name": "Lizard Insurance",
+      "cost": 0,
+      "upfront_cash": 8,
+      "condition": {"type": "genre", "genres": ["SITCOM"]},
+      "condition_text": "SITCOM: +$16/season sign-on $8. Otherwise: +$8/season",
+      "effect":   {"income": 16},
+      "fallback": {"income": 8},
+      "desc": "A small CGI reptile explains liability coverage. Beloved by sitcom audiences. The sign-on is generous; keep it on a comedy."
+    },
+    {
+      "id": "ad_pharma",
+      "name": "Vague Pharma Ad",
+      "cost": 0,
+      "upfront_cash": 10,
+      "condition": {"type": "genre", "genres": ["DRAMA"]},
+      "condition_text": "DRAMA: +$18/season sign-on $10. Otherwise: +$4/season",
+      "effect":   {"income": 18},
+      "fallback": {"income": 4},
+      "desc": "May cause nausea, drowsiness, and confusion about what the drug actually does. Side effects include profits. Drama audiences eat this up."
+    },
+    {
+      "id": "ad_local",
+      "name": "Local Car Dealership",
+      "cost": 0,
+      "upfront_cash": 3,
+      "condition": {"type": "always"},
+      "condition_text": "Always: +$7/season. Sign-on $3",
+      "effect":   {"income": 7},
+      "fallback": {},
+      "desc": "CRAZY PRICES! MUST GO! WE'RE NOT YELLING, WE'RE JUST EXCITED. Budget-tier but always pays on time. Cash strongly preferred."
+    },
+    {
+      "id": "ad_lawyer",
+      "name": "Lawyer's Finest",
+      "cost": 0,
+      "upfront_cash": 5,
+      "condition": {"type": "genre", "genres": ["DRAMA"]},
+      "condition_text": "DRAMA: +$14/season sign-on $5. Otherwise: +$4/season",
+      "effect":   {"income": 14},
+      "fallback": {"income": 4},
+      "desc": "HAVE YOU BEEN IN AN ACCIDENT? They heavily imply results in a legally defensible way. Perfect for drama  -  audiences need legal services."
+    },
+    {
+      "id": "ad_crypto",
+      "name": "CryptoBro Coin(TM)",
+      "cost": 0,
+      "upfront_cash": 12,
+      "condition": {"type": "genre", "genres": ["SCIFI", "REALITY"]},
+      "condition_text": "SCIFI/REALITY: +$22/season, Views -20. Otherwise: +$8/season",
+      "effect":   {"income": 22, "v_flat": -20},
+      "fallback": {"income": 8},
+      "desc": "Guaranteed to 10x or evaporate. High sign-on, high income  -  but SCIFI/REALITY audiences tune out in droves. The check still clears."
+    },
+    {
+      "id": "ad_rival",
+      "name": "RivalStream Banner",
+      "cost": 0,
+      "upfront_cash": 18,
+      "condition": {"type": "always"},
+      "condition_text": "Always: +$25/season, Views -35 (competitor mid-show)",
+      "effect":   {"income": 25, "v_flat": -35},
+      "fallback": {},
+      "desc": "Advertising for a direct competitor mid-show. Peak indignity. Peak revenue. The sign-on is enormous. Your viewers will hate it."
+    },
+    {
+      "id": "ad_mattress",
+      "name": "Midnight Mattress King",
+      "cost": 0,
+      "upfront_cash": 4,
+      "condition": {"type": "always"},
+      "condition_text": "Always: +$6/season. Sign-on $4",
+      "effect":   {"income": 6},
+      "fallback": {},
+      "desc": "Suspiciously good prices. Van parked outside. Sleep great on a mattress of unclear origin. Reliable, if unexciting."
+    },
+    {
+      "id": "ad_bargain",
+      "name": "BargainShield Compare",
+      "cost": 0,
+      "upfront_cash": 4,
+      "condition": {"type": "genre", "genres": ["SITCOM", "REALITY"]},
+      "condition_text": "SITCOM/REALITY: +$15/season sign-on $4. Otherwise: +$7/season",
+      "effect":   {"income": 15},
+      "fallback": {"income": 7},
+      "desc": "A talking box with a face explains savings. Somehow more relatable than most human characters on TV. Works best on light programming."
+    },
+    {
+      "id": "ad_tailgate",
+      "name": "Tailgate Waffles",
+      "cost": 0,
+      "upfront_cash": 5,
+      "condition": {"type": "genre", "genres": ["SPORTS"]},
+      "condition_text": "SPORTS: +$20/season sign-on $5. Otherwise: +$10/season",
+      "effect":   {"income": 20},
+      "fallback": {"income": 10},
+      "desc": "A waffle truck outside the stadium that sells out by halftime. Enormous loyalty among sports fans. High upfront, high seasonal."
+    },
+    {
+      "id": "ad_loyalty",
+      "name": "Loyalty Card Commercial",
+      "cost": 0,
+      "upfront_cash": 3,
+      "condition": {"type": "always"},
+      "condition_text": "Always: +$9/season. Sign-on $3. Low upfront, steady seasonal.",
+      "effect":   {"income": 9},
+      "fallback": {},
+      "desc": "Sign up today, forget to cancel tomorrow. Modest sign-on but pays reliably every season  -  ideal for a long-running show."
+    },
+    {
+      "id": "ad_coke",
+      "name": "Cola Hill Singalong",
+      "cost": 0,
+      "upfront_cash": 4,
+      "condition": {"type": "genre", "genres": ["SITCOM", "SPORTS"]},
+      "condition_text": "SITCOM/SPORTS: +$14/season sign-on $4. Otherwise: +$14/season",
+      "effect":   {"income": 14},
+      "fallback": {"income": 14},
+      "desc": "A famous hilltop jingle for a fizzy drink. Harmonies optional, refreshment mandatory. Works on any show  -  the jingle is universal."
+    },
+    {
+      "id": "ad_newsflash",
+      "name": "Breaking News Alert",
+      "cost": 0,
+      "upfront_cash": 5,
+      "condition": {"type": "genre", "genres": ["NEWS"]},
+      "condition_text": "NEWS: +$18/season sign-on $5. Otherwise: +$6/season",
+      "effect":   {"income": 18},
+      "fallback": {"income": 6},
+      "desc": "Your ad appears immediately after every BREAKING NEWS chyron. Estimated frequency: every 4 minutes. Enormous on NEWS."
+    },
+    {
+      "id": "ad_geico",
+      "name": "Cut-Rate Lizard Clone",
+      "cost": 0,
+      "upfront_cash": 6,
+      "condition": {"type": "genre", "genres": ["SITCOM"]},
+      "condition_text": "SITCOM: +$16/season sign-on $6. Otherwise: +$7/season",
+      "effect":   {"income": 16},
+      "fallback": {"income": 7},
+      "desc": "A cheaper reptile mascot. Legally distinct from the other one. SITCOM audiences still buy it. Strong seasonal on comedy."
+    },
+    {
+      "id": "ad_network_promo",
+      "name": "Network Self-Promo",
+      "cost": 15,
+      "upfront_cash": 0,
+      "condition": {"type": "always"},
+      "condition_text": "Always: Views x1.2, Income -$2/season. PREMIUM: invest for views.",
+      "effect":   {"income": -2, "v_mult": 1.2},
+      "fallback": {},
+      "desc": "Promote yourself to promote yourself. You pay upfront, lose a little income, but gain 20% more viewers. Works best on already-large audiences."
+    },
+    {
+      "id": "ad_stream_pivot",
+      "name": "Streaming Pivot Banner",
+      "cost": 10,
+      "upfront_cash": 0,
+      "condition": {"type": "always"},
+      "condition_text": "Always: Views x1.1, Income -$2/season. PREMIUM: budget view boost.",
+      "effect":   {"income": -2, "v_mult": 1.1},
+      "fallback": {},
+      "desc": "A smaller view investment. Corporate synergy  -  you pay, they amplify your audience by 10%. Better ROI on high-base-view shows."
+    },
+    {
+      "id": "ad_stretch",
+      "name": "Stretch Seal",
+      "cost": 8,
+      "upfront_cash": 0,
+      "condition": {"type": "genre", "genres": ["REALITY"]},
+      "condition_text": "REALITY: +$10/season & +25 Views. Otherwise: +$10/season. PREMIUM.",
+      "effect":   {"income": 10, "v_flat": 25},
+      "fallback": {"income": 10},
+      "desc": "Seals boats, trucks, and questionable life decisions. Phil Swift demands placement fees  -  but adds 25 views on REALITY. Worth the cost."
+    },
+    {
+      "id": "ad_turbo",
+      "name": "Turbo Energy Drink",
+      "cost": 8,
+      "upfront_cash": 0,
+      "condition": {"type": "genre", "genres": ["SPORTS"]},
+      "condition_text": "SPORTS: +$18/season & +20 Views. Otherwise: +$6/season. PREMIUM.",
+      "effect":   {"income": 18, "v_flat": 20},
+      "fallback": {"income": 6},
+      "desc": "Sponsors everything with wheels. Premium placement required  -  but brings 20 extra viewers AND solid income on SPORTS. Strong value on SPORTS shows."
+    },
+    {
+      "id": "ad_meme",
+      "name": "Meme Energy Drink",
+      "cost": 6,
+      "upfront_cash": 0,
+      "condition": {"type": "genre", "genres": ["SITCOM", "REALITY"]},
+      "condition_text": "SITCOM/REALITY: +$8/season & +30 Views. Otherwise: +$8/season. PREMIUM.",
+      "effect":   {"income": 8, "v_flat": 30},
+      "fallback": {"income": 8},
+      "desc": "Fueled by chaos, powered by hashtags. Modest income but 30 flat views on light programming. Good for boosting viewer counts cheaply."
+    },
+    {
+      "id": "ad_binge",
+      "name": "Binge Box Subscription",
+      "cost": 6,
+      "upfront_cash": 0,
+      "condition": {"type": "genre", "genres": ["DRAMA", "SCIFI"]},
+      "condition_text": "DRAMA/SCIFI: +$12/season & +18 Views. Otherwise: +$7/season. PREMIUM.",
+      "effect":   {"income": 12, "v_flat": 18},
+      "fallback": {"income": 7},
+      "desc": "A monthly subscription service. Genre fans binge your show AND subscribe. Invest to gain both income and views on prestige programming."
+    },
+    {
+      "id": "ad_crypto_pets",
+      "name": "Crypto For Pets(TM)",
+      "cost": 8,
+      "upfront_cash": 0,
+      "condition": {"type": "genre", "genres": ["SCIFI"]},
+      "condition_text": "SCIFI: +$16/season & +22 Views. Otherwise: +$10/season. PREMIUM.",
+      "effect":   {"income": 16, "v_flat": 22},
+      "fallback": {"income": 10},
+      "desc": "Your dog now has a wallet address. SCIFI audiences inexplicably love it  -  22 bonus views AND solid income. Premium placement fee required."
+    },
+    {
+      "id": "ad_fruit1984",
+      "name": "Fruit 1984",
+      "cost": 18,
+      "upfront_cash": 0,
+      "condition": {"type": "genre", "genres": ["SCIFI", "DRAMA"]},
+      "condition_text": "SCIFI/DRAMA: +$12/season & +30 Views. Otherwise: +$8/season. HIGH PREMIUM.",
+      "effect":   {"income": 12, "v_flat": 30},
+      "fallback": {"income": 8},
+      "desc": "A dystopian big-game spot with a flying hammer. The highest placement cost in the business  -  but 30 extra views on prestige genres. A prestige move."
+    },
+
+    // ── NEW ADS ───────────────────────────────────────────────────────────────
+    // FREE: COOKING-genre specialists, physical programming, reliable fallbacks.
+    // PREMIUM: genre-targeted view + income combos for COOKING/DRAMA/SCIFI.
+    {
+      "id": "ad_chefssauce",
+      "name": "Chef's Secret Sauce(TM)",
+      "cost": 0,
+      "upfront_cash": 6,
+      "condition": {"type": "genre", "genres": ["COOKING"]},
+      "condition_text": "COOKING: +$18/season sign-on $6. Otherwise: +$8/season",
+      "effect":   {"income": 18},
+      "fallback": {"income": 8},
+      "desc": "A condiment brand with more secrets than the recipe on the label. Enormous on COOKING; generic elsewhere. The sign-on arrives in cash."
+    },
+    {
+      "id": "ad_gymfail",
+      "name": "Discount Gym Pass",
+      "cost": 0,
+      "upfront_cash": 4,
+      "condition": {"type": "genre", "genres": ["REALITY", "SPORTS"]},
+      "condition_text": "REALITY/SPORTS: +$14/season sign-on $4. Otherwise: +$6/season",
+      "effect":   {"income": 14},
+      "fallback": {"income": 6},
+      "desc": "January memberships. March cancellations. The cycle is reliable and the revenue is steady on physical programming."
+    },
+    {
+      "id": "ad_recipebox",
+      "name": "RecipeBox(TM) Delivery",
+      "cost": 0,
+      "upfront_cash": 7,
+      "condition": {"type": "genre", "genres": ["COOKING", "SITCOM"]},
+      "condition_text": "COOKING/SITCOM: +$16/season sign-on $7. Otherwise: +$6/season",
+      "effect":   {"income": 16},
+      "fallback": {"income": 6},
+      "desc": "Pre-portioned ingredients delivered to your door. The ad budget is larger than most cooking show production budgets."
+    },
+    {
+      "id": "ad_sportsbetting",
+      "name": "BetZone Sports(TM)",
+      "cost": 0,
+      "upfront_cash": 8,
+      "condition": {"type": "genre", "genres": ["SPORTS"]},
+      "condition_text": "SPORTS: +$22/season sign-on $8. Otherwise: +$9/season",
+      "effect":   {"income": 22},
+      "fallback": {"income": 9},
+      "desc": "The odds are always in their favour and never yours. Enormous seasonal income on SPORTS. The sign-on bonus is substantial."
+    },
+    {
+      "id": "ad_grocerydeal",
+      "name": "FreshMart Weekly",
+      "cost": 0,
+      "upfront_cash": 5,
+      "condition": {"type": "genre", "genres": ["COOKING", "REALITY"]},
+      "condition_text": "COOKING/REALITY: +$15/season sign-on $5. Otherwise: +$7/season",
+      "effect":   {"income": 15},
+      "fallback": {"income": 7},
+      "desc": "A grocery chain with an extremely cheerful tomato mascot. Works best adjacent to food and lifestyle programming."
+    },
+    {
+      "id": "ad_prestigecookware",
+      "name": "Prestige Cookware(TM)",
+      "cost": 8,
+      "upfront_cash": 0,
+      "condition": {"type": "genre", "genres": ["COOKING"]},
+      "condition_text": "COOKING: +$14/season & +25 Views. Otherwise: +$9/season. PREMIUM.",
+      "effect":   {"income": 14, "v_flat": 25},
+      "fallback": {"income": 9},
+      "desc": "Pans that cost more than most appliances. COOKING audiences buy three. Premium placement required for the full bonus."
+    },
+    {
+      "id": "ad_truecrimecross",
+      "name": "True Crime Pod Crossover",
+      "cost": 6,
+      "upfront_cash": 0,
+      "condition": {"type": "genre", "genres": ["DRAMA", "NEWS"]},
+      "condition_text": "DRAMA/NEWS: +$10/season & +22 Views. Otherwise: +$7/season. PREMIUM.",
+      "effect":   {"income": 10, "v_flat": 22},
+      "fallback": {"income": 7},
+      "desc": "Fifteen minutes about a murder, then an ad. The crossover is seamless. Prestige drama and news audiences love a good true crime hook."
+    },
+    {
+      "id": "ad_techstartup",
+      "name": "TechBro Launchpad(TM)",
+      "cost": 10,
+      "upfront_cash": 0,
+      "condition": {"type": "genre", "genres": ["SCIFI"]},
+      "condition_text": "SCIFI: +$18/season & +28 Views. Otherwise: +$8/season. PREMIUM.",
+      "effect":   {"income": 18, "v_flat": 28},
+      "fallback": {"income": 8},
+      "desc": "A startup that pivoted four times and is now a television sponsor. SCIFI audiences inexplicably trust them. Strong premium ROI."
+    }
+  ]
+}
