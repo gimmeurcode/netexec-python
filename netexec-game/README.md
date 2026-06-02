@@ -9,8 +9,8 @@ A TV network management roguelite. You are the executive. Hit the ratings quotas
 ### Windows (recommended — no terminal required)
 
 1. Download **`NETEXEC-Windows.zip`** from the releases page.
-2. Extract it — you get a folder containing `netexec-main\` and `netexec-setup\`.
-3. Open `netexec-setup\` and double-click **`install.vbs`**.
+2. Extract it — you get a folder containing `netexec-main\` and `netexec-windows\`.
+3. Open `netexec-windows\` and double-click **`install.vbs`**.
 4. Click **Yes** when Windows asks for administrator permission.
 5. Click **Yes** to confirm the install location.
 6. Launch **NetExecutive** from your Desktop or Start Menu.
@@ -22,8 +22,8 @@ Settings are saved to `%APPDATA%\NETEXEC\`. No terminal or Python required.
 ### macOS (no Python required)
 
 1. Download **`NETEXEC-Mac.zip`** from the releases page.
-2. Extract it — you get a folder containing `netexec-main/` and `netexec-setup/`.
-3. Open `netexec-setup/` and double-click **`install.command`**.
+2. Extract it — you get a folder containing `netexec-main/` and `netexec-mac/`.
+3. Open `netexec-mac/` and double-click **`install.command`**.
    - macOS opens a Terminal window automatically; the install runs and the window closes.
    - If macOS warns about an unverified developer: right-click → Open → Open.
 4. Launch **NetExecutive** from `/Applications` or your Desktop.

@@ -31,7 +31,7 @@ End If
 
 ' ── Paths ─────────────────────────────────────────────────────────────────────
 ' ScriptDir = netexec-windows\
-' GameSrc   = netexec-game\netexec-main\   (..\netexec-main from ScriptDir)
+' GameSrc   = netexec-main\   (..\netexec-main from ScriptDir = repo root)
 Dim ScriptDir, GameSrc, InstallDir
 ScriptDir  = FSO.GetParentFolderName(WScript.ScriptFullName)
 GameSrc    = FSO.GetAbsolutePathName(ScriptDir & "\..\netexec-main")
