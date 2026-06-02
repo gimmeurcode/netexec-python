@@ -26,6 +26,7 @@ from ..theme import (
     C_TINT_GREEN_HOVER, C_TINT_GREEN_PILL, C_TINT_SHOW_PILL,
     C_TINT_TEAL_BADGE, C_TINT_RED_BADGE, C_TINT_RED_DARK, C_TINT_RED_PILL,
     C_TINT_SHADOW,
+    TAB_COLORS,
 )
 from scripts.content.ads import net_cost as _ad_net_cost
 from ..assets import (
@@ -52,13 +53,14 @@ def _draw_right_panel(ctx, state):
     y = y0 + 26
 
     # --- Tab bar with overflow affordance ---
+    # Accent colors come from TAB_COLORS; active tab uses full color, inactive dimmed to 40%.
     tab_defs = [
-        ("SHOWS",     "shows",     C_GREEN_BRIGHT),
-        ("STARS",     "stars",     C_AMBER),
-        ("ADS",       "ads",       C_GREEN_MID),
-        ("UPGRADES",  "upgrades",  C_CYAN),
-        ("EVENTS",    "events",    C_AMBER),
-        ("CONTRACTS", "contracts", C_VIEWS_ACCENT),
+        ("SHOWS",     "shows"),
+        ("STARS",     "stars"),
+        ("ADS",       "ads"),
+        ("UPGRADES",  "upgrades"),
+        ("EVENTS",    "events"),
+        ("CONTRACTS", "contracts"),
     ]
     # Compute how many tabs fit at minimum tab_w=56; show overflow › if needed.
     min_tab_w  = 56
@@ -70,25 +72,29 @@ def _draw_right_panel(ctx, state):
 
     # Find which tabs to show: always include active tab
     active_idx = next(
-        (i for i, (_, k, _) in enumerate(tab_defs) if k == state.current_tab), 0
+        (i for i, (_, k) in enumerate(tab_defs) if k == state.current_tab), 0
     )
     start_tab = max(0, min(active_idx, len(tab_defs) - n_fit))
     visible_tabs = tab_defs[start_tab: start_tab + n_fit]
 
-    for vi, (label, key, accent) in enumerate(visible_tabs):
-        tr     = pygame.Rect(x + vi * tab_w, y, tab_w - 1, lo.tab_row_h - 4)
-        active = state.current_tab == key
-        count  = (len(state.available_contracts) + len(state.active_contracts)
-                  if key == "contracts" else len(state.shop.get(key, [])))
+    for vi, (label, key) in enumerate(visible_tabs):
+        tr      = pygame.Rect(x + vi * tab_w, y, tab_w - 1, lo.tab_row_h - 4)
+        active  = state.current_tab == key
+        count   = (len(state.available_contracts) + len(state.active_contracts)
+                   if key == "contracts" else len(state.shop.get(key, [])))
+        accent  = TAB_COLORS.get(key, C_GREEN_BRIGHT)
+        # Inactive tabs dim to 40% so the active tab pops clearly (R3)
+        dim_accent = tuple(int(c * 0.4) for c in accent)
+
         bg_col = C_TINT_GREEN_TAB if active else C_BG
         pygame.draw.rect(ctx.screen, bg_col, tr, border_radius=3)
-        bd_col = accent if active else C_BORDER_DIM
+        bd_col = accent if active else dim_accent
         pygame.draw.rect(ctx.screen, bd_col, tr, 1 if not active else 2, border_radius=3)
         if active:
             pygame.draw.rect(ctx.screen, accent,
                              pygame.Rect(tr.x + 2, tr.y, tr.width - 4, 3),
                              border_radius=2)
-        tc         = accent if active else C_GREEN_DIM
+        tc = accent if active else dim_accent
         # Ellipsize label if tab is narrow
         lbl = label if tab_w >= 72 else label[:3]
         label_surf = ctx._f("small").render(lbl, True, tc)

@@ -87,6 +87,31 @@ C_TINT_SHADOW        = (  0,   0,   0)  # drop shadow / hard black
 C_TINT_BTN_HOVER     = (  0,  58,  18)  # button default hover fill
 C_TINT_PANEL_TITLE   = (  0,  28,   8)  # draw_panel_box title bar fill
 
+# ── Time slot high-contrast identity colors ────────────────────────────────────
+# Each slot has a distinct background tint and accent so players can tell them
+# apart at a glance.  Defined here to avoid magic tuples scattered across
+# playing_schedule.py.  Index matches TIME_SLOTS order (Morning=0 … Late Night=3).
+
+SLOT_COLORS: list[dict] = [
+    {"bg": (40, 20,  0), "accent": (220, 140,   0)},  # Morning    — orange-gold
+    {"bg": ( 0, 15, 40), "accent": (  0, 140, 220)},  # Afternoon  — bright blue
+    {"bg": (40,  0, 10), "accent": (220,   0,  60)},  # Prime Time — vivid red
+    {"bg": (15,  0, 35), "accent": (120,   0, 200)},  # Late Night — purple
+]
+
+# ── Shop tab identity colors ───────────────────────────────────────────────────
+# One unique accent per tab.  Active tab renders at full strength; inactive tabs
+# dim to 40% so the active tab pops clearly.
+
+TAB_COLORS: dict[str, tuple] = {
+    "shows":     (  0, 180, 180),  # teal
+    "stars":     (220, 180,   0),  # gold
+    "ads":       (220, 100,   0),  # orange
+    "upgrades":  (  0, 200,  80),  # green
+    "events":    (200,   0, 100),  # magenta
+    "contracts": (120,   0, 220),  # violet
+}
+
 # ── Typography ramp ────────────────────────────────────────────────────────────
 # Role → (size_pt, bold).  Sizes mirror FONT_* in constants.py.
 

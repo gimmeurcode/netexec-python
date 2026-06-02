@@ -25,6 +25,7 @@ from ..theme import (
     C_TINT_GREEN_DEEP, C_TINT_GREEN_FILL, C_TINT_GREEN_TAB,
     C_TINT_GREEN_HOVER, C_TINT_GREEN_TILE, C_TINT_RED_PILL,
     C_TINT_TEAL_BADGE, C_TINT_RED_BADGE, C_TINT_SHADOW,
+    SLOT_COLORS,
 )
 from scripts.engine.network import calculate_yield
 from scripts.engine.cards import check_condition, evaluate_star, evaluate_ad
@@ -168,17 +169,10 @@ def _draw_left_panel(ctx, state):
 
 def _draw_time_slot(ctx, rect, idx, slot_def, state):
     """Draw one time-slot card styled as a hardware channel input selector."""
-    # Each slot has a distinct accent and tinted background for easy differentiation
-    SLOT_ACCENTS = [C_AMBER, C_GREEN_MID, C_GREEN_BRIGHT, C_BLUE]
-    # Distinct subtle tinted backgrounds per slot: Amber/Morning, Green/Afternoon, Vivid/Prime, Blue/LateNight
-    SLOT_BG_TINTS = [
-        (18, 14, 0),    # Morning:    warm amber tint
-        (0, 18, 10),    # Afternoon:  green tint
-        (0, 20, 14),    # Prime Time: teal-green tint
-        (0, 8, 22),     # Late Night: blue-dark tint
-    ]
-    slot_accent = SLOT_ACCENTS[idx % len(SLOT_ACCENTS)]
-    slot_bg_base = SLOT_BG_TINTS[idx % len(SLOT_BG_TINTS)]
+    # High-contrast slot identity colors from theme.SLOT_COLORS (R3)
+    _sc          = SLOT_COLORS[idx % len(SLOT_COLORS)]
+    slot_accent  = _sc["accent"]
+    slot_bg_base = _sc["bg"]
 
     show    = state.lineup[idx] if idx < len(state.lineup) else None
     is_ext  = show and show.get("is_extension")
