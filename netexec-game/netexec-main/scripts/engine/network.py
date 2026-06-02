@@ -1196,8 +1196,8 @@ class GameState:
             })
 
         # ── (d) Update totals ─────────────────────────────────────────────────
-        season_views     = rnd2(season_views)   # clean float drift from summing rnd2 values
-        self.total_views = rnd2(self.total_views + season_views)
+        season_views     = int(round(season_views))   # round once after summing per-show floats
+        self.total_views = int(round(self.total_views + season_views))
         self.budget      = rnd2(self.budget      + season_income)
 
         # ── (e) Evaluate contracts AFTER updating totals ──────────────────────
@@ -1264,7 +1264,7 @@ class GameState:
                 self.budget      = rnd2(self.budget + milestone_bonus)
                 self.next_target += TARGET_INTERVAL
                 growth = DifficultyManager.effective_growth_rate(self)
-                self.current_target = int(self.current_target * growth)
+                self.current_target = int(round(self.current_target * growth))
                 diff = DIFFICULTY_LEVELS.get(self.difficulty, DIFFICULTY_LEVELS["NORMAL"])
                 self.current_target += diff["rival_pressure"]
             else:

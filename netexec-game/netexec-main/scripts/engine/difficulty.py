@@ -44,7 +44,7 @@ class DifficultyManager:
         diff    = DIFFICULTY_LEVELS.get(state.difficulty, DIFFICULTY_LEVELS["NORMAL"])
         prestige_scale = 1.0 + state.network_prestige * PRESTIGE_TARGET_SCALE
         base    = BASE_VIEW_TARGET * prestige_scale
-        target  = int(base * diff["target_mult"]) + diff["rival_pressure"]
+        target  = int(round(base * diff["target_mult"])) + diff["rival_pressure"]
         return max(100, target)   # floor at 100 so the game is always winnable
 
     @staticmethod
@@ -103,4 +103,4 @@ class DifficultyManager:
     def apply_news_monopoly(current_target: int) -> int:
         """Apply NEWS monopoly target reduction; return the reduced target integer."""
         # 0.88 reduction factor matches shows.json NEWS monopoly definition
-        return max(1, int(current_target * 0.88))
+        return max(1, int(round(current_target * 0.88)))

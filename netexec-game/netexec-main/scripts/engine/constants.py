@@ -196,7 +196,7 @@ PRESTIGE_TARGET_SCALE = 0.25   # view quotas × (1 + prestige × 0.25)
 PRESTIGE_GROWTH_BONUS = 0.10   # milestone growth rate += prestige × 0.10
 
 # Time-slot penalty for placing a show outside its recommended slots
-SLOT_PENALTY_MULT    = 0.70    # ×0.70 views when in the wrong slot
+SLOT_PENALTY_MULT    = 0.70    # ×0.70 views when in the wrong slot; caller rounds the final product.
 
 # ─── LIFECYCLE DECAY TABLE ────────────────────────────────────────────────────
 # List of (age_min, age_max, view_multiplier).
