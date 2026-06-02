@@ -57,11 +57,14 @@ def _draw_left_panel(ctx, state):
         state.active_seasonal_modifiers or state.active_contracts
         or state.active_mandates or state.available_contracts
     )
+    has_active_contracts = bool(state.active_contracts or state.pending_events)
+    contract_bar_h = max(22, lo.seasonal_strip_h // 2) * (len(state.active_contracts) + len(getattr(state, 'pending_events', [])) + 1) if has_active_contracts else 0
     total_content_h = (
         len(TIME_SLOTS) * (lo.slot_h + 3) + 4   # slots
         + 18 + lo.vault_h + 6                     # vault header + slots
         + 18 + lo.upgrade_row_h + 4               # upgrades header + row
         + lo.monopoly_bar_h + 4                   # monopoly bar
+        + (18 + contract_bar_h + 4 if has_active_contracts else 0)  # active contracts bar
         + (lo.seasonal_strip_h + 4 if has_seasonal else 0)
     )
 
@@ -125,6 +128,17 @@ def _draw_left_panel(ctx, state):
     _draw_monopoly_bar(ctx, mono_rect, state)
     y += lo.monopoly_bar_h + 4
 
+    if has_active_contracts:
+        con_label = ctx._f("small").render("CONTRACTS & QUEUED EVENTS", True, C_VIEWS_ACCENT)
+        ctx.screen.blit(con_label, (x + 4, y))
+        pygame.draw.line(ctx.screen, C_BORDER_DIM,
+                         (x + 4 + con_label.get_width() + 6, y + 7),
+                         (x + content_w - 6, y + 7))
+        y += 18
+        con_rect = pygame.Rect(x + 2, y, content_w, contract_bar_h)
+        _draw_active_contracts_bar(ctx, con_rect, state)
+        y += contract_bar_h + 4
+
     if has_seasonal:
         seas_rect = pygame.Rect(x + 2, y, content_w, lo.seasonal_strip_h)
         _draw_seasonal_strip(ctx, seas_rect, state)
@@ -154,8 +168,17 @@ def _draw_left_panel(ctx, state):
 
 def _draw_time_slot(ctx, rect, idx, slot_def, state):
     """Draw one time-slot card styled as a hardware channel input selector."""
+    # Each slot has a distinct accent and tinted background for easy differentiation
     SLOT_ACCENTS = [C_AMBER, C_GREEN_MID, C_GREEN_BRIGHT, C_BLUE]
+    # Distinct subtle tinted backgrounds per slot: Amber/Morning, Green/Afternoon, Vivid/Prime, Blue/LateNight
+    SLOT_BG_TINTS = [
+        (18, 14, 0),    # Morning:    warm amber tint
+        (0, 18, 10),    # Afternoon:  green tint
+        (0, 20, 14),    # Prime Time: teal-green tint
+        (0, 8, 22),     # Late Night: blue-dark tint
+    ]
     slot_accent = SLOT_ACCENTS[idx % len(SLOT_ACCENTS)]
+    slot_bg_base = SLOT_BG_TINTS[idx % len(SLOT_BG_TINTS)]
 
     show    = state.lineup[idx] if idx < len(state.lineup) else None
     is_ext  = show and show.get("is_extension")
@@ -166,7 +189,7 @@ def _draw_time_slot(ctx, rect, idx, slot_def, state):
     elif state.selected_item and not is_ext:
         bg = C_TINT_GREEN_DEEP
     else:
-        bg = C_GREEN_PANEL
+        bg = slot_bg_base
     pygame.draw.rect(ctx.screen, bg, rect, border_radius=3)
 
     if hovered:
@@ -263,8 +286,12 @@ def _draw_show_in_slot(ctx, rect, content_y, tx, show, idx, state, hovered=False
     """Render show name, financials, attachments, action buttons inside a slot card."""
     rec    = show.get("rec_slots") or []
     in_rec = not rec or idx in rec
+    # Pass monopoly bonus and seasonal modifiers so projected values are accurate
+    mono_bonus  = state.get_lineup_summary().get("bonus") if state.get_lineup_summary().get("is_monopoly") else None
+    s_mods      = state.aggregate_seasonal_mods() if state.seasonal_events_enabled else None
     yld    = calculate_yield(show, start_idx=idx,
-                             active_perks=state.active_perks, season=state.season)
+                             active_perks=state.active_perks, season=state.season,
+                             monopoly_bonus=mono_bonus, seasonal_mods=s_mods)
 
     ty = content_y + 2
 
@@ -386,9 +413,10 @@ def _draw_show_in_slot(ctx, rect, content_y, tx, show, idx, state, hovered=False
         ctx._add_click(rect, lambda i=idx: ctx._place_on_slot("lineup", i, state))
     else:
         # Otherwise, clicking shows the detail modal
-        ctx._add_click(rect,
-                       lambda s=show, i=idx: setattr(ctx, "_show_detail",
-                                                     {"show": s, "slot_idx": i}))
+        def _open_detail(s=show, i=idx):
+            ctx._show_detail  = {"show": s, "slot_idx": i}
+            ctx._detail_scroll = 0
+        ctx._add_click(rect, _open_detail)
 
     # Tooltip
     rec_names = [TIME_SLOTS[s]["label"] for s in rec if 0 <= s < len(TIME_SLOTS)]
@@ -543,10 +571,96 @@ def _draw_vault_slot(ctx, rect, idx, state):
         })
 
         if not state.selected_item:
-            ctx._add_click(rect,
-                           lambda s=show, i=idx: setattr(ctx, "_show_detail",
-                                                         {"show": s, "slot_idx": -1,
-                                                          "is_vault": True}))
+            def _open_vault_detail(s=show):
+                ctx._show_detail   = {"show": s, "slot_idx": -1, "is_vault": True}
+                ctx._detail_scroll = 0
+            ctx._add_click(rect, _open_vault_detail)
+
+
+
+# --- ACTIVE CONTRACTS BAR ---
+
+def _draw_active_contracts_bar(ctx, rect, state):
+    """Draw accepted contracts with status, requirement, and remaining seasons."""
+    from scripts.engine.requirements import describe as desc_req
+
+    pygame.draw.rect(ctx.screen, C_GREEN_PANEL, rect, border_radius=3)
+    pygame.draw.rect(ctx.screen, C_VIEWS_ACCENT, rect, 1, border_radius=3)
+
+    f  = ctx._f("micro")
+    lh = max(20, rect.height // max(1, len(state.active_contracts) + 1))
+    x  = rect.x + 6
+    y  = rect.y + 4
+
+    for entry in state.active_contracts:
+        if y + lh > rect.bottom - 2:
+            break
+        ev      = entry.get("event", {})
+        name    = ev.get("name", "?")
+        req_d   = desc_req(ev.get("requirement", {}))
+        rem     = entry.get("remaining_seasons", 0)
+        done    = entry.get("fulfilled", False)
+        rew     = ev.get("reward", {})
+        pen     = ev.get("penalty", {})
+        rew_str = f"+${rew.get('budget_bonus', 0)}" if rew.get("budget_bonus") else ""
+        pen_str = f"-${pen.get('budget_loss', 0)}"  if pen.get("budget_loss")  else ""
+
+        col  = C_NET_POS if done else C_VIEWS_ACCENT
+        tick = "[DONE]" if done else f"[{rem}s LEFT]"
+
+        dot_col = C_NET_POS if done else C_AMBER
+        pygame.draw.circle(ctx.screen, dot_col, (x + 3, y + lh // 2), 3)
+
+        name_s = f.render(f"{tick} {name[:22]}", True, col)
+        ctx.screen.blit(name_s, (x + 10, y + 1))
+
+        req_s = f.render(f"  REQ: {req_d[:28]}", True, C_AMBER_DIM)
+        ctx.screen.blit(req_s, (x + 10, y + f.get_linesize() + 2))
+
+        if rew_str or pen_str:
+            rp_str = ""
+            if rew_str: rp_str += f"WIN:{rew_str} "
+            if pen_str: rp_str += f"FAIL:{pen_str}"
+            rp_s = f.render(rp_str, True, C_GREY_MID)
+            ctx.screen.blit(rp_s, (rect.right - rp_s.get_width() - 6, y + 1))
+
+        ctx._add_tooltip(pygame.Rect(x, y, rect.width - 8, lh), {
+            "type":  "event",
+            "title": f"CONTRACT: {name}",
+            "sections": [[
+                {"kind": "kv", "key": "STATUS",
+                 "val": "FULFILLED" if done else f"{rem} season(s) remaining",
+                 "val_col": C_NET_POS if done else C_VIEWS_ACCENT},
+                {"kind": "kv", "key": "REQUIREMENT", "val": req_d,           "val_col": C_AMBER},
+                {"kind": "kv", "key": "REWARD",       "val": rew_str or "None", "val_col": C_NET_POS},
+                {"kind": "kv", "key": "PENALTY",      "val": pen_str or "None", "val_col": C_RED},
+            ]],
+        })
+        y += lh
+
+    # Show queued shop events (fire at start of next season)
+    pending = getattr(state, 'pending_events', [])
+    for entry in pending:
+        if y + lh > rect.bottom - 2:
+            break
+        ev   = entry.get("event", {})
+        name = ev.get("name", "?")
+        pygame.draw.circle(ctx.screen, C_AMBER, (x + 3, y + lh // 2), 3)
+        ev_s = f.render(f"[QUEUED] {name[:26]}  — fires next season", True, C_AMBER)
+        ctx.screen.blit(ev_s, (x + 10, y + 1))
+        ctx._add_tooltip(pygame.Rect(x, y, rect.width - 8, lh), {
+            "type":  "event",
+            "title": f"QUEUED EVENT: {name}",
+            "sections": [[
+                {"kind": "kv", "key": "TIMING", "val": "Fires at START of next season", "val_col": C_AMBER},
+                {"kind": "text", "text": ev.get("desc", "")[:80], "col": C_GREY_LIGHT},
+            ]],
+        })
+        y += lh
+
+    if not state.active_contracts and not pending:
+        empty = f.render("No accepted contracts or queued events.", True, C_GREEN_DIM)
+        ctx.screen.blit(empty, (x, rect.centery - 6))
 
 
 # --- UPGRADES ROW ---

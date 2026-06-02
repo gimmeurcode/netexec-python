@@ -159,8 +159,20 @@ def _draw_show_detail_modal(ctx, state):
     slot_s = f_sm.render(slot_name, True, slot_col)
     ctx.screen.blit(slot_s, (header_rect.right - slot_s.get_width() - 10, header_rect.y + 12))
 
+    # Scrollable content area (below header strip, above close button)
+    CLOSE_H      = 48
+    content_top  = modal.y + HDR_STRIP
+    content_bot  = modal.bottom - CLOSE_H
+    content_view = content_bot - content_top
+    max_scroll   = max(0, total_h - HDR_STRIP - CLOSE_H - 8)
+    ctx._detail_scroll = max(0, min(max_scroll, ctx._detail_scroll))
+    scroll = ctx._detail_scroll
+
+    old_clip = ctx.screen.get_clip()
+    ctx.screen.set_clip(pygame.Rect(modal.x, content_top, modal.width, content_view))
+
     x = modal.x + MPAD
-    y = modal.y + HDR_STRIP + 6
+    y = modal.y + HDR_STRIP + 6 - scroll
 
     slot_line = f_sm.render(f"SLOT: {slot_name}", True, slot_col)
     ctx.screen.blit(slot_line, (x, y))
@@ -322,13 +334,31 @@ def _draw_show_detail_modal(ctx, state):
         ctx.screen.blit(warn, (x, y))
         y += lh + 2
 
+    # Restore clip and draw fixed-position close button + scroll indicator
+    ctx.screen.set_clip(old_clip)
+
+    # Scroll bar on right edge of modal
+    if max_scroll > 0:
+        sbar_x   = modal.right - 8
+        sbar_top = content_top + 2
+        sbar_h   = content_view - 4
+        pygame.draw.rect(ctx.screen, C_BG,
+                         pygame.Rect(sbar_x, sbar_top, 6, sbar_h), border_radius=3)
+        thumb_h   = max(20, int(sbar_h * content_view / total_h))
+        thumb_y   = sbar_top + int((sbar_h - thumb_h) * scroll / max_scroll)
+        pygame.draw.rect(ctx.screen, C_GREEN_MID,
+                         pygame.Rect(sbar_x + 1, thumb_y, 4, thumb_h), border_radius=2)
+        scroll_hint = f_mi.render("SCROLL", True, C_GREEN_DIM)
+        ctx.screen.blit(scroll_hint, (modal.x + MPAD, content_bot - f_mi.get_linesize() - 2))
+
     btn_w, btn_h = 120, 32
     close_rect = pygame.Rect(modal.centerx - btn_w // 2,
                              modal.bottom - MPAD - btn_h,
                              btn_w, btn_h)
 
     def _close():
-        ctx._show_detail = None
+        ctx._show_detail   = None
+        ctx._detail_scroll = 0
 
     draw_button(ctx, close_rect, "CLOSE", _close,
                 border_color=C_GREEN_BRIGHT, text_color=C_WHITE)

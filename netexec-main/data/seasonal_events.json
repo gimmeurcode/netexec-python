@@ -1,15 +1,15 @@
 {
   "version": "1.0.0",
-  "notes": "Seasonal events roll at the END of every season and take effect the following season. Kinds: modifier (passive effect each active season), mandate (requirement checked each active season  -  penalty if unmet), contract (requirement checked each season  -  reward if met in window, optional penalty if window closes unmet), instant (one-time effect using existing event registry). Offerable contracts (is_offerable: true) appear on the player offers board and must be explicitly accepted.",
+  "notes": "Seasonal events roll at the END of every season and take effect the NEXT season. They appear in the Season Summary as 'NEXT SEASON NEWS'. Kinds: modifier (passive multiplier effect each active season — shown in left panel), mandate (requirement you must meet each season or pay a fine), contract (hit a target within a time window for a reward; penalty if window closes unmet), instant (one-time effect fires at start of next season). Offerable contracts (is_offerable: true) appear on the offers board to accept voluntarily.",
 
   "events": [
 
-    // ── MODIFIER EVENTS ───────────────────────────────────────────────────────
+    // ── MODIFIER EVENTS (apply a multiplier or flat bonus each season while active) ─
 
     {
       "id":         "sev_pandemic",
       "name":       "Global Pandemic",
-      "desc":       "Everyone's home watching TV. Ratings tick up  -  but production costs skyrocket.",
+      "desc":       "NEXT SEASON NEWS: Everyone's home watching TV. All shows get +12% views — but production costs skyrocket. Upkeep on all live shows increases by x1.35 for 2 seasons.",
       "weight":     4,
       "min_season": 2,
       "duration":   2,
@@ -23,7 +23,7 @@
     {
       "id":         "sev_ad_boom",
       "name":       "Ad Market Surge",
-      "desc":       "Brands are spending heavily. Modest income bump across all live shows.",
+      "desc":       "NEXT SEASON NEWS: Brands are spending heavily. Every live show earns +$6 flat income per season for 2 seasons. Stacks with ad revenue and star income.",
       "weight":     5,
       "min_season": 2,
       "duration":   2,
@@ -38,7 +38,7 @@
     {
       "id":         "sev_budget_audit",
       "name":       "Budget Audit",
-      "desc":       "The board dispatched accountants. Every department is haemorrhaging money on upkeep.",
+      "desc":       "NEXT SEASON NEWS: The board dispatched accountants. All live show upkeep multiplied by x1.50 for 2 seasons — every dollar of upkeep costs 50% more than usual.",
       "weight":     6,
       "min_season": 2,
       "duration":   2,
@@ -52,7 +52,7 @@
     {
       "id":         "sev_tech_disruption",
       "name":       "Tech Sector Ad Blitz",
-      "desc":       "Every startup is buying airtime. Modest income rise; Sci-Fi and News benefit a little.",
+      "desc":       "NEXT SEASON NEWS: Every startup is buying airtime. All shows get +$5 flat income per season. Sci-Fi shows get an additional +10% views; News shows get an additional +8% views for 2 seasons.",
       "weight":     4,
       "min_season": 3,
       "duration":   2,
@@ -71,7 +71,7 @@
     {
       "id":         "sev_streaming_wars",
       "name":       "Streaming Wars",
-      "desc":       "Rival platforms are poaching viewers. Everyone's cord-cutting. Views shrink across the board.",
+      "desc":       "NEXT SEASON NEWS: Rival platforms are poaching viewers. Everyone's cord-cutting. All live shows take a -15% views penalty (x0.85) for 2 seasons. Vault shows are unaffected.",
       "weight":     7,
       "min_season": 3,
       "duration":   2,
@@ -85,7 +85,7 @@
     {
       "id":         "sev_ratings_slump",
       "name":       "Summer Ratings Slump",
-      "desc":       "Audiences are outdoors. Every network is struggling. Views are down system-wide.",
+      "desc":       "NEXT SEASON NEWS: Audiences are outdoors. All live shows take a -12% views penalty (x0.88) for 2 seasons. Views still count toward your quota — plan carefully.",
       "weight":     7,
       "min_season": 2,
       "duration":   2,
@@ -99,7 +99,7 @@
     {
       "id":         "sev_production_strike",
       "name":       "Production Strike",
-      "desc":       "Set workers walked out. Upkeep just got brutal. Views are unaffected  -  barely.",
+      "desc":       "NEXT SEASON NEWS: Set workers walked out. All live show upkeep multiplied by x1.60 for 3 seasons — the longest and harshest upkeep penalty in the game. Views are unaffected.",
       "weight":     5,
       "min_season": 3,
       "duration":   3,
@@ -113,7 +113,7 @@
     {
       "id":         "sev_ratings_golden_age",
       "name":       "Television Golden Age",
-      "desc":       "Critics and audiences alike have rediscovered appointment TV. Views are slightly up.",
+      "desc":       "NEXT SEASON NEWS: Critics and audiences have rediscovered appointment TV. All live shows get +10% views (x1.10) for 2 seasons. One of the rare purely positive view modifiers.",
       "weight":     3,
       "min_season": 5,
       "duration":   2,
@@ -127,7 +127,7 @@
     {
       "id":         "sev_food_craze",
       "name":       "National Food Obsession",
-      "desc":       "Everyone's a home chef now. Cooking shows are the talk of the nation.",
+      "desc":       "NEXT SEASON NEWS: Everyone's a home chef now. Cooking shows are the talk of the nation. Cooking shows get +20% views; Reality shows get +8% views for the duration.",
       "weight":     4,
       "min_season": 2,
       "duration":   2,
@@ -142,12 +142,114 @@
       }
     },
 
-    // ── MANDATE EVENTS ────────────────────────────────────────────────────────
+    // ── POSITIVE MODIFIER EVENTS ──────────────────────────────────────────────
+
+    {
+      "id":         "sev_award_season",
+      "name":       "Awards Season Buzz",
+      "desc":       "NEXT SEASON NEWS: Your network is in the running. Critics are paying attention and audiences followed. All shows get a modest +12% views boost for 2 seasons.",
+      "weight":     4,
+      "min_season": 3,
+      "duration":   2,
+      "kind":       "modifier",
+      "effects": {
+        "view_mult":   1.12,
+        "upkeep_mult": 1.0
+      }
+    },
+
+    {
+      "id":         "sev_cord_surge",
+      "name":       "Cord-Cutting Reversal",
+      "desc":       "NEXT SEASON NEWS: Streaming fatigue has set in. Viewers are returning to live broadcast TV. All shows get +10% views and income rises by +$4 per show this season.",
+      "weight":     3,
+      "min_season": 2,
+      "duration":   2,
+      "kind":       "modifier",
+      "effects": {
+        "view_mult":   1.10,
+        "upkeep_mult": 1.0,
+        "income_flat": 4
+      }
+    },
+
+    {
+      "id":         "sev_sports_boom",
+      "name":       "Sports Rights Frenzy",
+      "desc":       "NEXT SEASON NEWS: Live sports rights are at an all-time premium. Sports shows get +25% views; Drama and News also benefit with a small +8% views lift.",
+      "weight":     3,
+      "min_season": 2,
+      "duration":   2,
+      "kind":       "modifier",
+      "effects": {
+        "view_mult":   1.0,
+        "upkeep_mult": 1.0,
+        "genre_view_mult": {
+          "SPORTS": 1.25,
+          "DRAMA":  1.08,
+          "NEWS":   1.08
+        }
+      }
+    },
+
+    {
+      "id":         "sev_nostalgia_wave",
+      "name":       "Nostalgia Wave",
+      "desc":       "NEXT SEASON NEWS: Audiences are craving classic comfort TV. Sitcoms and Drama are spiking. Sitcoms get +18% views; Drama gets +12% views for 2 seasons.",
+      "weight":     3,
+      "min_season": 3,
+      "duration":   2,
+      "kind":       "modifier",
+      "effects": {
+        "view_mult":   1.0,
+        "upkeep_mult": 1.0,
+        "genre_view_mult": {
+          "SITCOM": 1.18,
+          "DRAMA":  1.12
+        }
+      }
+    },
+
+    {
+      "id":         "sev_ad_windfall",
+      "name":       "Ad Revenue Windfall",
+      "desc":       "NEXT SEASON NEWS: A major advertiser entered the market and is spending aggressively. Every show earns +$8 income this season and next from the ad surplus.",
+      "weight":     3,
+      "min_season": 2,
+      "duration":   2,
+      "kind":       "modifier",
+      "effects": {
+        "view_mult":   1.0,
+        "upkeep_mult": 1.0,
+        "income_flat": 8
+      }
+    },
+
+    {
+      "id":         "sev_scifi_renaissance",
+      "name":       "Sci-Fi Renaissance",
+      "desc":       "NEXT SEASON NEWS: A blockbuster franchise reignited public appetite for Sci-Fi. Sci-Fi shows get +22% views this season. Reality and News also pick up minor interest (+6%).",
+      "weight":     3,
+      "min_season": 3,
+      "duration":   2,
+      "kind":       "modifier",
+      "effects": {
+        "view_mult":   1.0,
+        "upkeep_mult": 1.0,
+        "genre_view_mult": {
+          "SCIFI":   1.22,
+          "REALITY": 1.06,
+          "NEWS":    1.06
+        }
+      }
+    },
+
+    // ── MANDATE EVENTS (requirement you must meet each season or pay a fine) ──
 
     {
       "id":         "sev_writers_strike",
       "name":       "Writers' Strike",
-      "desc":       "Script supply has collapsed. The union demands respect. Air at least 2 Reality shows or pay the settlement.",
+      "desc":       "NEXT SEASON NEWS [MANDATE]: Script supply has collapsed. You MUST air at least 2 Reality shows each season this mandate is active. Fail each season and pay a -$20 budget fine. Checked at the START of every season.",
       "weight":     4,
       "min_season": 2,
       "duration":   2,
@@ -163,7 +265,7 @@
     {
       "id":         "sev_news_mandate",
       "name":       "Public Interest Directive",
-      "desc":       "Regulators are watching. Air at least one News programme each season or face a compliance fine.",
+      "desc":       "NEXT SEASON NEWS [MANDATE]: Regulators are watching. You MUST air at least 1 News show each season for 3 seasons. Fail each season: -$15 budget fine. Checked at the START of every season.",
       "weight":     4,
       "min_season": 3,
       "duration":   3,
@@ -179,7 +281,7 @@
     {
       "id":         "sev_prime_time_mandate",
       "name":       "Prime Time Commitment",
-      "desc":       "Advertisers are paying a premium for Prime Time. The board insists you keep it filled.",
+      "desc":       "NEXT SEASON NEWS [MANDATE]: Advertisers are paying a premium for Prime Time (slot 3). You MUST keep Prime Time filled each season. Fail each season: -$12 budget fine. Checked at the START of every season.",
       "weight":     4,
       "min_season": 3,
       "duration":   2,
@@ -194,7 +296,7 @@
     {
       "id":         "sev_talent_mandate",
       "name":       "Talent Showcase Deal",
-      "desc":       "Your agent has lined up a deal: keep at least 3 stars attached across your shows or forfeit the contract fee.",
+      "desc":       "NEXT SEASON NEWS [MANDATE]: Your agent lined up a deal. You MUST keep at least 3 stars attached across your lineup each season. Fail each season: -$18 budget fine. Stars in vault shows count. Checked at the START of every season.",
       "weight":     3,
       "min_season": 4,
       "duration":   2,
@@ -206,12 +308,12 @@
       "penalty": { "budget_loss": 18 }
     },
 
-    // ── AUTO-FIRED CONTRACT EVENTS ─────────────────────────────────────────────
+    // ── AUTO-FIRED CONTRACT EVENTS (roll randomly; no accept needed) ──────────
 
     {
       "id":         "sev_streaming_acquisition",
       "name":       "Streaming Acquisition Offer",
-      "desc":       "StreamVault wants your back catalogue. Reach 3,000 total views in the window and they'll cut a cheque.",
+      "desc":       "NEXT SEASON NEWS [CONTRACT - AUTO]: StreamVault wants your back catalogue. Reach 3,000 total lifetime views within 4 seasons to earn +$60 budget. Miss the window: -$25 budget penalty. Checked at the END of each season.",
       "weight":     3,
       "min_season": 4,
       "duration":   4,
@@ -225,7 +327,7 @@
     {
       "id":         "sev_network_merger",
       "name":       "Network Merger Talks",
-      "desc":       "A rival network is sniffing around. Show them a diverse genre lineup  -  avoid running any genre monopoly.",
+      "desc":       "NEXT SEASON NEWS [CONTRACT - AUTO]: A rival network is sniffing around. Avoid running a Reality genre monopoly for 3 seasons to earn +$40 budget. If you hold a Reality monopoly when the window closes: -$15 penalty.",
       "weight":     3,
       "min_season": 5,
       "duration":   3,
@@ -236,12 +338,12 @@
       "penalty": { "budget_loss":  15 }
     },
 
-    // ── OFFERABLE CONTRACTS (player accepts voluntarily) ──────────────────────
+    // ── OFFERABLE CONTRACTS (appear on offers board; you choose to accept) ────
 
     {
       "id":         "sev_offer_sports_deal",
       "name":       "Live Sports Exclusivity",
-      "desc":       "A sports rights consortium wants prime-time coverage. Air 2+ Sports shows within the window.",
+      "desc":       "OPTIONAL CONTRACT: Air 2+ Sports shows within the 3-season window. Reward: +$30 budget. Penalty if window closes unmet: -$15 budget. Accept on the CONTRACTS tab. Checked at END of each season.",
       "weight":     5,
       "min_season": 2,
       "duration":   3,
@@ -259,7 +361,7 @@
     {
       "id":         "sev_offer_drama_prestige",
       "name":       "Prestige Drama Commission",
-      "desc":       "A studio wants Drama prestige content. Keep 2+ Drama shows on air to collect the co-production fee.",
+      "desc":       "OPTIONAL CONTRACT: Keep 2+ Drama shows on air within the 3-season window. Reward: +$28 budget. Penalty if window closes unmet: -$12 budget. Accept on the CONTRACTS tab.",
       "weight":     5,
       "min_season": 2,
       "duration":   3,
@@ -277,7 +379,7 @@
     {
       "id":         "sev_offer_cooking_sponsor",
       "name":       "Culinary Brand Sponsorship",
-      "desc":       "FreshMart wants Cooking content front and centre. Air 2+ Cooking shows within the window.",
+      "desc":       "OPTIONAL CONTRACT: Air 2+ Cooking shows within the 3-season window. Reward: +$26 budget. Penalty if window closes unmet: -$10 budget. Accept on the CONTRACTS tab.",
       "weight":     5,
       "min_season": 2,
       "duration":   3,
@@ -295,7 +397,7 @@
     {
       "id":         "sev_offer_views_milestone",
       "name":       "Ratings Agency Challenge",
-      "desc":       "A national ratings body will grant a prestige award and a bonus if you reach 6,000 total views.",
+      "desc":       "OPTIONAL CONTRACT: Reach 6,000 total lifetime views within 4 seasons. Reward: +$40 budget. No penalty if unmet — purely an upside opportunity. Accept on the CONTRACTS tab.",
       "weight":     4,
       "min_season": 5,
       "duration":   4,
@@ -309,7 +411,7 @@
     {
       "id":         "sev_offer_star_showcase",
       "name":       "Talent Agency Showcase",
-      "desc":       "An agency wants a showcase. Keep 4+ stars attached across your lineup for the window.",
+      "desc":       "OPTIONAL CONTRACT: Keep 4+ stars attached across your full lineup for 3 seasons. Reward: +$32 budget. Penalty if window closes unmet: -$14 budget. Stars in vault count. Accept on the CONTRACTS tab.",
       "weight":     4,
       "min_season": 3,
       "duration":   3,
@@ -326,7 +428,7 @@
     {
       "id":         "sev_offer_news_grant",
       "name":       "Public Broadcasting Grant",
-      "desc":       "A public broadcaster offers co-funding if you keep News on air in every season of the window.",
+      "desc":       "OPTIONAL CONTRACT: Keep at least 1 News show on air for 4 seasons. Reward: +$30 budget. Penalty if window closes unmet: -$10 budget. Accept on the CONTRACTS tab.",
       "weight":     4,
       "min_season": 2,
       "duration":   4,
@@ -341,12 +443,12 @@
       "penalty": { "budget_loss":  10 }
     },
 
-    // ── INSTANT EVENTS (reuse existing event-pool handlers) ───────────────────
+    // ── INSTANT EVENTS (fire once at start of NEXT season) ────────────────────
 
     {
       "id":           "sev_viral_clip",
       "name":         "Clip Goes Viral",
-      "desc":         "Something from your network exploded online. Modest ratings bump.",
+      "desc":         "NEXT SEASON NEWS [INSTANT]: Something from your network exploded online. At the START of next season you gain +150 lifetime views. Views count toward your quota milestone.",
       "weight":       4,
       "min_season":   1,
       "duration":     1,
@@ -358,7 +460,7 @@
     {
       "id":           "sev_emergency_grant",
       "name":         "Emergency Arts Council Grant",
-      "desc":         "The government funded an emergency arts initiative. Your network qualifies for a small subsidy.",
+      "desc":         "NEXT SEASON NEWS [INSTANT]: The government funded an emergency arts initiative. At the START of next season your budget receives +$20. Helps when you're short on funds.",
       "weight":       3,
       "min_season":   2,
       "duration":     1,
@@ -370,7 +472,7 @@
     {
       "id":           "sev_industry_boost",
       "name":         "Industry Convention Buzz",
-      "desc":         "Your network was the talk of the trade show. Views and budget get a small lift.",
+      "desc":         "NEXT SEASON NEWS [INSTANT]: Your network was the talk of the trade show. At the START of next season: +120 lifetime views AND +$15 budget. A double bonus.",
       "weight":       2,
       "min_season":   3,
       "duration":     1,
@@ -382,7 +484,7 @@
     {
       "id":           "sev_rejuvenation",
       "name":         "Creative Reinvention",
-      "desc":         "A cultural moment breathes new life into your shows. Your lineup feels fresh again.",
+      "desc":         "NEXT SEASON NEWS [INSTANT]: A cultural moment breathes new life into your shows. At the START of next season all scheduled shows lose 1 age point (minimum age 1). Lower age = higher views multiplier.",
       "weight":       2,
       "min_season":   4,
       "duration":     1,

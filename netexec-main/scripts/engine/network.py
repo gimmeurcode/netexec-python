@@ -90,11 +90,16 @@ def _get_age_mult(age: int) -> float:
 # The orchestrator (calculate_yield) calls them in the invariant order
 # documented in its docstring.
 
-def _stage_upkeep(show: dict, slot_indices: list, is_rerun: bool) -> float:
-    """Stage 1: effective upkeep. Late Night (slot 3) halves it; reruns pay nothing."""
+def _stage_upkeep(show: dict, slot_indices: list, is_rerun: bool,
+                  monopoly_bonus: dict = None) -> float:
+    """Stage 1: effective upkeep. Late Night (slot 3) halves it; reruns pay nothing.
+    SITCOM monopoly (upkeep_halved) further multiplies upkeep by 0.5."""
     upkeep = 0.0 if is_rerun else float(show.get("upkeep", 0))
     if not is_rerun and 3 in slot_indices:
         upkeep *= 0.5
+    if monopoly_bonus and not is_rerun:
+        if monopoly_bonus.get("type") == "upkeep_halved":
+            upkeep *= monopoly_bonus.get("upkeep_mult", 0.5)
     return upkeep
 
 
@@ -106,15 +111,23 @@ def _stage_base_views(show: dict, slot_indices: list, is_rerun: bool) -> float:
     return v
 
 
-def _stage_stars(show: dict, slot_indices: list, is_rerun: bool) -> tuple:
+def _stage_stars(show: dict, slot_indices: list, is_rerun: bool,
+                 monopoly_bonus: dict = None) -> tuple:
     """
     Stage 3: star contributions → (v_add, mult_factor, star_income, upkeep_add).
 
     Prime Time (slot 2) amplifies only the *bonus* portion of v_mult so that
     a ×1.5 star becomes ×1.75: ((1.5 − 1.0) × 1.5) + 1.0 = 1.75.
     Stars with v_mult ≤ 1.0 are not amplified.
+    SCIFI monopoly (star_amplifier) overrides the prime-time multiplier to apply
+    across ALL slots at an elevated level (default 2.5×).
     """
     star_prime_mult = 1.5 if (not is_rerun and 2 in slot_indices) else 1.0
+    # SCIFI monopoly: star bonuses amplified across all slots
+    if monopoly_bonus and not is_rerun:
+        if monopoly_bonus.get("type") == "star_amplifier":
+            amp = monopoly_bonus.get("star_prime_mult", 2.5)
+            star_prime_mult = max(star_prime_mult, amp)
     v_add       = 0.0
     mult_factor = 1.0
     star_income = 0.0
@@ -131,15 +144,21 @@ def _stage_stars(show: dict, slot_indices: list, is_rerun: bool) -> tuple:
     return v_add, mult_factor, star_income, upkeep_add
 
 
-def _stage_ads(show: dict, slot_indices: list, is_rerun: bool) -> tuple:
+def _stage_ads(show: dict, slot_indices: list, is_rerun: bool,
+               monopoly_bonus: dict = None) -> tuple:
     """
     Stage 4: ad contributions → (v_add, mult_factor, ad_income).
 
     Morning (slot 0) scales positive ad income by ×1.2.
     Negative-income ads (e.g. Sludge Cola, RivalStream) pass through unscaled.
     Ad v_mults (positive or negative) apply unconditionally to the view mult.
+    REALITY monopoly (ad_multiplier) further scales all positive ad income by ad_mult.
     """
     morning_scale = 1.2 if (not is_rerun and 0 in slot_indices) else 1.0
+    reality_mult  = 1.0
+    if monopoly_bonus and not is_rerun:
+        if monopoly_bonus.get("type") == "ad_multiplier":
+            reality_mult = monopoly_bonus.get("ad_mult", 1.5)
     v_add       = 0.0
     mult_factor = 1.0
     ad_income   = 0.0
@@ -149,6 +168,8 @@ def _stage_ads(show: dict, slot_indices: list, is_rerun: bool) -> tuple:
         if not is_rerun:
             raw = eff["income"]
             ai = round(raw * morning_scale) if raw > 0 else raw
+            if ai > 0:
+                ai = round(ai * reality_mult)
             ad_income += ai
         vm = eff["v_mult"]
         if vm != 1.0:
@@ -175,13 +196,18 @@ def _stage_monopoly(mult: float, income: float,
     """
     Stage 6: genre monopoly bonus → (new_mult, new_income).
 
-    Live shows only. NEWS monopoly (target_reduction) adjusts the quota in
-    advance_season() — it does not affect individual show yield.
+    Live shows only. Handled by type:
+      views_income   — mult × views_mult, income + income_bonus  (DRAMA, SPORTS)
+      upkeep_halved  — upkeep handled in Stage 1; income + income_bonus  (SITCOM)
+      star_amplifier — star mult handled in Stage 3; mult × views_mult, income + income_bonus  (SCIFI)
+      ad_multiplier  — ad income handled in Stage 4; mult × views_mult, income + income_bonus  (REALITY)
+      target_reduction — quota handled in advance_season(); income + income_bonus  (NEWS)
+      budget_boost   — direct budget applied in advance_season(); mult × views_mult  (COOKING)
     """
     if monopoly_bonus and not is_rerun:
         mono_type = monopoly_bonus.get("type", "views_income")
-        if mono_type in ("views_income", "views_mult_income"):
-            mult   *= monopoly_bonus.get("views_mult", 1.0)
+        mult   *= monopoly_bonus.get("views_mult", 1.0)
+        if mono_type != "budget_boost":
             income += monopoly_bonus.get("income_bonus", 0)
     return mult, income
 
@@ -268,15 +294,16 @@ def calculate_yield(show: dict, *,
         [start_idx, start_idx + 1] if show.get("size", 1) == 2 else [start_idx]
     )
 
-    upkeep = _stage_upkeep(show, slot_indices, is_rerun)            # 1. upkeep
+    _mb = monopoly_bonus if not is_rerun else None  # monopoly only applies to live shows
+    upkeep = _stage_upkeep(show, slot_indices, is_rerun, _mb)       # 1. upkeep
     v      = _stage_base_views(show, slot_indices, is_rerun)        # 2. base views
     mult   = 1.0
     income = 0.0
 
-    s_v, s_mult, star_income, s_upkeep = _stage_stars(show, slot_indices, is_rerun)
+    s_v, s_mult, star_income, s_upkeep = _stage_stars(show, slot_indices, is_rerun, _mb)
     v += s_v; mult *= s_mult; income += star_income; upkeep += s_upkeep  # 3. stars
 
-    a_v, a_mult, ad_income = _stage_ads(show, slot_indices, is_rerun)
+    a_v, a_mult, ad_income = _stage_ads(show, slot_indices, is_rerun, _mb)
     v += a_v; mult *= a_mult; income += ad_income                   # 4. ads
 
     u_v, u_mult, u_income = _stage_upgrades(                        # 5. upgrades
@@ -361,6 +388,10 @@ class GameState:
         self._seasonal_mods_cache: dict | None = None
         self.reroll_cost: int = REROLL_BASE_COST
 
+        # ── Pending events (purchased from shop, fire at start of next season) ──
+        # Each entry: {event: dict, cost_paid: float}
+        self.pending_events: list = []
+
         # ── Projection cache (preview_lineup_yield) ────────────────────────────
         self._proj_cache_key: tuple | None = None
         self._proj_cache_pv:  int   = 0
@@ -397,6 +428,7 @@ class GameState:
         self.available_contracts       = []
         self.last_seasonal_event_id    = None
         self.seasonal_event_log        = []
+        self.pending_events            = []
         # Derive the seasonal RNG seed from the global RNG so that games with
         # the same random.seed() are fully reproducible end-to-end.
         self._seasonal_rng = random.Random(random.getrandbits(32))
@@ -432,6 +464,13 @@ class GameState:
         # Event count is difficulty-adjusted: EASY gets more events, BRUTAL fewer.
         adj_event_count = max(0, round(SHOP_EVENT_COUNT * (1 + event_mod)))
         self.shop["events"]   = event_pool.pop_for_shop(self.pool["events"],  adj_event_count)
+
+        # Refresh contracts offers board if none are available (first shop of season)
+        if self.seasonal_events_enabled and not self.available_contracts and self.season >= 2:
+            active_ids = {e.get("event", {}).get("id") for e in self.active_contracts}
+            self.available_contracts = seasonal_mod.build_offers(
+                self.season, active_ids, self._seasonal_rng
+            )
 
     def reroll_shop(self) -> dict:
         """Pay REROLL_COST to refresh the shop; return {ok, message, level}."""
@@ -563,12 +602,17 @@ class GameState:
             self.shop["upgrades"] = [u for u in self.shop["upgrades"] if u.get("uid") != item.get("uid")]
             return {"ok": True, "message": f"ACQUIRED: {item['name']}", "level": "success", "action": "placed"}
 
-        # ── Events (immediate, one-off) ────────────────────────────────────────
+        # ── Events (queued — fire at the START of the next season) ───────────────
         if category == "events":
             self.budget -= item["cost"]
             self.shop["events"] = [e for e in self.shop["events"] if e.get("uid") != item.get("uid")]
-            result = event_pool.apply_event(item, self, generate_shop_fn=self.generate_shop)
-            return {**result, "action": "placed"}
+            self.pending_events.append({"event": dict(item)})
+            return {
+                "ok": True,
+                "message": f"QUEUED FOR NEXT SEASON: {item.get('name', '?')}",
+                "level": "info",
+                "action": "placed",
+            }
 
         # ── Shows, stars, ads: queue for placement ────────────────────────────
         self.selected_item = {**item, "shop_type": category}
@@ -752,7 +796,14 @@ class GameState:
             arr[idx] = None
 
     def sell_show(self, arr_type: str, idx: int) -> dict:
-        """Cancel a show from a lineup or vault slot and award partial refund; return {ok, message, level}."""
+        """
+        Cancel a show from a lineup or vault slot.
+
+        Sell value is based on accumulated views:
+          - Age 1 (never aired): $0 — no refund (penalises impulse buys).
+          - Age 2+: views_earned × 0.04, capped at the show's original cost.
+        Stars attached to the show are lost with no refund.
+        """
         arr   = self.lineup if arr_type == "lineup" else self.reruns
         slot  = arr[idx] if 0 <= idx < len(arr) else None
         if not slot:
@@ -763,13 +814,24 @@ class GameState:
         if not show or show.get("is_extension"):
             return {"ok": False, "message": "NOTHING TO CANCEL", "level": "error"}
 
-        refund = rnd2(show.get("cost", 0) * SELL_REFUND_RATE) + sum(
-            rnd2(star.get("cost", 0) * STAR_REFUND_RATE)
-            for star in show.get("attached", {}).get("star", [])
-        )
-        self.budget  += refund
+        age             = show.get("age", 1)
+        accumulated     = show.get("accumulated_views", 0)
+        show_cost       = show.get("cost", 0)
+
+        if age <= 1:
+            # Show has never aired — no refund
+            refund = 0.0
+            msg    = f"CANCELLED (NEVER AIRED) — NO REFUND | {show.get('name', '???')}"
+            level  = "warn"
+        else:
+            # Refund based on views earned; capped at original cost
+            refund = rnd2(min(accumulated * 0.04, float(show_cost)))
+            msg    = f"SOLD — +${refund:.2f} from {int(accumulated)} views | {show.get('name', '???')}"
+            level  = "info"
+
+        self.budget += refund
         self._clear_slot(arr_type, head_idx)
-        return {"ok": True, "message": f"CANCELLED - REFUND +${refund:.2f}", "level": "info"}
+        return {"ok": True, "message": msg, "level": level}
 
     def move_to_vault(self, lineup_idx: int) -> dict:
         """Move a live lineup show to the Syndication Vault; return {ok, message, level}."""
@@ -798,6 +860,19 @@ class GameState:
         season_income = float(BASE_INCOME)
         seasonal_event_messages: list = []
 
+        # ── Fire queued shop events (purchased last season) ───────────────────
+        if self.pending_events:
+            fired_messages = []
+            for entry in self.pending_events:
+                ev = entry["event"]
+                result = event_pool.apply_event(ev, self, generate_shop_fn=self.generate_shop)
+                fired_messages.append({
+                    "text":  f"[EVENT TRIGGERED] {result.get('message', ev.get('name', '?'))}",
+                    "level": result.get("level", "info"),
+                })
+            seasonal_event_messages.extend(fired_messages)
+            self.pending_events = []
+
         # ── (a) Aggregate seasonal modifiers for this season's yield calc ─────
         s_mods = self.aggregate_seasonal_mods() if self.seasonal_events_enabled else None
 
@@ -823,6 +898,16 @@ class GameState:
         effective_target = self.current_target
         if monopoly_genre == "NEWS":
             effective_target = DifficultyManager.apply_news_monopoly(self.current_target)
+
+        # ── COOKING monopoly: budget_boost applied directly to budget ─────────
+        if monopoly_bonus and monopoly_bonus.get("type") == "budget_boost":
+            boost = monopoly_bonus.get("budget_per_season", 0)
+            if boost:
+                self.budget = rnd2(self.budget + boost)
+                seasonal_event_messages.append({
+                    "text":  f"CULINARY EMPIRE: +${boost} DIRECT BUDGET",
+                    "level": "success",
+                })
 
         # ── (b) Evaluate mandates BEFORE yields ───────────────────────────────
         if self.seasonal_events_enabled:
@@ -861,6 +946,7 @@ class GameState:
             )
             season_views  += y["v"]
             season_income += y["i"]
+            show["accumulated_views"] = show.get("accumulated_views", 0) + y["v"]
             show["age"]   += 1   # age every live season
 
             slot_label = TIME_SLOTS[idx]["label"] if idx < len(TIME_SLOTS) else f"Slot {idx}"

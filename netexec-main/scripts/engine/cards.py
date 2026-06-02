@@ -179,8 +179,9 @@ def evaluate_ad(ad: dict, show: dict) -> dict:
 def make_show_instance(template: dict) -> dict:
     """Clone a show template into a live show instance with age=1 and empty attachments."""
     instance = dict(template)          # shallow copy — don't mutate the template
-    instance["age"]      = 1
-    instance["attached"] = {"star": [], "ad": []}
+    instance["age"]               = 1
+    instance["accumulated_views"] = 0  # total views earned; used for sell pricing
+    instance["attached"]          = {"star": [], "ad": []}
     return instance
 
 

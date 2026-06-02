@@ -148,7 +148,14 @@ def _draw_header(ctx, state):
         sum(s.get("upkeep", 0) for s in state.lineup if s and not s.get("is_extension"))
         + sum(s.get("upkeep", 0) for s in state.reruns if s)
     )
-    upk_surf = ctx._f("micro").render(f"(upkeep: ${total_upkeep}/season)", True, C_AMBER_DIM)
+    # Show projected net income (income minus upkeep) with +/- sign and color
+    proj_views, proj_income = state.preview_lineup_yield()
+    net_sign = "+" if proj_income >= 0 else ""
+    net_col  = C_GREEN_BRIGHT if proj_income > 0 else (C_AMBER_DIM if proj_income == 0 else C_RED)
+    upk_surf = ctx._f("micro").render(
+        f"UPKEEP: -${total_upkeep:.0f}  |  NET: {net_sign}${proj_income:.0f}/season",
+        True, net_col
+    )
     ctx.screen.blit(upk_surf, (rb_x, 28))
 
     pause_w    = min(rb_w - 6, 128)

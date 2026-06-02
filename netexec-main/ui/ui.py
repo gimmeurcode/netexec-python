@@ -87,7 +87,7 @@ class GameUI:
         self._flash_color   = None
         self._flash_elapsed = 0
 
-        # ── Hover tracking ────────────────────────────────────────────────────
+        # ── Mouse tracking ────────────────────────────────────────────────────
         self._mouse_pos = (0, 0)
 
         # ── Tick for blinking elements and menu animation ──────────────────────
@@ -152,13 +152,17 @@ class GameUI:
         self._layout: Layout = compute_layout(SCREEN_WIDTH, SCREEN_HEIGHT)
         self._game_surf: pygame.Surface | None = None   # game-content sub-surface
 
-        # ── Tooltip hover tracking ────────────────────────────────────────────
+        # ── Tooltip tracking (right-click to show/dismiss) ────────────────────
         self._tooltip_regions: list[tuple[pygame.Rect, dict]] = []
+        self._pinned_tooltip_key: str = ""      # key of the pinned tooltip
+        self._pinned_tooltip_pos: tuple = (0, 0)  # screen pos where it was pinned
+        # Legacy fields kept so _draw_tooltip compiles without change
         self._hover_ttip_key   = ""
         self._hover_start_tick = 0
 
         # ── Show detail modal ─────────────────────────────────────────────────
         self._show_detail: dict | None = None
+        self._detail_scroll: int = 0
 
         # ── Fullscreen ────────────────────────────────────────────────────────
         self._fullscreen = False
@@ -228,29 +232,61 @@ class GameUI:
         if event.type == pygame.MOUSEMOTION:
             self._mouse_pos = (event.pos[0] - cut.x, event.pos[1] - cut.y)
 
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
+            # Right-click: pin/unpin a tooltip for the region under the cursor.
+            self._toggle_pinned_tooltip(event.pos)
+
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
             pos = (event.pos[0] - cut.x, event.pos[1] - cut.y)
             if self._tutorial and not self._tutorial.done:
                 return
+            mods = pygame.key.get_mods()
+            if mods & pygame.KMOD_CTRL:
+                # Ctrl+left-click: same as right-click (tooltip toggle for laptop users)
+                self._toggle_pinned_tooltip(event.pos)
+                return
+            # Plain left-click: dismiss any pinned tooltip, then fire click region
+            self._pinned_tooltip_key = ""
             for rect, callback in self._click_regions:
                 if rect.collidepoint(pos):
                     callback()
                     break
 
         elif event.type == pygame.MOUSEWHEEL:
-            # Route wheel scrolling to the panel under the cursor.
-            mx, my = self._mouse_pos
-            lo = self._layout
             dy = -event.y * self._SCROLL_SPEED
-            if lo.schedule.collidepoint(mx, my):
-                self._schedule_scroll = max(0, self._schedule_scroll + dy)
-            elif lo.shop.collidepoint(mx, my):
-                self._shop_scroll = max(0, self._shop_scroll + dy)
+            if self._show_detail:
+                # Wheel on show detail modal scrolls the modal content
+                self._detail_scroll = max(0, self._detail_scroll + dy)
+            else:
+                # Route wheel scrolling to the panel under the cursor.
+                mx, my = self._mouse_pos
+                lo = self._layout
+                if lo.schedule.collidepoint(mx, my):
+                    self._schedule_scroll = max(0, self._schedule_scroll + dy)
+                elif lo.shop.collidepoint(mx, my):
+                    self._shop_scroll = max(0, self._shop_scroll + dy)
 
         elif event.type == pygame.KEYDOWN:
             if self._tutorial and not self._tutorial.done:
                 return
             self._handle_key(event, state)
+
+    def _toggle_pinned_tooltip(self, raw_pos: tuple):
+        """Pin or unpin a tooltip at raw_pos (window coords). Called on right-click or Ctrl+click."""
+        if self._tutorial and not self._tutorial.done:
+            return
+        cut = self._layout.cutout
+        pos = (raw_pos[0] - cut.x, raw_pos[1] - cut.y)
+        new_key = ""
+        for rect, data in self._tooltip_regions:
+            if rect.collidepoint(pos):
+                new_key = data.get("title", "") + data.get("type", "")
+                break
+        if new_key and new_key != self._pinned_tooltip_key:
+            self._pinned_tooltip_key = new_key
+            self._pinned_tooltip_pos = pos
+        else:
+            self._pinned_tooltip_key = ""
 
     def _handle_key(self, event: pygame.event.Event, state):
         key = event.key
@@ -483,26 +519,23 @@ class GameUI:
     # ─── TOOLTIP RENDERING ────────────────────────────────────────────────────
 
     def _draw_tooltip(self):
-        """Render a rich tooltip panel near the cursor after a 200 ms hover delay."""
+        """Render a rich tooltip panel at the right-click position (pinned until dismissed)."""
         if self._tutorial and not self._tutorial.done:
             return
-        mx, my = self._mouse_pos
+        if not self._pinned_tooltip_key:
+            return
 
-        found_key  = ""
+        mx, my = self._pinned_tooltip_pos
         found_data: dict | None = None
         for rect, data in self._tooltip_regions:
-            if rect.collidepoint(mx, my):
-                found_key  = data.get("title", "") + data.get("type", "")
+            key = data.get("title", "") + data.get("type", "")
+            if key == self._pinned_tooltip_key:
                 found_data = data
                 break
 
-        if found_key != self._hover_ttip_key:
-            self._hover_ttip_key   = found_key
-            self._hover_start_tick = self._tick_ms
-
         if not found_data:
-            return
-        if self._tick_ms - self._hover_start_tick < 200:
+            # Region no longer on screen — clear pin
+            self._pinned_tooltip_key = ""
             return
 
         _ACCENT = {

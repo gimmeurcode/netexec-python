@@ -207,6 +207,31 @@ def _handle_reduce_all_upkeep(event, state, generate_shop_fn):
     }
 
 
+@event_handler("reduce_upkeep_and_budget")
+def _handle_reduce_upkeep_and_budget(event, state, generate_shop_fn):
+    params       = event.get("effect_params", {})
+    name         = event.get("name", "Event")
+    amount       = params.get("amount", 0)
+    min_upkeep   = params.get("min_upkeep", 0)
+    budget_bonus = params.get("budget_bonus", 0)
+    affected     = 0
+    for show in state.lineup:
+        if show and not show.get("is_extension"):
+            old = show.get("upkeep", 0)
+            show["upkeep"] = max(min_upkeep, old - amount)
+            if show["upkeep"] < old:
+                affected += 1
+    if budget_bonus:
+        state.budget += budget_bonus
+    parts = []
+    if affected:
+        parts.append(f"UPKEEP -${amount} ON {affected} SHOW(S)")
+    if budget_bonus:
+        parts.append(f"+${budget_bonus} BUDGET")
+    msg = f"{name}: " + " & ".join(parts) if parts else f"{name}: NO EFFECT"
+    return {"ok": True, "message": msg, "level": "success"}
+
+
 @event_handler("age_show_and_boost_views")
 def _handle_age_show_and_boost_views(event, state, generate_shop_fn):
     params       = event.get("effect_params", {})

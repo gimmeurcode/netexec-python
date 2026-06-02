@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "notes": "Add new events here. Events fire immediately on purchase and are consumed. The 'effect_type' determines which handler in events.py runs. 'effect_params' passes data to that handler. Consumed = removed from shop on purchase.",
+  "notes": "Events are purchased from the shop and queued — they fire at the START of the NEXT season, not immediately. Each event is consumed on purchase (one-time use). 'effect_type' determines which handler in events.py runs. 'effect_params' passes data to that handler.",
 
   "events": [
     {
@@ -9,7 +9,7 @@
       "cost": 12,
       "effect_type": "add_views",
       "effect_params": {"views": 250},
-      "desc": "Instant +250 lifetime views. A clip goes viral before the show even airs. The internet is chaotic. This is a gift."
+      "desc": "NEXT SEASON: +250 lifetime views added directly to your total. Views count toward your quota milestone. A clip blew up before the show even aired. The algorithm chose you. Temporarily."
     },
     {
       "id": "ev_sponsor",
@@ -17,7 +17,7 @@
       "cost": 15,
       "effect_type": "add_budget",
       "effect_params": {"amount": 30},
-      "desc": "Gain +$30 budget immediately. A mysterious corporation liked your lineup. Don't ask why. Just cash the check."
+      "desc": "NEXT SEASON: +$30 added directly to budget. Budget is used to buy shows, stars, ads, upgrades, and events. A mysterious corporation liked your lineup. Don't ask why. Just cash the check."
     },
     {
       "id": "ev_retool",
@@ -25,7 +25,7 @@
       "cost": 10,
       "effect_type": "reduce_lineup_age",
       "effect_params": {"amount": 1, "min_age": 1},
-      "desc": "Reduce the age of all scheduled shows by 1 (minimum 1). New showrunner, new energy, same set. Like injecting youth into your lineup."
+      "desc": "NEXT SEASON: All scheduled shows lose 1 age point (minimum age 1). Lower age = higher views: shows peak at age 2 (x1.25 views), decay to x0.45 at age 7+. Restores momentum to aging shows."
     },
     {
       "id": "ev_pilot",
@@ -33,7 +33,7 @@
       "cost": 8,
       "effect_type": "free_reroll",
       "effect_params": {},
-      "desc": "Refresh the shop for free. The development slate was scrapped. Again. At least it didn't cost anything."
+      "desc": "NEXT SEASON: The shop is refreshed for free. Normally rerolling costs $3 and rises $1 each use, resetting each season. This bypasses that cost entirely. The development slate was scrapped. Again."
     },
     {
       "id": "ev_focus",
@@ -41,7 +41,7 @@
       "cost": 14,
       "effect_type": "boost_lineup_base_views",
       "effect_params": {"amount": 40},
-      "desc": "All scheduled shows gain +40 permanent Base Views. The research said 'more explosions and pets.' The writers compromised."
+      "desc": "NEXT SEASON: All scheduled shows permanently gain +40 Base Views. Base Views are the foundation of a show's rating before stars, ads, age, and slot modifiers are applied. This boost is permanent."
     },
     {
       "id": "ev_crossover",
@@ -49,7 +49,7 @@
       "cost": 18,
       "effect_type": "boost_lineup_base_views",
       "effect_params": {"amount": 50},
-      "desc": "All scheduled shows gain +50 permanent Base Views. Two universes collide. Fans lose their minds. Advertisers gain revenue."
+      "desc": "NEXT SEASON: All scheduled shows permanently gain +50 Base Views. Stacks with Focus Group Frenzy and other base view boosts. Two universes collide. Fans lose their minds. Advertisers gain revenue."
     },
     {
       "id": "ev_hotline",
@@ -57,7 +57,7 @@
       "cost": 9,
       "effect_type": "add_budget_and_views",
       "effect_params": {"budget": 20, "views": 150},
-      "desc": "Gain +$20 budget and +150 lifetime views. Nielsen called. The numbers are in. They are good. Mostly."
+      "desc": "NEXT SEASON: +$20 budget AND +150 lifetime views. Budget spends immediately; views count toward your quota. Nielsen called. The numbers are in. They are good. Mostly."
     },
     {
       "id": "ev_superbowl",
@@ -65,7 +65,7 @@
       "cost": 22,
       "effect_type": "add_budget_and_views",
       "effect_params": {"budget": 35, "views": 400},
-      "desc": "Instant +400 lifetime views and +$35 budget. The left shark is back. Nobody knows why. Everyone is watching."
+      "desc": "NEXT SEASON: +400 lifetime views AND +$35 budget. One of the largest view and budget bonuses available in the shop. The left shark is back. Nobody knows why. Everyone is watching."
     },
     {
       "id": "ev_moon",
@@ -73,7 +73,7 @@
       "cost": 20,
       "effect_type": "add_views",
       "effect_params": {"views": 500},
-      "desc": "Instant +500 lifetime views. One small step, one giant rating. Every television in America is on. Including the broken ones."
+      "desc": "NEXT SEASON: +500 lifetime views — the single largest view bonus in the game. Views count directly toward your quota milestone. One small step, one giant rating. Every television in America is on."
     },
     {
       "id": "ev_strike",
@@ -81,7 +81,7 @@
       "cost": 8,
       "effect_type": "budget_boost_views_penalty",
       "effect_params": {"budget": 40, "base_views_loss": 20, "min_base_views": 10},
-      "desc": "Gain +$40 budget, but all scheduled shows permanently lose -20 Base Views (min 10). The scripted drama is now unscripted. This was not planned."
+      "desc": "NEXT SEASON: +$40 budget BUT all scheduled shows permanently lose -20 Base Views (minimum 10). Tradeoff: emergency cash now at the cost of long-term ratings. The scripted drama is now unscripted."
     },
     {
       "id": "ev_probe",
@@ -89,7 +89,7 @@
       "cost": 6,
       "effect_type": "reduce_all_upkeep",
       "effect_params": {"amount": 2, "min_upkeep": 0},
-      "desc": "All scheduled shows reduce upkeep by $2 (min 0). The FCC arrived. The network lawyers arrived faster. The outcome is technically a win."
+      "desc": "NEXT SEASON: All scheduled shows permanently reduce upkeep by $2 (minimum $0). Upkeep is deducted from income each season — reducing it improves your net income. The lawyers arrived faster."
     },
     {
       "id": "ev_finale",
@@ -97,7 +97,7 @@
       "cost": 16,
       "effect_type": "age_show_and_boost_views",
       "effect_params": {"age_increase": 1, "views_bonus": 200, "target": "oldest_lineup"},
-      "desc": "The oldest scheduled show ages +1 but generates +200 lifetime views immediately. A farewell tour. The fans showed up. The critics cried."
+      "desc": "NEXT SEASON: Your OLDEST scheduled show ages +1 season but generates +200 lifetime views immediately. High-risk move: aging accelerates decay (shows at age 7+ earn only x0.45 views). A farewell tour."
     },
 
     // ── NEW EVENTS ────────────────────────────────────────────────────────────
@@ -107,7 +107,7 @@
       "cost": 14,
       "effect_type": "add_budget_and_views",
       "effect_params": {"budget": 25, "views": 200},
-      "desc": "A live cooking segment goes viral. Viewers tune in expecting disaster. The food is actually good. Everyone is confused but watching."
+      "desc": "NEXT SEASON: +$25 budget AND +200 lifetime views. A live cooking segment goes viral. Viewers tune in expecting disaster. The food is actually good. Everyone is confused but watching."
     },
     {
       "id": "ev_chefmeltdown",
@@ -115,7 +115,7 @@
       "cost": 10,
       "effect_type": "boost_lineup_base_views",
       "effect_params": {"amount": 35},
-      "desc": "A celebrity chef has an extremely public meltdown in your studio kitchen. All scheduled shows permanently gain +35 Base Views from the exposure."
+      "desc": "NEXT SEASON: All scheduled shows permanently gain +35 Base Views. Base Views are calculated before star bonuses, ad bonuses, age decay, and slot modifiers. A meltdown raises all boats."
     },
     {
       "id": "ev_streamauction",
@@ -123,7 +123,7 @@
       "cost": 18,
       "effect_type": "add_budget",
       "effect_params": {"amount": 50},
-      "desc": "A streaming platform wants your back catalog. Cash upfront, no questions. Gain +$50 immediately. What they stream is not your concern."
+      "desc": "NEXT SEASON: +$50 added directly to budget. One of the largest pure budget bonuses available. A streaming platform wants your back catalog. Cash upfront, no questions. What they stream is not your concern."
     },
     {
       "id": "ev_clipeverywhere",
@@ -131,7 +131,7 @@
       "cost": 10,
       "effect_type": "add_views",
       "effect_params": {"views": 350},
-      "desc": "A twelve-second clip from one of your shows is now the internet's most-watched video of the week. Instant +350 lifetime views."
+      "desc": "NEXT SEASON: +350 lifetime views added directly to your total. Views count toward your quota milestone. A twelve-second clip is now the internet's most-watched video of the week."
     },
     {
       "id": "ev_adboycott",
@@ -139,15 +139,15 @@
       "cost": 5,
       "effect_type": "budget_boost_views_penalty",
       "effect_params": {"budget": 50, "base_views_loss": 30, "min_base_views": 10},
-      "desc": "Three advertisers pulled out after that episode. But the controversy brought +$50 in replacement revenue. The views took a hit. The check cleared."
+      "desc": "NEXT SEASON: +$50 budget BUT all shows permanently lose -30 Base Views (minimum 10). High-value tradeoff: large cash injection but permanently lowers your shows' view ceiling. Use carefully."
     },
     {
       "id": "ev_taxbreak",
       "name": "Production Tax Incentive",
       "cost": 8,
-      "effect_type": "reduce_all_upkeep",
-      "effect_params": {"amount": 3, "min_upkeep": 0},
-      "desc": "Film in a state that really, really wants film production. All shows reduce upkeep by $3. The governor cut the ribbon personally."
+      "effect_type": "reduce_upkeep_and_budget",
+      "effect_params": {"amount": 3, "min_upkeep": 0, "budget_bonus": 25},
+      "desc": "NEXT SEASON: All shows permanently reduce upkeep by $3 (minimum $0) AND you gain +$25 budget. Upkeep is paid each season from income — reducing it improves net income permanently. Film in a state that really wants you there."
     }
   ]
 }

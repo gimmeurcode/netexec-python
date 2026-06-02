@@ -6,6 +6,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BUILD_SCRIPT="$SCRIPT_DIR/../netexec-dev/build/build_game.py"
 APP_SRC="$SCRIPT_DIR/../netexec-main/NETEXEC.app"
 APP_DEST="/Applications/NETEXEC.app"
 DESKTOP_LINK="$HOME/Desktop/NetExecutive.app"
@@ -13,6 +14,22 @@ DESKTOP_LINK="$HOME/Desktop/NetExecutive.app"
 echo "=============================================================="
 echo "  NETEXEC -- macOS Application Installer"
 echo "=============================================================="
+echo ""
+
+# Build NETEXEC.app from latest source before installing
+echo "[1/4]  Building NETEXEC.app from latest source..."
+if [ -f "$BUILD_SCRIPT" ]; then
+    python3 "$BUILD_SCRIPT" || python "$BUILD_SCRIPT"
+    if [ $? -ne 0 ]; then
+        echo "  ERROR: Build failed. See output above for details."
+        read -rp "Press Enter to close..."
+        exit 1
+    fi
+    echo "  Build complete."
+else
+    echo "  WARNING: build_game.py not found -- using existing NETEXEC.app."
+    echo "  Expected: $BUILD_SCRIPT"
+fi
 echo ""
 
 # Verify the source app bundle exists
@@ -24,7 +41,7 @@ if [ ! -d "$APP_SRC" ]; then
     exit 1
 fi
 
-echo "[1/3]  Installing NETEXEC.app to /Applications..."
+echo "[2/4]  Installing NETEXEC.app to /Applications..."
 echo "  Source      : $APP_SRC"
 echo "  Destination : $APP_DEST"
 echo ""
@@ -40,7 +57,7 @@ echo "  App installed to /Applications/NETEXEC.app"
 
 # Back up and clear old user settings so new defaults apply
 echo ""
-echo "[2/3]  Backing up and clearing old user settings..."
+echo "[3/4]  Backing up and clearing old user settings..."
 USER_SETTINGS="$HOME/.config/NETEXEC"
 if [ -d "$USER_SETTINGS" ]; then
     TS="$(date +%Y%m%d-%H%M%S)"
@@ -55,7 +72,7 @@ fi
 
 # Create Desktop alias/symlink
 echo ""
-echo "[3/3]  Creating Desktop shortcut..."
+echo "[4/4]  Creating Desktop shortcut..."
 DESKTOP="$HOME/Desktop"
 
 if [ ! -d "$DESKTOP" ]; then

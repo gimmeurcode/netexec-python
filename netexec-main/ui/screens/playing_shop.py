@@ -258,23 +258,46 @@ def _draw_shop_card(ctx, rect, item, category, state):
         draw_event_icon(ctx.screen, icon_rect, C_AMBER)
 
     is_ad     = (category == "ads")
-    btn_label = "SIGN" if is_ad else "BUY"
-    PILL_W, PILL_H = 90, 22
+    PILL_W, PILL_H = 100, 22
     pill_rect = pygame.Rect(rect.right - PILL_W - 6, rect.y + 6, PILL_W, PILL_H)
-    cost_col  = C_RED if not can_buy else (C_GREEN_MID if is_ad else C_AMBER)
-    pill_bg   = C_RED_DIM if not can_buy else (C_TINT_GREEN_PILL if is_ad else C_TINT_SHOW_PILL)
-    pygame.draw.rect(ctx.screen, pill_bg,  pill_rect, border_radius=4)
-    pygame.draw.rect(ctx.screen, cost_col, pill_rect, 1, border_radius=4)
-    p_surf = ctx._f("small").render(f"{btn_label}  ${cost}", True, cost_col)
-    ctx.screen.blit(p_surf, p_surf.get_rect(center=pill_rect.center))
 
     if is_ad:
-        _uf   = item.get("upfront_cash", 0)
-        _nc   = _ad_net_cost(item, state)
+        _uf = item.get("upfront_cash", 0)
+        _nc = _ad_net_cost(item, state)
+        # Positive _nc = you pay; negative = they pay you
+        net_positive = _nc <= 0   # you gain money on sign
+        if not can_buy:
+            cost_col = C_RED
+            pill_bg  = C_RED_DIM
+        elif net_positive:
+            cost_col = C_GREEN_BRIGHT
+            pill_bg  = C_TINT_GREEN_PILL
+        else:
+            cost_col = C_AMBER
+            pill_bg  = C_TINT_SHOW_PILL
+        pygame.draw.rect(ctx.screen, pill_bg,  pill_rect, border_radius=4)
+        pygame.draw.rect(ctx.screen, cost_col, pill_rect, 1, border_radius=4)
+        net_sign = "+" if net_positive else "-"
+        net_label = f"SIGN  {net_sign}${abs(_nc):.0f}"
+        p_surf = ctx._f("small").render(net_label, True, cost_col)
+        ctx.screen.blit(p_surf, p_surf.get_rect(center=pill_rect.center))
+
         _mcol = C_GREEN_MID if can_buy else C_GREY_MID
         _math = ctx._f("micro").render(
-            f"Immediate +${_uf:.0f} - ${cost} = net ${_nc:.2f}", True, _mcol)
+            f"+${_uf:.0f} upfront - ${cost} buy = {net_sign}${abs(_nc):.0f} net", True, _mcol)
         ctx.screen.blit(_math, (pill_rect.right - _math.get_width(), pill_rect.bottom + 2))
+    else:
+        cost_col = C_RED if not can_buy else C_AMBER
+        pill_bg  = C_RED_DIM if not can_buy else C_TINT_SHOW_PILL
+        pygame.draw.rect(ctx.screen, pill_bg,  pill_rect, border_radius=4)
+        pygame.draw.rect(ctx.screen, cost_col, pill_rect, 1, border_radius=4)
+        btn_label = "EVENT" if category == "events" else "BUY"
+        p_surf = ctx._f("small").render(f"{btn_label}  -${cost}", True, cost_col)
+        ctx.screen.blit(p_surf, p_surf.get_rect(center=pill_rect.center))
+
+    if category == "events":
+        next_s = ctx._f("micro").render("NEXT SEASON", True, C_AMBER_DIM)
+        ctx.screen.blit(next_s, (pill_rect.right - next_s.get_width(), pill_rect.bottom + 2))
 
     def _buy(i=item, c=category):
         result = state.attempt_purchase(i, c)
@@ -613,25 +636,29 @@ def _draw_shop_card(ctx, rect, item, category, state):
 
     elif category == "events":
         _ep = item.get("effect_params", {})
-        if "views" in _ep:
-            _eff = f"Instant +{_ep['views']} views added to season total"
+        if "views" in _ep and "budget" in _ep:
+            _eff = f"+{_ep['views']} views AND +${_ep['budget']} budget — fires at start of next season"
+        elif "views" in _ep:
+            _eff = f"+{_ep['views']} lifetime views — fires at start of next season"
         elif "amount" in _ep:
-            _eff = f"Instant +${_ep['amount']} added to budget"
+            _eff = f"+${_ep['amount']} budget — fires at start of next season"
+        elif "budget_bonus" in _ep:
+            _eff = f"-${_ep.get('amount',0)} upkeep per show AND +${_ep['budget_bonus']} budget — fires next season"
         else:
-            _eff = "One-time effect - consumed on purchase"
+            _eff = "One-time effect — queued, fires at the START of next season"
         ctx._add_tooltip(rect, {
             "type":  "event",
             "title": f"EVT: {item.get('name', '')}",
             "sections": [
                 [
                     {"kind": "kv", "key": "COST",
-                     "val": f"${cost} (consumed)", "val_col": C_AMBER},
-                    {"kind": "kv", "key": "TYPE",
-                     "val": "One-time / Immediate", "val_col": C_GREY_LIGHT},
+                     "val": f"${cost} (consumed on buy)",    "val_col": C_AMBER},
+                    {"kind": "kv", "key": "TIMING",
+                     "val": "Queued — fires NEXT SEASON start", "val_col": C_AMBER},
                 ],
                 [
                     {"kind": "kv", "key": "EFFECT",
-                     "val": _eff,                  "val_col": C_NET_POS},
+                     "val": _eff,                             "val_col": C_NET_POS},
                     {"kind": "text", "text": item.get("desc", ""), "col": C_GREY_LIGHT},
                 ],
             ],

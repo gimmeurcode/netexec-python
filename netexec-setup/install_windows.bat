@@ -18,6 +18,7 @@ if %ERRORLEVEL% neq 0 (
 
 set "SETUP_DIR=%~dp0"
 set "GAME_SRC=%SETUP_DIR%..\netexec-main"
+set "BUILD_SCRIPT=%SETUP_DIR%..\netexec-dev\build\build_game.py"
 set "INSTALL_DIR=%PROGRAMFILES%\NetExecutive"
 
 :: Verify netexec-main/ exists
@@ -39,7 +40,23 @@ if %ERRORLEVEL% neq 0 (
 set "GAME_SRC=%CD%"
 popd
 
-echo [1/3]  Installing game files...
+:: Build NETEXEC.exe from latest source before installing
+echo [1/4]  Building NETEXEC.exe from latest source...
+if exist "%BUILD_SCRIPT%" (
+    python "%BUILD_SCRIPT%"
+    if errorlevel 1 (
+        echo   ERROR: Build failed. See output above for details.
+        pause
+        exit /b 1
+    )
+    echo   Build complete.
+) else (
+    echo   WARNING: build_game.py not found -- using existing NETEXEC.exe.
+    echo   Expected: %BUILD_SCRIPT%
+)
+echo.
+
+echo [2/4]  Installing game files...
 echo   Source      : %GAME_SRC%
 echo   Destination : %INSTALL_DIR%
 echo.
@@ -73,7 +90,7 @@ echo   Game files installed.
 
 :: Back up and clear old user settings so new defaults take effect
 echo.
-echo [2/3]  Backing up and clearing old user settings...
+echo [3/4]  Backing up and clearing old user settings...
 set "USER_SETTINGS=%APPDATA%\NETEXEC"
 if exist "%USER_SETTINGS%\" (
     set "BACKUP_DIR=%INSTALL_DIR%\settings-backups"
@@ -95,7 +112,7 @@ if exist "%USER_SETTINGS%\" (
 
 :: Create Desktop and Start Menu shortcuts
 echo.
-echo [3/3]  Creating shortcuts...
+echo [4/4]  Creating shortcuts...
 
 :: Resolve Desktop path (handles OneDrive-relocated Desktop)
 for /f "usebackq delims=" %%D in (

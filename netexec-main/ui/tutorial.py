@@ -179,14 +179,15 @@ STEPS = [
     },
     # ── 10 ────────────────────────────────────────────────────────────────────
     {
-        "title":     "ONE-OFF EVENTS",
+        "title":     "ONE-OFF EVENTS (QUEUED)",
         "body": (
-            "Click BUY on an EVENT card — it fires instantly and is consumed. "
-            "No placement step needed. "
+            "Click BUY on an EVENT card to queue it. "
+            "Events do NOT fire immediately — they activate at the "
+            "START of the NEXT season. Queued events appear in the "
+            "CONTRACTS & QUEUED EVENTS bar on the left panel. "
             "Effects include: +views, +budget, rejuvenating show age, "
-            "free shop reroll, permanent base-view buffs to your lineup, "
-            "and the Writers' Strike tradeoff ($40 budget for -20 base views). "
-            "Events can help or hurt — read carefully before buying."
+            "free shop reroll, permanent base-view buffs, and tradeoffs "
+            "(budget for -views). Right-click any card for full details."
         ),
         "highlight": "shop",
         "tab":       "events",
@@ -211,12 +212,15 @@ STEPS = [
     {
         "title":     "GENRE MONOPOLY",
         "body": (
-            "If ALL 4 lineup slots are filled AND every show shares the same genre, "
-            "a GENRE MONOPOLY fires each season — bonus views and income. "
-            "Different genres give different rewards: "
-            "SPORTS gives the biggest view multiplier (x1.30), "
-            "DRAMA gives the most income ($18), "
-            "NEWS reduces your next milestone target."
+            "Fill ALL 4 lineup slots with the SAME genre for a genre monopoly bonus. "
+            "Each genre has a UNIQUE bonus type: "
+            "SITCOM — upkeep halved; "
+            "DRAMA — premium views + income; "
+            "SCIFI — star bonuses amplified in ALL slots; "
+            "REALITY — ad income x1.5; "
+            "SPORTS — highest view multiplier; "
+            "NEWS — quota target reduced; "
+            "COOKING — direct budget added each season."
         ),
         "highlight": "left",
         "tab":       None,
@@ -239,15 +243,15 @@ STEPS = [
     },
     # ── 14 ────────────────────────────────────────────────────────────────────
     {
-        "title":     "SEASONAL EVENTS",
+        "title":     "SEASONAL NEWS",
         "body": (
-            "At the END of every season, a random SEASONAL EVENT rolls for next season. "
-            "Events come in four kinds: "
-            "MODIFIER — passive effects while active; "
-            "MANDATE — a requirement you must meet or pay a fine; "
-            "CONTRACT — hit a target within a window for a reward; "
-            "INSTANT — fires once immediately. "
-            "Active events are shown in the SEASONAL EVENTS strip on the left panel."
+            "At the END of every season, a random SEASONAL EVENT rolls for NEXT season. "
+            "Events can be POSITIVE (views boost, income flat, ad bonuses) "
+            "or NEGATIVE (upkeep spike, views penalty). "
+            "MODIFIER — passive multiplier while active (shown in left panel); "
+            "MANDATE — meet a requirement each season or pay a fine; "
+            "CONTRACT — hit a target in a window for a reward; "
+            "INSTANT — one-time effect at the start of next season."
         ),
         "highlight": "left",
         "tab":       None,
@@ -257,14 +261,16 @@ STEPS = [
     {
         "title":     "CONTRACTS & THE OFFERS BOARD",
         "body": (
-            "Each season 1-2 optional CONTRACTS appear on the seasonal strip. "
-            "Click ACCEPT to take one — earn a budget bonus if you "
-            "meet the requirement within the contract's window. "
-            "If the window closes unfulfilled, a penalty applies. "
-            "Mandates are NON-OPTIONAL: miss one and you pay a fine automatically."
+            "CONTRACTS tab in the shop shows optional deals you can ACCEPT. "
+            "Hit the requirement within the contract window for a budget bonus. "
+            "If the window closes unmet, a penalty applies. "
+            "MANDATES are non-optional: miss them each season and pay a fine automatically. "
+            "Accepted contracts appear in the CONTRACTS & QUEUED EVENTS bar on the left panel. "
+            "Selling a show: AGE 1 (never aired) gives NO refund. "
+            "Older shows pay out based on views they earned."
         ),
-        "highlight": "left",
-        "tab":       None,
+        "highlight": "shop",
+        "tab":       "contracts",
         "trigger":   None,
     },
     # ── 16 ────────────────────────────────────────────────────────────────────
@@ -447,17 +453,23 @@ class TutorialController:
         """
         Cut a bright spotlight rect out of the dim overlay and draw a
         glowing border around the highlighted panel.
+
+        sw/sh are the game-surface dimensions (cutout-local, origin at 0,0).
+        We compute panel rects in game-surface coordinates directly without the
+        bezel offset (which does not apply here since surface IS the game surface).
         """
-        from ui.layout import compute_layout
-        lo    = compute_layout(sw, sh)
-        cut   = lo.cutout
+        from ui.layout import _PAD, _HUD_FRAC, _HUD_MIN, _HUD_MAX, _SPLIT
+        hud_h   = max(_HUD_MIN, min(_HUD_MAX, int(sh * _HUD_FRAC)))
+        left_w  = max(380, int(sw * _SPLIT))
+        right_w = max(380, sw - left_w - _PAD)
+        right_x = left_w + _PAD
+        stage_y = hud_h + _PAD
+        stage_h = max(1, sh - stage_y - _PAD)
+
         rects = {
-            "header": pygame.Rect(cut.x + lo.hud.x,      cut.y + lo.hud.y,
-                                  lo.hud.width,           lo.hud.height),
-            "left":   pygame.Rect(cut.x + lo.schedule.x, cut.y + lo.schedule.y,
-                                  lo.schedule.width,      lo.schedule.height),
-            "shop":   pygame.Rect(cut.x + lo.shop.x,     cut.y + lo.shop.y,
-                                  lo.shop.width,          lo.shop.height),
+            "header": pygame.Rect(0,            0,       sw,                hud_h),
+            "left":   pygame.Rect(_PAD,          stage_y, left_w  - _PAD*2, stage_h),
+            "shop":   pygame.Rect(right_x + _PAD, stage_y, right_w - _PAD*2, stage_h),
         }
         rect = rects.get(panel)
         if not rect:

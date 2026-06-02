@@ -36,6 +36,21 @@ import subprocess
 from pathlib import Path
 
 
+# ─── build ────────────────────────────────────────────────────────────────────
+
+def _build_game() -> None:
+    here = Path(__file__).parent
+    build_script = here.parent / "netexec-dev" / "build" / "build_game.py"
+    if not build_script.is_file():
+        print(f"  WARNING: build_game.py not found at {build_script} -- using existing binary.")
+        return
+    print(f"  Running: {build_script}")
+    result = subprocess.run([sys.executable, str(build_script)])
+    if result.returncode != 0:
+        sys.exit("ERROR: Build failed. See output above for details.")
+    print("  Build complete.")
+
+
 # ─── paths ────────────────────────────────────────────────────────────────────
 
 def _game_dir() -> Path:
@@ -185,6 +200,9 @@ def main() -> None:
     if sys.platform == "win32":
         print("\n  NOTE: Run as Administrator to install to Program Files.")
 
+    print("\n[1/3]  Building game from latest source...")
+    _build_game()
+
     src = _game_dir()
     dst = _install_dir()
 
@@ -194,10 +212,10 @@ def main() -> None:
         if not src.exists():
             sys.exit(f"ERROR: NETEXEC.app not found at {src}")
 
-    print("\n[1/2]  Installing game files...")
+    print("\n[2/3]  Installing game files...")
     _copy_files(src, dst)
 
-    print("\n[2/2]  Creating desktop shortcut...")
+    print("\n[3/3]  Creating desktop shortcut...")
     if sys.platform == "win32":
         _shortcut_windows(dst)
     elif sys.platform == "darwin":

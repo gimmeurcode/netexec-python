@@ -6,10 +6,10 @@
     "SITCOM": {
       "label": "Sitcom",
       "monopoly": {
-        "type": "views_income",
-        "views_mult": 1.15,
-        "income_bonus": 10,
-        "desc": "Sitcom Sweep  -  all shows x1.15 Views & +$10 Income per season."
+        "type": "upkeep_halved",
+        "upkeep_mult": 0.5,
+        "income_bonus": 8,
+        "desc": "Laugh Factory  -  all show upkeep cut by 50% & +$8 Income per season. Low overhead, high laughs."
       }
     },
     "DRAMA": {
@@ -18,25 +18,27 @@
         "type": "views_income",
         "views_mult": 1.22,
         "income_bonus": 18,
-        "desc": "Drama Dynasty  -  all shows x1.22 Views & +$18 Income per season."
+        "desc": "Drama Dynasty  -  all shows x1.22 Views & +$18 Income per season. Prestige programming commands a premium."
       }
     },
     "SCIFI": {
       "label": "Sci-Fi",
       "monopoly": {
-        "type": "views_income",
-        "views_mult": 1.25,
-        "income_bonus": 14,
-        "desc": "Sci-Fi Stranglehold  -  all shows x1.25 Views & +$14 Income per season."
+        "type": "star_amplifier",
+        "views_mult": 1.10,
+        "star_prime_mult": 2.5,
+        "income_bonus": 10,
+        "desc": "Sci-Fi Stranglehold  -  star view bonuses amplified x2.5 across ALL slots (not just Prime Time) & +1.10x Views & +$10 Income. The talent carries the universe."
       }
     },
     "REALITY": {
       "label": "Reality",
       "monopoly": {
-        "type": "views_income",
-        "views_mult": 1.10,
-        "income_bonus": 10,
-        "desc": "Reality Lock  -  all shows x1.10 Views & +$10 Income per season."
+        "type": "ad_multiplier",
+        "views_mult": 1.08,
+        "ad_mult": 1.5,
+        "income_bonus": 6,
+        "desc": "Reality Lock  -  all ad seasonal income x1.50 & +1.08x Views & +$6 Income per season. Brands can't stop watching."
       }
     },
     "SPORTS": {
@@ -45,7 +47,7 @@
         "type": "views_income",
         "views_mult": 1.30,
         "income_bonus": 20,
-        "desc": "Sports Monopoly  -  all shows x1.30 Views & +$20 Income per season."
+        "desc": "Sports Monopoly  -  all shows x1.30 Views & +$20 Income per season. Highest view multiplier in the game. Nobody changes the channel."
       }
     },
     "NEWS": {
@@ -54,16 +56,16 @@
         "type": "target_reduction",
         "target_mult": 0.88,
         "income_bonus": 5,
-        "desc": "News Dominance  -  next milestone target x0.88 & +$5 Income per season. The facts are on your side."
+        "desc": "News Dominance  -  next milestone target x0.88 (easier quota) & +$5 Income per season. The facts are on your side."
       }
     },
     "COOKING": {
       "label": "Cooking",
       "monopoly": {
-        "type": "views_income",
-        "views_mult": 1.18,
-        "income_bonus": 12,
-        "desc": "Cooking Channel Takeover  -  all shows x1.18 Views & +$12 Income per season. The network smells like butter now."
+        "type": "budget_boost",
+        "views_mult": 1.10,
+        "budget_per_season": 22,
+        "desc": "Culinary Empire  -  +$22 DIRECT BUDGET per season (bypasses upkeep, added straight to budget) & +1.10x Views. Sponsorships pour in. The network smells like butter."
       }
     }
   },
