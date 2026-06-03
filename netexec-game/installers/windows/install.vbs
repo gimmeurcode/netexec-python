@@ -1,7 +1,8 @@
 ' install.vbs -- NETEXEC Windows Installer
 '
 ' Double-click this file to build and install NETEXEC.
-' No terminal window required. Administrator rights are requested automatically.
+' No terminal window required.
+' Administrator rights are requested automatically.
 '
 ' What this script does:
 '   1. Finds Python and rebuilds NETEXEC.exe from the latest source code.
@@ -11,7 +12,6 @@
 '   5. Launches the game immediately.
 '
 ' The installed game is fully self-contained -- players need no extra software.
-
 Option Explicit
 
 Dim WshShell, FSO
@@ -69,20 +69,22 @@ If WScript.Arguments.Count = 0 Then
         WScript.Quit 1
     End If
 
-' ── Request elevation for the install step ────────────────────────────────
+    ' ── Request elevation for the install step ────────────────────────────────
     Dim ElevShell
     Set ElevShell = CreateObject("Shell.Application")
     
-    On Error Resume Next ' Prevent crash on UAC decline
+    On Error Resume Next ' Prevent crash if UAC is declined
     ElevShell.ShellExecute "wscript.exe", _
         Chr(34) & WScript.ScriptFullName & Chr(34) & " ELEVATED", _
         "", "runas", 1
         
-    ' Check if the user clicked "No" (800704C7 in hex is &H800704C7)
-    If Err.Number = &H800704C7 Then
-        MsgBox "Installation canceled: Administrator permissions are required to install the game to your Program Files.", vbInformation, "NETEXEC Installer"
-    ElseIf Err.Number <> 0 Then
-        MsgBox "An unexpected error occurred while requesting permissions: " & Err.Description, vbCritical, "NETEXEC Installer"
+    ' Handle potential cancellation gracefully
+    If Err.Number <> 0 Then
+        If Err.Number = &H800704C7 Or Err.Number = -2147023673 Then
+            MsgBox "Installation canceled: Administrator permissions are required to install the game to your Program Files.", vbInformation, "NETEXEC Installer"
+        Else
+            MsgBox "An unexpected error occurred while requesting permissions: " & Err.Description, vbCritical, "NETEXEC Installer"
+        End If
     End If
     On Error GoTo 0 ' Resume normal error handling
    
