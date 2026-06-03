@@ -259,7 +259,9 @@ class GameUI:
 
         elif event.type == pygame.MOUSEWHEEL:
             dy = -event.y * self._SCROLL_SPEED
-            if self._show_detail:
+            if self._tutorial and not self._tutorial.done:
+                self._tutorial.scroll(dy)
+            elif self._show_detail:
                 # Wheel on show detail modal scrolls the modal content
                 self._detail_scroll = max(0, self._detail_scroll + dy)
             elif self._show_ledger:

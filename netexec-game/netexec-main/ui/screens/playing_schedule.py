@@ -29,6 +29,7 @@ from ..theme import (
 )
 from scripts.engine.network import calculate_yield
 from scripts.engine.cards import check_condition, evaluate_star, evaluate_ad
+from scripts.content.shows import get_genre_registry
 from ..assets import (
     draw_genre_icon, draw_star_icon, draw_ad_icon,
     draw_upgrade_icon, draw_event_icon, draw_genre_badge,
@@ -60,11 +61,14 @@ def _draw_left_panel(ctx, state):
     )
     has_active_contracts = bool(state.active_contracts or state.pending_events)
     contract_bar_h = max(22, lo.seasonal_strip_h // 2) * (len(state.active_contracts) + len(getattr(state, 'pending_events', [])) + 1) if has_active_contracts else 0
+    # Monopoly bar is tall enough to list all genre bonuses (7 rows + header + padding)
+    _mono_lh    = ctx._f("micro").get_linesize() + 2
+    mono_bar_h  = max(lo.monopoly_bar_h, _mono_lh * 9 + 6)
     total_content_h = (
         len(TIME_SLOTS) * (lo.slot_h + 3) + 4   # slots
         + 18 + lo.vault_h + 6                     # vault header + slots
         + 18 + lo.upgrade_row_h + 4               # upgrades header + row
-        + lo.monopoly_bar_h + 4                   # monopoly bar
+        + mono_bar_h + 4                           # monopoly bar (dynamic)
         + (18 + contract_bar_h + 4 if has_active_contracts else 0)  # active contracts bar
         + (lo.seasonal_strip_h + 4 if has_seasonal else 0)
     )
@@ -125,9 +129,9 @@ def _draw_left_panel(ctx, state):
     _draw_upgrades(ctx, upg_row, state)
     y += lo.upgrade_row_h + 4
 
-    mono_rect = pygame.Rect(x + 2, y, content_w, lo.monopoly_bar_h)
+    mono_rect = pygame.Rect(x + 2, y, content_w, mono_bar_h)
     _draw_monopoly_bar(ctx, mono_rect, state)
-    y += lo.monopoly_bar_h + 4
+    y += mono_bar_h + 4
 
     if has_active_contracts:
         con_label = ctx._f("small").render("CONTRACTS & QUEUED EVENTS", True, C_VIEWS_ACCENT)
@@ -719,31 +723,140 @@ def _draw_upgrades(ctx, rect, state):
 
 # --- MONOPOLY BAR ---
 
+def _mono_short(bonus: dict) -> str:
+    """One-line summary of a monopoly bonus for display in the bar and tooltips."""
+    t     = bonus.get("type", "")
+    parts = []
+    vm    = bonus.get("views_mult", 1.0)
+    ib    = bonus.get("income_bonus", 0)
+    if t == "upkeep_halved":
+        parts.append("Upkeep -50%")
+    elif t == "star_amplifier":
+        amp = bonus.get("star_prime_mult", 2.5)
+        parts.append(f"Stars x{amp} all slots")
+    elif t == "ad_multiplier":
+        adm = bonus.get("ad_mult", 1.5)
+        parts.append(f"Ad income x{adm:.2f}")
+    elif t == "target_reduction":
+        tm = bonus.get("target_mult", 0.88)
+        parts.append(f"Quota x{tm:.2f} (easier)")
+    elif t == "budget_boost":
+        bp = bonus.get("budget_per_season", 0)
+        parts.append(f"+${bp} budget/season")
+    if vm != 1.0:
+        parts.append(f"x{vm:.2f} Views")
+    if ib:
+        parts.append(f"+${ib} Income/s")
+    return "  |  ".join(parts) if parts else "Bonus active"
+
+
+_GENRE_ORDER = ["DRAMA", "SITCOM", "SCIFI", "REALITY", "SPORTS", "NEWS", "COOKING"]
+
+
 def _draw_monopoly_bar(ctx, rect, state):
-    """Draw the genre monopoly status indicator."""
-    summary = state.get_lineup_summary()
-    if summary["is_monopoly"]:
-        g     = summary["genre"]
-        gcol  = GENRE_COLORS.get(g, (C_GREEN_BRIGHT, C_GREEN_DIM))[0]
-        pygame.draw.rect(ctx.screen, C_TINT_GREEN_DEEP, rect, border_radius=3)
-        pygame.draw.rect(ctx.screen, gcol, rect, 2, border_radius=3)
-        bonus     = summary.get("bonus", {})
-        mono_desc = bonus.get("desc", f"{g} MONOPOLY ACTIVE")
-        draw_blink_dot(ctx.screen, rect.x + 10, rect.centery, 4, gcol, ctx._tick_ms, BLINK_PERIOD_MS)
-        mt = ctx._f("micro").render(f" MONOPOLY: {mono_desc[:70]}", True, gcol)
-        ctx.screen.blit(mt, (rect.x + 18, rect.centery - 6))
+    """Draw the genre monopoly reference panel.
+
+    Always shows all 7 genre bonuses so players know what to aim for.
+    Active monopoly is highlighted and announced at the top.
+    """
+    summary  = state.get_lineup_summary()
+    registry = get_genre_registry()
+    f_mi     = ctx._f("micro")
+    lh       = f_mi.get_linesize() + 2
+    is_mono  = summary["is_monopoly"]
+    active_g = summary.get("genre")
+    live_genres = summary.get("live_genres", [])
+    single_genre = live_genres[0] if len(live_genres) == 1 else None
+
+    # Panel background
+    bg_col  = C_TINT_GREEN_DEEP if is_mono else C_GREEN_PANEL
+    bd_col  = (GENRE_COLORS.get(active_g, (C_GREEN_BRIGHT, C_GREEN_DIM))[0]
+               if is_mono else C_BORDER_DIM)
+    pygame.draw.rect(ctx.screen, bg_col, rect, border_radius=3)
+    pygame.draw.rect(ctx.screen, bd_col, rect, 2 if is_mono else 1, border_radius=3)
+
+    x  = rect.x + 6
+    y  = rect.y + 3
+
+    # ── Status line ───────────────────────────────────────────────────────────
+    if is_mono:
+        gcol  = GENRE_COLORS.get(active_g, (C_GREEN_BRIGHT, C_GREEN_DIM))[0]
+        bonus = summary.get("bonus", {})
+        draw_blink_dot(ctx.screen, x + 3, y + lh // 2, 4, gcol, ctx._tick_ms, BLINK_PERIOD_MS)
+        status_txt = f" ★ {active_g} MONOPOLY ACTIVE — {_mono_short(bonus)}"
+        st = f_mi.render(status_txt[:90], True, gcol)
+        ctx.screen.blit(st, (x + 10, y))
+        y += lh + 2
+    elif single_genre:
+        gcol  = GENRE_COLORS.get(single_genre, (C_GREEN_BRIGHT, C_GREEN_DIM))[0]
+        entry = registry.get(single_genre, {})
+        mono  = entry.get("monopoly", {})
+        short = _mono_short(mono) if mono else "?"
+        hint  = f"→ {single_genre} MONOPOLY IF ALL 4 SLOTS FILLED: {short}"
+        ht    = f_mi.render(hint[:90], True, gcol)
+        ctx.screen.blit(ht, (x, y))
+        y += lh + 2
     else:
-        pygame.draw.rect(ctx.screen, C_GREEN_PANEL, rect, border_radius=3)
-        pygame.draw.rect(ctx.screen, C_BORDER_DIM,  rect, 1, border_radius=3)
-        genres = summary.get("live_genres", [])
-        if genres:
-            info = f"GENRES: {', '.join(genres)} - FILL ALL SLOTS FOR MONOPOLY"
-        elif not summary["all_filled"]:
-            info = "FILL ALL 4 SLOTS FOR A GENRE MONOPOLY BONUS"
+        status_col = C_GREEN_DIM if not summary["all_filled"] else C_AMBER_DIM
+        msg = ("FILL ALL 4 SLOTS WITH ONE GENRE FOR A MONOPOLY BONUS"
+               if not summary["all_filled"] else "NO MONOPOLY — MIX OF GENRES ON AIR")
+        ms  = f_mi.render(msg, True, status_col)
+        ctx.screen.blit(ms, (x, y))
+        y += lh + 2
+
+    # ── Divider + "ALL GENRE BONUSES" header ─────────────────────────────────
+    pygame.draw.line(ctx.screen, C_BORDER_DIM, (x, y), (rect.right - 6, y))
+    y += 2
+    hdr = f_mi.render("ALL GENRE MONOPOLY BONUSES:", True, C_GREEN_MID)
+    ctx.screen.blit(hdr, (x, y))
+    y += lh
+
+    # ── One row per genre ─────────────────────────────────────────────────────
+    for g in _GENRE_ORDER:
+        entry = registry.get(g, {})
+        mono  = entry.get("monopoly")
+        if not mono or y + lh > rect.bottom:
+            continue
+        gcol = GENRE_COLORS.get(g, (C_GREEN_BRIGHT, C_GREEN_DIM))[0]
+        # Highlight the active monopoly genre; dim genres not on air
+        if is_mono and g == active_g:
+            row_col = gcol
+        elif single_genre and g == single_genre:
+            row_col = gcol
+        elif live_genres and g not in live_genres:
+            row_col = tuple(max(0, int(c * 0.45)) for c in gcol)
         else:
-            info = "NO MONOPOLY - MIX OF GENRES"
-        it = ctx._f("micro").render(info, True, C_GREEN_DIM)
-        ctx.screen.blit(it, (rect.x + 6, rect.centery - 6))
+            row_col = gcol
+
+        label = f_mi.render(f"{g:<8}", True, row_col)
+        ctx.screen.blit(label, (x, y))
+        bonus_txt = _mono_short(mono)
+        bt = f_mi.render(bonus_txt[:72], True, row_col)
+        ctx.screen.blit(bt, (x + label.get_width() + 4, y))
+
+        # Active monopoly gets a blink dot
+        if is_mono and g == active_g:
+            draw_blink_dot(ctx.screen, rect.right - 10, y + lh // 2,
+                           3, gcol, ctx._tick_ms, BLINK_PERIOD_MS)
+        y += lh
+
+    # Tooltip still available for the full desc on hover
+    tooltip_rows = []
+    for g in _GENRE_ORDER:
+        entry = registry.get(g, {})
+        mono  = entry.get("monopoly")
+        if not mono:
+            continue
+        gcol = GENRE_COLORS.get(g, (C_GREEN_BRIGHT, C_GREEN_DIM))[0]
+        tooltip_rows.append({"kind": "kv", "key": g,
+                              "val": mono.get("desc", _mono_short(mono))[:80],
+                              "val_col": gcol})
+    ctx._add_tooltip(rect, {
+        "type":     "generic",
+        "accent":   C_AMBER,
+        "title":    "GENRE MONOPOLY BONUSES — full descriptions",
+        "sections": [tooltip_rows],
+    })
 
 
 # --- SEASONAL STATUS STRIP ---

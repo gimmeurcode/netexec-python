@@ -116,5 +116,5 @@ MsgBox "NETEXEC installed successfully!" & vbCrLf & vbCrLf & _
        "Launch the game from your Desktop or Start Menu.", _
        vbInformation, "NETEXEC Installer"
 
-WshShell  = Nothing
-FSO       = Nothing
+Set WshShell  = Nothing
+Set FSO       = Nothing
