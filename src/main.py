@@ -35,7 +35,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pygame
 from engine.constants import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, WINDOW_TITLE, C_BG
 from engine.network   import GameState
-from platform         import load_settings, save_settings
+from saves import load_settings, save_settings
 from ui.ui     import GameUI
 from ui.audio  import AudioManager
 from ui.layout import MIN_W, MIN_H
