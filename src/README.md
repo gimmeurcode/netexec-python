@@ -9,8 +9,8 @@ A TV network management roguelite. You are the executive. Hit the ratings quotas
 ### Windows (recommended — no terminal required)
 
 1. Download **`NETEXEC-Windows.zip`** from the releases page.
-2. Extract it — you get a folder containing `netexec-main\` and `netexec-setup\`.
-3. Open `netexec-setup\` and double-click **`install.vbs`**.
+2. Extract the zip — you get a folder containing `src\`, `dist\`, and `installers\`.
+3. Open `installers\windows\` and double-click **`install.vbs`**.
 4. Click **Yes** when Windows asks for administrator permission.
 5. Click **Yes** to confirm the install location.
 6. Launch **NetExecutive** from your Desktop or Start Menu.
@@ -22,8 +22,8 @@ Settings are saved to `%APPDATA%\NETEXEC\`. No terminal or Python required.
 ### macOS (no Python required)
 
 1. Download **`NETEXEC-Mac.zip`** from the releases page.
-2. Extract it — you get a folder containing `netexec-main/` and `netexec-setup/`.
-3. Open `netexec-setup/` and double-click **`install.command`**.
+2. Extract the zip — you get a folder containing `src/`, `dist/`, and `installers/`.
+3. Open `installers/macos/` and double-click **`install.command`**.
    - macOS opens a Terminal window automatically; the install runs and the window closes.
    - If macOS warns about an unverified developer: right-click → Open → Open.
 4. Launch **NetExecutive** from `/Applications` or your Desktop.
@@ -38,7 +38,7 @@ Requires **Python 3.11+** and **pygame-ce**:
 
 ```bash
 pip install pygame-ce
-cd netexec-main
+cd src
 python main.py
 ```
 
@@ -49,10 +49,10 @@ python main.py
 Requires Python 3.11+ (PyInstaller is auto-installed):
 
 ```bash
-python netexec-dev/build/build_game.py
+python dev/build/build_game.py
 ```
 
-Output: `netexec-main/NETEXEC.exe` (Windows) or `netexec-main/NETEXEC.app` (macOS).
+Output: `dist/NETEXEC.exe` (Windows) or `dist/NETEXEC.app` (macOS).
 
 ---
 
@@ -71,30 +71,46 @@ Output: `netexec-main/NETEXEC.exe` (Windows) or `netexec-main/NETEXEC.app` (macO
 ## Folder Structure
 
 ```
-netexec-main/           ← this folder (game source and built executable)
+src/                     ← game source root
 │
-├── NETEXEC.exe          Standalone Windows executable (built by build_game.py).
-├── NETEXEC.app          Standalone macOS app bundle (built on macOS).
 ├── main.py              Entry point — pygame init, game loop.
 ├── version.py           Single source of truth for VERSION string.
+├── saves.py             Persistence layer (save/settings/achievements).
 │
-├── scripts/
-│   ├── engine/          Canonical game logic: constants, difficulty, cards,
-│   │                    network, requirements, seasonal, effects.
-│   ├── content/         Card pools: shows, stars, ads, upgrades, events.
-│   └── platform.py      Save/settings/achievement stub (Steam-ready).
+├── engine/
+│   ├── constants.py     All tunable values (budget, targets, growth rates, etc.)
+│   ├── network.py       GameState — all game logic and the 9-stage yield pipeline.
+│   ├── cards.py         JSON loaders, condition evaluator, show instance factory.
+│   ├── effects.py       Data-driven upgrade effect resolver.
+│   ├── difficulty.py    Stateless difficulty and prestige scaling.
+│   ├── requirements.py  Declarative requirement evaluator (contracts/mandates).
+│   └── seasonal.py      Seasonal event roll, aggregation, reward/penalty.
+│
+├── content/
+│   ├── cardpool.py      Generic lazy-loading shuffleable card pool.
+│   ├── shows.py         Show pool + placement validation.
+│   ├── stars.py         Star pool + attachment validation.
+│   ├── ads.py           Ad pool + dual-income helpers.
+│   ├── upgrades.py      Upgrade pool management.
+│   └── events.py        Event pool + handler registry.
 │
 ├── ui/
-│   ├── ui.py            UI renderer — CRT terminal aesthetic.
-│   ├── assets.py        Procedural art generation.
-│   ├── audio.py         Synthesized audio engine (no external sound files).
-│   ├── tutorial.py      Step-by-step tutorial system.
-│   └── screens/         Per-screen modules (menu, playing, summary, etc.).
+│   ├── ui.py            GameUI top-level controller.
+│   ├── layout.py        Responsive layout engine.
+│   ├── theme.py         Design tokens and font loading.
+│   ├── assets.py        Procedural card art and genre badges.
+│   ├── assets_loader.py SVG/PNG loader with procedural fallback.
+│   ├── audio.py         Synthesized sound engine (no external audio files).
+│   ├── bezel.py         CRT chrome frame renderer.
+│   ├── ledger.py        Terminal ledger panel.
+│   ├── tutorial.py      Step-by-step tutorial overlay.
+│   ├── widgets.py       Shared pygame drawing helpers.
+│   └── screens/         Per-screen modules (menu, playing, summary, etc.)
 │
-├── assets/              Design-system SVGs, fonts, CSS.
+├── assets/              SVG icons, fonts.
 │
 └── data/
-    ├── shows.json        Shows across 6 genres + wildcard template.
+    ├── shows.json        Shows across 7 genres + wildcard template.
     ├── stars.json        Stars with JSON-encoded conditions.
     ├── ads.json          Ads including wildcard template.
     ├── upgrades.json     Global upgrades.
@@ -102,6 +118,10 @@ netexec-main/           ← this folder (game source and built executable)
     ├── seasonal_events.json  Seasonal modifier/mandate/contract/instant events.
     ├── wildcards.json    Wildcard configuration options.
     └── bailouts.json     Insolvency bailout tiers.
+
+dist/                    ← build outputs (gitignored)
+    ├── NETEXEC.exe       Standalone Windows executable.
+    └── NETEXEC.app       Standalone macOS app bundle.
 ```
 
 ---
@@ -115,14 +135,14 @@ All card content lives in `data/*.json`. No Python changes needed to add:
 - **New ads**: Add to `data/ads.json`. Same condition types as stars.
 - **New upgrades**: Add an entry to `data/upgrades.json` with an `"effects"` list — no Python changes required.
 - **New events**: Add to `data/events.json` with an `effect_type` string.
-- **New genres**: Add a key to `genre_registry` in `shows.json`, add colour to `GENRE_COLORS` in `scripts/engine/constants.py`.
+- **New genres**: Add a key to `genre_registry` in `shows.json`, add colour to `GENRE_COLORS` in `engine/constants.py`.
 - **New wildcard options**: Add genre or slot options to `data/wildcards.json`.
 
 ---
 
 ## Balancing
 
-All numeric values live in `scripts/engine/constants.py`:
+All numeric values live in `engine/constants.py`:
 
 | Constant               | Default | Effect                                  |
 |------------------------|---------|----------------------------------------|
@@ -166,7 +186,7 @@ the next run harder but also signals mastery. Brutal + high prestige = endgame.
 
 ## Complete Game Compendium
 
-_Generated from data files. Re-run `python netexec-dev/tests/devscripts/gen_compendium.py` after any content change._
+_Generated from data files. Re-run `python dev/scripts/devscripts/gen_compendium.py` after any content change._
 
 <!-- COMPENDIUM:START -->
 ## Core Rules & Economy

@@ -3,9 +3,7 @@
 A turn-based strategy game where you manage a television network — schedule shows, sign stars,
 sell ads, and grow your viewership over 12 seasons. Hit the ratings quotas or get iced.
 
-> **Primary platform: Godot 4.x (in active development)**
-> The Python version in this repo serves as the working game spec. Godot is being built
-> from it. After GODOT-QA1 the Python source will be archived.
+Built in Python 3.11 + pygame-ce.
 
 ---
 
@@ -13,10 +11,8 @@ sell ads, and grow your viewership over 12 seasons. Hit the ratings quotas or ge
 
 | Track | Status |
 |-------|--------|
-| Python source (`netexec-main/`) | Stable. Serves as the Godot spec. |
-| Godot deliverable (`../netexec/`) | In development — GODOT-SETUP is next |
-| Godot dev version (`../netexec-dev/`) | Awaiting implementation |
-| Godot tester (`../netexec-tester/`) | Awaiting implementation |
+| Python game source (`src/`) | Active development |
+| Dev tooling (`dev/`) | Active — 1149 tests, ~93% coverage |
 
 See [STATUS.md](STATUS.md) for the full task sequence and [PromptR.md](PromptR.md) to resume
 a Claude Code session.
@@ -26,67 +22,100 @@ a Claude Code session.
 ## Repository layout
 
 ```
-netexecutive/                        ← this repo (github.com/gimmeurcode/netexecutive)
-├── netexec-main/                    ← Python game source (spec for Godot port)
-│   ├── scripts/engine/              ← constants, network/GameState, cards, effects,
+netexecutive/
+├── src/                             ← Python game source
+│   ├── engine/                      ← constants, network/GameState, cards, effects,
 │   │                                   difficulty, requirements, seasonal
-│   ├── scripts/content/             ← card pools: shows, stars, ads, upgrades, events
-│   ├── scripts/platform.py          ← Steam abstraction layer (save/achievements)
+│   ├── content/                     ← card pools: shows, stars, ads, upgrades, events
+│   ├── saves.py                     ← persistence layer (save/settings/achievements)
 │   ├── ui/screens/                  ← playing, header, schedule, shop, summary, menu
 │   ├── ui/                          ← bezel, layout, theme, assets, tutorial, ui.py
 │   ├── data/                        ← shows.json, stars.json, ads.json, upgrades.json
 │   └── version.py
-├── netexec-dev/                     ← Python dev tooling (tests, build scripts)
-│   ├── tests/                       ← 667 tests, ≥ 60% coverage
-│   └── build/                       ← PyInstaller builder
-├── netexec-setup/                   ← Windows + macOS installers
+├── dev/                             ← Dev tooling (tests, build scripts)
+│   ├── tests/                       ← 1149 tests, ~93% coverage
+│   ├── build/                       ← PyInstaller builder (build_game.py)
+│   ├── devgame/                     ← Dev game (F12 panel, autopilot, console)
+│   └── scripts/                     ← release packager + dev scripts
+├── installers/
+│   ├── windows/                     ← Windows installer (install.vbs)
+│   └── macos/                       ← macOS installer (install.command)
 ├── PromptR.md                       ← Paste into Claude Code to resume development
 ├── STATUS.md                        ← Master task sequence and progress tracker
-└── REVIEW.md                        ← Architecture findings and task rationale
-
-../netexec/                          ← Godot deliverable (github.com/gimmeurcode/netexec)
-../netexec-dev/                      ← Godot dev version (F12 panel + console)
-../netexec-tester/                   ← Godot tester (always-on state inspector)
+└── REVIEW.md                        ← Architecture reference
 ```
 
 ---
 
-## Godot architecture
+## Install and run
 
-```
-Engine:    Godot 4.x | GDScript | NOT C# | Steam: GodotSteam plugin
-MCP:       godot-mcp (tugcantopaloglu/godot-mcp) — configured after GODOT-SETUP
+### Requirements
 
-res://
-├── autoloads/     Constants.gd  GameState.gd  ContentManager.gd  Platform.gd
-├── resources/     ShowData  StarData  AdData  UpgradeData  EventData  ContractData
-├── scenes/        main_menu/  playing/(hud/ schedule/ shop/)  summary/
-├── data/          shows.json  stars.json  ads.json  upgrades.json
-└── assets/        art  fonts  audio
-```
+- Python 3.11+
+- pygame-ce
 
-**Engine ↔ UI contract:** All game logic in autoloads; scenes connect to signals only.
-`Platform.gd` is the Steam/offline boundary — save/load/achievements route through it.
-
----
-
-## Running the Python version (for reference / spec verification)
-
-Requires Python 3.11+ and pygame-ce.
+### Install dependencies
 
 ```bash
 pip install pygame-ce
-python netexec-main/main.py
 ```
 
+### Play the game (direct terminal launch)
+
 ```bash
-# Tests — must run from netexec-dev/, not the repo root
-pip install pygame-ce pytest pytest-cov
-cd netexec-dev
+cd src
+python main.py
+```
+
+### Play the game (dev mode — F12 debug panel + autopilot console)
+
+```bash
+python dev/devgame/dev_main.py
+```
+
+### Build a standalone executable
+
+Produces `dist/NETEXEC.exe` (Windows) or `dist/NETEXEC.app` (macOS).
+Python 3.11+ required; PyInstaller is auto-installed if missing.
+
+```bash
+python dev/build/build_game.py
+```
+
+---
+
+## Development tasks
+
+### Run the test suite
+
+Must run from `dev/`, not the repo root (`.coveragerc` paths are relative to `dev/`):
+
+```bash
+pip install pygame-ce pytest pytest-cov jsonschema
+cd dev
 python -m pytest tests/ -q
 ```
 
-667 tests, ≥ 60% coverage required. Run before and after any Python change.
+1149 tests, ~93% coverage. Run before and after any Python change.
+
+### Validate JSON content files
+
+```bash
+python dev/scripts/devscripts/validate_content.py
+```
+
+### Regenerate the player compendium in src/README.md
+
+```bash
+python dev/scripts/devscripts/gen_compendium.py
+```
+
+### Run balance simulation
+
+```bash
+cd dev
+python tests/sim/run_batch.py --games 200
+```
 
 ---
 
