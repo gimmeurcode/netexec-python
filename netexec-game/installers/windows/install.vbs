@@ -69,12 +69,23 @@ If WScript.Arguments.Count = 0 Then
         WScript.Quit 1
     End If
 
-    ' ── Request elevation for the install step ────────────────────────────────
+' ── Request elevation for the install step ────────────────────────────────
     Dim ElevShell
     Set ElevShell = CreateObject("Shell.Application")
+    
+    On Error Resume Next ' Prevent crash on UAC decline
     ElevShell.ShellExecute "wscript.exe", _
         Chr(34) & WScript.ScriptFullName & Chr(34) & " ELEVATED", _
         "", "runas", 1
+        
+    ' Check if the user clicked "No" (800704C7 in hex is &H800704C7)
+    If Err.Number = &H800704C7 Then
+        MsgBox "Installation canceled: Administrator permissions are required to install the game to your Program Files.", vbInformation, "NETEXEC Installer"
+    ElseIf Err.Number <> 0 Then
+        MsgBox "An unexpected error occurred while requesting permissions: " & Err.Description, vbCritical, "NETEXEC Installer"
+    End If
+    On Error GoTo 0 ' Resume normal error handling
+   
     WScript.Quit
 
 End If
