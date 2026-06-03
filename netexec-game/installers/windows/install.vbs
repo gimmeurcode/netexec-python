@@ -1,75 +1,18 @@
 ' install.vbs -- NETEXEC Windows Installer
 '
 ' Double-click this file to build and install NETEXEC.
-' No terminal window required.
-' Administrator rights are requested automatically.
-'
-' What this script does:
-'   1. Finds Python and rebuilds NETEXEC.exe from the latest source code.
-'   2. Requests administrator rights via UAC (required to write to Program Files).
-'   3. Copies the fresh exe + assets to %PROGRAMFILES%\NetExecutive\.
-'   4. Creates a Desktop shortcut and a Start Menu entry.
-'   5. Launches the game immediately.
-'
-' The installed game is fully self-contained -- players need no extra software.
+' Administrator rights are requested automatically at startup.
+
 Option Explicit
 
 Dim WshShell, FSO
 Set WshShell = CreateObject("WScript.Shell")
 Set FSO      = CreateObject("Scripting.FileSystemObject")
 
-' ── Paths ─────────────────────────────────────────────────────────────────────
-' ScriptDir = installers\windows\ — two levels deep, so repo root is ..\..
-Dim ScriptDir, RepoRoot, GameSrc, BuildScript, InstallDir
-ScriptDir   = FSO.GetParentFolderName(WScript.ScriptFullName)
-RepoRoot    = FSO.GetAbsolutePathName(ScriptDir & "\..\..")
-GameSrc     = RepoRoot & "\src"
-BuildScript = RepoRoot & "\dev\build\build_game.py"
-InstallDir  = WshShell.ExpandEnvironmentStrings("%PROGRAMFILES%") & "\NetExecutive"
-Dim ExePath : ExePath = RepoRoot & "\dist\NETEXEC.exe"
-
 ' =============================================================================
-' PHASE 1  (non-elevated, first run)
-'   Build the exe from source, then re-launch elevated for the install step.
+' PHASE 1: Request Elevation First
 ' =============================================================================
 If WScript.Arguments.Count = 0 Then
-
-    ' ── Verify source folder ──────────────────────────────────────────────────
-    If Not FSO.FolderExists(GameSrc) Then
-        MsgBox "ERROR: Game source folder not found." & vbCrLf & _
-               "Expected: " & GameSrc, vbCritical, "NETEXEC Installer"
-        WScript.Quit 1
-    End If
-
-    ' ── Build from source (repo workflow) or use pre-built exe (zip workflow) ─
-    ' If build_game.py is present, always rebuild so the install is up-to-date.
-    ' If it is absent (player zip), use the pre-built NETEXEC.exe in netexec-main/.
-    If FSO.FileExists(BuildScript) Then
-        Dim PyExe : PyExe = FindPython()
-        If PyExe = "" Then
-            MsgBox "ERROR: Python 3 not found on this machine." & vbCrLf & vbCrLf & _
-                   "Install Python 3.11+ from https://python.org" & vbCrLf & _
-                   "and make sure it is added to PATH.", _
-                   vbCritical, "NETEXEC Installer"
-            WScript.Quit 1
-        End If
-
-        ' Run in a visible window so the user can see build progress.
-        Dim BuildCmd : BuildCmd = PyExe & " """ & BuildScript & """"
-        Dim BuildRet : BuildRet = WshShell.Run(BuildCmd, 1, True)
-        If BuildRet <> 0 Then
-            MsgBox "Build failed (exit code " & BuildRet & ")." & vbCrLf & _
-                   "See the build window for details.", _
-                   vbCritical, "NETEXEC Installer"
-            WScript.Quit 1
-        End If
-    ElseIf Not FSO.FileExists(ExePath) Then
-        MsgBox "ERROR: NETEXEC.exe not found and build script is missing." & vbCrLf & _
-               "Expected pre-built exe at: " & ExePath, vbCritical, "NETEXEC Installer"
-        WScript.Quit 1
-    End If
-
-    ' ── Request elevation for the install step ────────────────────────────────
     Dim ElevShell
     Set ElevShell = CreateObject("Shell.Application")
     
@@ -78,24 +21,67 @@ If WScript.Arguments.Count = 0 Then
         Chr(34) & WScript.ScriptFullName & Chr(34) & " ELEVATED", _
         "", "runas", 1
         
-    ' Handle potential cancellation gracefully
     If Err.Number <> 0 Then
-        If Err.Number = &H800704C7 Or Err.Number = -2147023673 Then
-            MsgBox "Installation canceled: Administrator permissions are required to install the game to your Program Files.", vbInformation, "NETEXEC Installer"
-        Else
-            MsgBox "An unexpected error occurred while requesting permissions: " & Err.Description, vbCritical, "NETEXEC Installer"
-        End If
+        MsgBox "Installation canceled: Administrator permissions are required to install the game.", vbInformation, "NETEXEC Installer"
     End If
-    On Error GoTo 0 ' Resume normal error handling
+    On Error GoTo 0 
    
     WScript.Quit
-
 End If
 
 ' =============================================================================
-' PHASE 2  (elevated)
-'   Verify the freshly built exe, copy files, create shortcuts, launch game.
+' PHASE 2: Build & Install (Elevated)
 ' =============================================================================
+' ── Paths ─────────────────────────────────────────────────────────────────────
+Dim ScriptDir, RepoRoot, GameSrc, BuildScript, InstallDir
+ScriptDir   = FSO.GetParentFolderName(WScript.ScriptFullName)
+RepoRoot    = FSO.GetAbsolutePathName(ScriptDir & "\..\..")
+GameSrc     = RepoRoot & "\src"
+BuildScript = RepoRoot & "\dev\build\build_game.py"
+InstallDir  = WshShell.ExpandEnvironmentStrings("%PROGRAMFILES%") & "\NetExecutive"
+Dim ExePath : ExePath = RepoRoot & "\dist\NETEXEC.exe"
+
+' ── Verify source folder ──────────────────────────────────────────────────
+If Not FSO.FolderExists(GameSrc) Then
+    MsgBox "ERROR: Game source folder not found." & vbCrLf & _
+           "Expected: " & GameSrc, vbCritical, "NETEXEC Installer"
+    WScript.Quit 1
+End If
+
+' ── Build from source (repo workflow) or use pre-built exe (zip workflow) ─
+If FSO.FileExists(BuildScript) Then
+    Dim PyExe : PyExe = FindPython()
+    If PyExe = "" Then
+        MsgBox "ERROR: Python 3 not found on this machine." & vbCrLf & vbCrLf & _
+               "Install Python 3.11+ from https://python.org" & vbCrLf & _
+               "and make sure it is added to PATH.", _
+               vbCritical, "NETEXEC Installer"
+        WScript.Quit 1
+    End If
+
+    ' Run in a visible window so the user can see build progress.
+    Dim BuildCmd : BuildCmd = PyExe & " """ & BuildScript & """"
+    
+    ' Wrapped in error handling in case Windows blocks the execution
+    On Error Resume Next 
+    Dim BuildRet : BuildRet = WshShell.Run(BuildCmd, 1, True)
+    If Err.Number <> 0 Then
+        MsgBox "Execution blocked. Windows may have prevented Python from running." & vbCrLf & "Error: " & Err.Description, vbCritical, "NETEXEC Installer"
+        WScript.Quit 1
+    End If
+    On Error GoTo 0
+
+    If BuildRet <> 0 Then
+        MsgBox "Build failed (exit code " & BuildRet & ")." & vbCrLf & _
+               "See the build window for details.", _
+               vbCritical, "NETEXEC Installer"
+        WScript.Quit 1
+    End If
+ElseIf Not FSO.FileExists(ExePath) Then
+    MsgBox "ERROR: NETEXEC.exe not found and build script is missing." & vbCrLf & _
+           "Expected pre-built exe at: " & ExePath, vbCritical, "NETEXEC Installer"
+    WScript.Quit 1
+End If
 
 ' ── Verify exe produced by the build ─────────────────────────────────────────
 If Not FSO.FileExists(ExePath) Then
@@ -162,12 +148,13 @@ If FSO.FileExists(InstalledExe) Then
 End If
 
 ' ── Launch ────────────────────────────────────────────────────────────────────
+On Error Resume Next 
 WshShell.Run Chr(34) & InstalledExe & Chr(34), 1, False
+On Error GoTo 0
 
 Set WshShell = Nothing
 Set FSO      = Nothing
 WScript.Quit 0
-
 
 ' =============================================================================
 ' FindPython  —  returns "py", "python", or "python3", whichever responds first.
