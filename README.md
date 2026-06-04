@@ -26,6 +26,7 @@ A turn-based strategy game where you run a television network. Schedule shows, s
 3. Open `installers/macos/` and double-click **`install.command`**.
    - macOS opens a Terminal window, runs the install, and closes it automatically.
    - If macOS blocks it ("unidentified developer"): right-click the file → **Open** → **Open**.
+   - If you get "no appropriate access privileges": open Terminal in `installers/macos/` and run `bash run_installer.sh` instead.
 4. Launch **NetExecutive** from `/Applications` or your Desktop.
 
 > Saves are stored at `~/.config/NETEXEC/`. No Python required.
