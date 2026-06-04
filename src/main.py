@@ -100,10 +100,30 @@ def main():
 
     # ── Window ───────────────────────────────────────────────────────────────
     pygame.display.set_caption(WINDOW_TITLE)
-    if _saved_fullscreen:
-        screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-    else:
-        screen = pygame.display.set_mode((_chosen_rw, _chosen_rh), pygame.RESIZABLE)
+
+    # Try to create an OpenGL context for the GPU CRT pipeline. If ModernGL or
+    # a GL context is unavailable, recreate a plain window and fall back to the
+    # CPU/numpy CRT path. The presenter is attached to the UI below.
+    gl_presenter = None
+    _gl_flags = pygame.OPENGL | pygame.DOUBLEBUF
+    try:
+        if _saved_fullscreen:
+            screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN | _gl_flags)
+        else:
+            screen = pygame.display.set_mode((_chosen_rw, _chosen_rh),
+                                             pygame.RESIZABLE | _gl_flags)
+        from ui.crt_gl import create_gl_presenter
+        gl_presenter = create_gl_presenter()
+        if gl_presenter is None:
+            raise RuntimeError("GL presenter unavailable")
+    except Exception as _gl_exc:
+        print(f"[main] GPU CRT pipeline disabled ({_gl_exc}); using CPU path.")
+        gl_presenter = None
+        if _saved_fullscreen:
+            screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        else:
+            screen = pygame.display.set_mode((_chosen_rw, _chosen_rh),
+                                             pygame.RESIZABLE)
 
     # Try to set a window icon via a procedurally drawn surface.
     try:
@@ -118,6 +138,7 @@ def main():
     # ── Core objects ─────────────────────────────────────────────────────────
     state  = GameState()
     ui     = GameUI(screen)
+    ui._gl = gl_presenter   # GPU CRT presenter (None -> CPU/numpy fallback)
     audio  = AudioManager()
     ui.audio = audio   # give UI access to audio for sound effects
 
@@ -159,14 +180,15 @@ def main():
                     raw_h    = getattr(event, "h", cur_surf.get_height())
                     new_w    = max(MIN_W, raw_w)
                     new_h    = max(MIN_H, raw_h)
+                    # Preserve the GL context flags when re-applying the mode.
+                    _flags = pygame.RESIZABLE | (_gl_flags if ui._gl else 0)
                     if (new_w, new_h) != cur_surf.get_size():
-                        # Size changed or needs clamping — re-apply via set_mode
-                        screen = pygame.display.set_mode(
-                            (new_w, new_h), pygame.RESIZABLE
-                        )
+                        screen = pygame.display.set_mode((new_w, new_h), _flags)
                     else:
                         screen = cur_surf
                     ui.screen = screen
+                    if ui._gl:
+                        ui._gl.resize(screen.get_width(), screen.get_height())
                 except Exception:
                     pass
 

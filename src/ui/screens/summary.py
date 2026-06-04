@@ -20,7 +20,7 @@ from engine.constants import (
 )
 from ..theme import C_TINT_RED_DARK, C_TINT_BLUE_DARK
 from ..screen_enum import GameScreen
-from ..widgets import draw_button, draw_modal_overlay
+from ..widgets import draw_button, draw_modal_overlay, line_step
 from .base import Screen
 
 
@@ -66,10 +66,12 @@ def render(ctx, state):
     elif s.get("milestone_met") is False:
         lines.append(("MILESTONE MISSED - RUN OVER", C_RED))
 
+    _body_step = line_step(ctx._f("body"), 0.82)
+    _mi_step   = line_step(ctx._f("micro"), 0.82)
     for text, col in lines:
         t = ctx._f("body").render(text, True, col)
         ctx.screen.blit(t, (modal.x + 16, y))
-        y += 18
+        y += _body_step
     y += 6
 
     pygame.draw.line(ctx.screen, C_BORDER, (modal.x + 8, y), (modal.right - 8, y), 1)
@@ -89,7 +91,7 @@ def render(ctx, state):
             )
             ms = ctx._f("micro").render(text[:90], True, col)
             ctx.screen.blit(ms, (modal.x + 10, y))
-            y += 12
+            y += _mi_step
             if y > modal.bottom - 100:
                 break
         y += 4
@@ -102,7 +104,7 @@ def render(ctx, state):
         True, C_GREEN_BRIGHT,
     )
     ctx.screen.blit(col_hdr, (modal.x + 10, y))
-    y += 14
+    y += _mi_step + 2
 
     for bd in s.get("show_breakdowns", []):
         row_str = (
@@ -117,7 +119,7 @@ def render(ctx, state):
         rc = C_GREEN_BRIGHT if bd["net_income"] >= 0 else C_RED
         rt = ctx._f("micro").render(row_str, True, rc)
         ctx.screen.blit(rt, (modal.x + 10, y))
-        y += 12
+        y += _mi_step
         if y > modal.bottom - 80:
             break
 
@@ -125,14 +127,14 @@ def render(ctx, state):
         y += 4
         vhdr = ctx._f("micro").render("VAULT RERUNS:", True, C_GREEN_DIM)
         ctx.screen.blit(vhdr, (modal.x + 10, y))
-        y += 12
+        y += _mi_step
         for vb in s["vault_breakdowns"]:
             vt = ctx._f("micro").render(
                 f"  {vb['name'][:24]:<24} +{vb['views']}V  +${vb['net_income']}",
                 True, C_GREEN_DIM,
             )
             ctx.screen.blit(vt, (modal.x + 10, y))
-            y += 12
+            y += _mi_step
 
     # ── New seasonal event announcement ───────────────────────────────────────
     new_ev = s.get("new_seasonal_event")
@@ -152,13 +154,13 @@ def render(ctx, state):
             True, kind_col,
         )
         ctx.screen.blit(ev_hdr, (modal.x + 10, y))
-        y += 16
+        y += line_step(ctx._f("small"), 0.82)
         if y < modal.bottom - 60:
             ev_desc = ctx._f("micro").render(
                 new_ev.get("desc", "")[:95], True, C_GREY_LIGHT
             )
             ctx.screen.blit(ev_desc, (modal.x + 10, y))
-            y += 13
+            y += _mi_step
         dur = new_ev.get("duration", 1)
         dur_s = ctx._f("micro").render(
             f"Duration: {dur} season{'s' if dur > 1 else ''}  "
@@ -173,7 +175,8 @@ def render(ctx, state):
     if status in ("win", "loss"):
         ctx._gameover_state = status
         btn_rect = pygame.Rect(cx - 90, modal.bottom - 46, 180, 38)
-        def _end(): ctx.set_screen(GameScreen.GAME_OVER)
+        _final = GameScreen.WIN if status == "win" else GameScreen.GAME_OVER
+        def _end(scr=_final): ctx.set_screen(scr)
         draw_button(ctx, btn_rect, "VIEW FINAL SCREEN >", _end, border_color=C_GREEN_BRIGHT)
     else:
         btn_rect = pygame.Rect(cx - 80, modal.bottom - 46, 160, 38)
@@ -206,6 +209,9 @@ def _draw_bailout_modal(ctx, state, s):
     f_bd  = ctx._f("bold")
     f_sm  = ctx._f("small")
     f_mi  = ctx._f("micro")
+    _mb_bd = line_step(f_bd, 0.82)
+    _mb_sm = line_step(f_sm, 0.82)
+    _mb_mi = line_step(f_mi, 0.82)
 
     # Header
     title_s = f_hdr.render("NETWORK IN THE RED", True, C_RED)
@@ -238,17 +244,17 @@ def _draw_bailout_modal(ctx, state, s):
 
     ly = loan_r.y + 8
     ctx.screen.blit(f_bd.render(loan_cfg["name"], True, C_WHITE),
-                    (loan_r.x + 6, ly)); ly += 18
+                    (loan_r.x + 6, ly)); ly += _mb_bd
     ctx.screen.blit(f_sm.render(f"+${tier['grant_amount']} BUDGET NOW", True, C_NET_POS),
-                    (loan_r.x + 6, ly)); ly += 16
+                    (loan_r.x + 6, ly)); ly += _mb_sm
     req_d = desc_req(loan_cfg["requirement"])
     ctx.screen.blit(f_mi.render(f"Req: {req_d}", True, C_AMBER),
-                    (loan_r.x + 6, ly)); ly += 13
+                    (loan_r.x + 6, ly)); ly += _mb_mi
     ctx.screen.blit(f_mi.render(f"Window: {loan_cfg['window_seasons']} seasons", True, C_GREY_LIGHT),
-                    (loan_r.x + 6, ly)); ly += 13
+                    (loan_r.x + 6, ly)); ly += _mb_mi
     pen = loan_cfg["penalty"]
     ctx.screen.blit(f_mi.render(f"Failure: -${pen.get('budget_loss', 0)}", True, C_RED),
-                    (loan_r.x + 6, ly)); ly += 13
+                    (loan_r.x + 6, ly)); ly += _mb_mi
 
     # Wrap description text
     desc_words = loan_cfg.get("desc", "").split()
@@ -259,7 +265,7 @@ def _draw_bailout_modal(ctx, state, s):
             line = test
         else:
             s = f_mi.render(line, True, C_GREY_LIGHT)
-            ctx.screen.blit(s, (loan_r.x + 6, ly)); ly += 12
+            ctx.screen.blit(s, (loan_r.x + 6, ly)); ly += _mb_mi
             line = w
     if line:
         ctx.screen.blit(f_mi.render(line, True, C_GREY_LIGHT), (loan_r.x + 6, ly))
@@ -282,13 +288,13 @@ def _draw_bailout_modal(ctx, state, s):
 
     gy = grant_r.y + 8
     ctx.screen.blit(f_bd.render(grant_cfg["name"], True, C_WHITE),
-                    (grant_r.x + 6, gy)); gy += 18
+                    (grant_r.x + 6, gy)); gy += _mb_bd
     ctx.screen.blit(f_sm.render(f"+${tier['grant_amount']} BUDGET NOW", True, C_NET_POS),
-                    (grant_r.x + 6, gy)); gy += 16
+                    (grant_r.x + 6, gy)); gy += _mb_sm
     ctx.screen.blit(f_mi.render(f"-{grant_cfg['views_loss']} total views (upfront)", True, C_RED),
-                    (grant_r.x + 6, gy)); gy += 13
+                    (grant_r.x + 6, gy)); gy += _mb_mi
     ctx.screen.blit(f_mi.render("No ongoing contract.", True, C_GREY_LIGHT),
-                    (grant_r.x + 6, gy)); gy += 13
+                    (grant_r.x + 6, gy)); gy += _mb_mi
 
     desc_words2 = grant_cfg.get("desc", "").split()
     line2 = ""
@@ -298,7 +304,7 @@ def _draw_bailout_modal(ctx, state, s):
             line2 = test
         else:
             s2 = f_mi.render(line2, True, C_GREY_LIGHT)
-            ctx.screen.blit(s2, (grant_r.x + 6, gy)); gy += 12
+            ctx.screen.blit(s2, (grant_r.x + 6, gy)); gy += _mb_mi
             line2 = w
     if line2:
         ctx.screen.blit(f_mi.render(line2, True, C_GREY_LIGHT), (grant_r.x + 6, gy))

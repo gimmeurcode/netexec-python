@@ -23,7 +23,7 @@ from ..theme import (
 )
 from ..assets import draw_blink_dot
 from ..screen_enum import GameScreen
-from ..widgets import draw_button
+from ..widgets import draw_button, draw_row, line_step
 
 
 def _draw_header(ctx, state):
@@ -45,12 +45,22 @@ def _draw_header(ctx, state):
     _old_clip = ctx.screen.get_clip()
     ctx.screen.set_clip(_hud_clip)
 
-    # Proportional row Y positions — scale with hud_h across [68, 90] px range
-    _r1    = max(4,  int(hud_h * 0.10))   # ON AIR dot / first label row
-    _r2    = max(24, int(hud_h * 0.35))   # logo body / season bar
-    _r3    = max(38, int(hud_h * 0.53))   # views line / projected income
-    _r4    = max(52, int(hud_h * 0.72))   # quota sub-label / budget net line
-    _btn_h = max(12, hud_h - _r4 - 4)    # button height fitted to remaining space
+    # ── Ink-safe three-row stack ─────────────────────────────────────────────
+    # Each HUD block lays its content on at most THREE text rows whose vertical
+    # step is derived from the real font line height (never a magic constant),
+    # so rows can never collide even at the minimum hud_h (68 px). The two-colour
+    # econ lines are merged onto a single draw_row line to stay within 3 rows.
+    f_mi   = ctx._f("micro")
+    _top   = 5
+    # Largest safe step that fits 3 rows + one line of ink inside the plate.
+    _usable = (hud_h - 4) - _top
+    _row_step = max(line_step(f_mi, 0.78),            # ink-safe minimum (~19 px)
+                    min(line_step(f_mi), _usable // 2))
+    _r1 = _top
+    _r2 = _r1 + _row_step
+    _r3 = _r2 + _row_step
+    _r4 = _r3                                    # legacy alias: 4th line folds onto r3
+    _btn_h = max(12, min(_row_step + 2, hud_h - _r3 - 2))
 
     # ── Block geometry (proportional, adaptive) ───────────────────────────────
     air_w = 158
@@ -83,11 +93,15 @@ def _draw_header(ctx, state):
     logo = ctx._f("header").render("NETEXEC", True, C_GREEN_BRIGHT)
     ctx.screen.blit(logo, (lb_x + 4, _r2))
 
-    sub_str = f"NETWORK EXECUTIVE SIM  -  RUN {state.run}  P{state.network_prestige}"
-    sub     = ctx._f("micro").render(sub_str, True, C_GREY_LIGHT)
+    sub_str  = f"RUN {state.run}  PRESTIGE {state.network_prestige}"
+    _lb_clip = pygame.Rect(lb_x, 0, lb_w, hud_h)
+    ctx.screen.set_clip(_lb_clip)
+    sub      = ctx._f("micro").render(sub_str, True, C_GREY_LIGHT)
     ctx.screen.blit(sub, (lb_x + 4, _r4))
+    ctx.screen.set_clip(_hud_clip)
 
     # ── Block 2: Season Status ────────────────────────────────────────────────
+    ctx.screen.set_clip(_hud_clip.clip(pygame.Rect(cl_x, 0, cl_w, hud_h)))
     s_col  = C_AMBER if state.season >= MAX_SEASONS else C_WHITE
     s_surf = ctx._f("bold").render(f"SEASON {state.season} / {MAX_SEASONS}", True, s_col)
     ctx.screen.blit(s_surf, (cl_x, _r1))
@@ -108,33 +122,31 @@ def _draw_header(ctx, state):
                          pygame.Rect(cl_x, _r2, fill_w, 9), border_radius=3)
     pygame.draw.rect(ctx.screen, C_PANEL_BORDER, bar_rect, 1, border_radius=3)
 
-    v_col  = C_GREEN_BRIGHT if state.total_views >= state.current_target else C_RED
-    v_surf = ctx._f("small").render(
-        f"{state.total_views:,} / {state.current_target:,} views", True, v_col
-    )
-    ctx.screen.blit(v_surf, (cl_x, _r3))
-
+    # Row 3 — current/target views and the next-season quota on ONE measured
+    # line (draw_row spaces each coloured segment so they can't collide).
+    v_col = C_GREEN_BRIGHT if state.total_views >= state.current_target else C_RED
     _tgt = state.current_target
     _tgt_str = f"{_tgt // 1000}k" if _tgt >= 1000 else str(_tgt)
-    quota_str = f"QUOTA: {_tgt_str} views  -  NEXT S{state.next_target}"
-    q_surf    = ctx._f("micro").render(quota_str, True, C_GREY_MID)
-    ctx.screen.blit(q_surf, (cl_x, _r4))
+    draw_row(ctx, [
+        (f"{state.total_views:,}/{_tgt_str}", v_col),
+        (f"NEXT S{state.next_target}", C_GREY_MID),
+    ], cl_x, _r3, f_mi, gap=10)
+    ctx.screen.set_clip(_hud_clip)
 
     # ── Block 3: End-of-Season Projection ────────────────────────────────────
+    ctx.screen.set_clip(_hud_clip.clip(pygame.Rect(cr_x, 0, cr_w, hud_h)))
     proj_views, proj_income = state.preview_lineup_yield()
 
-    proj_lbl = ctx._f("micro").render("PROJECTED END OF SEASON", True, C_GREY_LIGHT)
+    proj_lbl = f_mi.render("PROJECTED END OF SEASON", True, C_GREY_LIGHT)
     ctx.screen.blit(proj_lbl, (cr_x, _r1))
 
-    v_col2   = C_VIEWS_ACCENT if proj_views > 0 else C_NET_NEG
-    v_p_surf = ctx._f("small").render(f"VIEWS:   +{proj_views:,}", True, v_col2)
-    ctx.screen.blit(v_p_surf, (cr_x, _r2))
-
-    i_col    = C_INCOME_ACCENT if proj_income >= 0 else C_NET_NEG
-    i_p_surf = ctx._f("small").render(
-        f"INCOME:  ${proj_income:+.0f}", True, i_col
-    )
-    ctx.screen.blit(i_p_surf, (cr_x, _r3))
+    # Row 2 — projected views and income on one measured line.
+    v_col2 = C_VIEWS_ACCENT if proj_views > 0 else C_NET_NEG
+    i_col  = C_INCOME_ACCENT if proj_income >= 0 else C_NET_NEG
+    draw_row(ctx, [
+        (f"+{proj_views:,}v", v_col2),
+        (f"${proj_income:+.0f}", i_col),
+    ], cr_x, _r2, f_mi, gap=12)
 
     views_needed = max(0, state.current_target - state.total_views)
     if proj_views >= views_needed:
@@ -151,9 +163,11 @@ def _draw_header(ctx, state):
     pygame.draw.rect(ctx.screen, badge_bg,  badge_rect, border_radius=3)
     pygame.draw.rect(ctx.screen, badge_col, badge_rect, 1, border_radius=3)
     ctx.screen.blit(badge_surf, (cr_x + 7, _r4 + 2))
+    ctx.screen.set_clip(_hud_clip)
 
     # ── Block 4: Budget & Controls ────────────────────────────────────────────
     # Three financial lines + LEDGER toggle + PAUSE button
+    ctx.screen.set_clip(_hud_clip.clip(pygame.Rect(rb_x, 0, rb_w, hud_h)))
     _, gross_income, total_upkeep = state.preview_lineup_breakdown()
     proj_net = gross_income - total_upkeep
 
@@ -161,19 +175,15 @@ def _draw_header(ctx, state):
     b_surf = ctx._f("bold").render(f"BUDGET: ${state.budget:.2f}", True, b_col)
     ctx.screen.blit(b_surf, (rb_x, _r1))
 
-    upk_surf = ctx._f("micro").render(
-        f"TOTAL UPKEEP:  -${total_upkeep:.0f}", True, C_RED
-    )
-    ctx.screen.blit(upk_surf, (rb_x, _r2))
-
-    inc_col  = C_GREEN_BRIGHT if gross_income > 0 else C_GREY_MID
-    inc_surf = ctx._f("micro").render(
-        f"NET INCOME:    +${gross_income:.0f}", True, inc_col
-    )
-    ctx.screen.blit(inc_surf, (rb_x, _r3))
+    # Row 2 — upkeep and gross income on one measured line.
+    inc_col = C_GREEN_BRIGHT if gross_income > 0 else C_GREY_MID
+    draw_row(ctx, [
+        (f"UPK -${total_upkeep:.0f}", C_RED),
+        (f"INC +${gross_income:.0f}", inc_col),
+    ], rb_x, _r2, f_mi, gap=12)
 
     # LEDGER / SHOP toggle button (right-aligned in block 4, row 1)
-    tog_label = "[SHOP]" if getattr(ctx, "_show_ledger", False) else "[LEDGER]"
+    tog_label = "[SHOP]" if getattr(ctx, "_show_ledger", False) else "[LOG]"
     tog_w     = min(72, rb_w - 6)
     tog_rect  = pygame.Rect(rb_x + rb_w - tog_w - 2, _r1, tog_w, _btn_h)
     draw_button(ctx, tog_rect, tog_label,
@@ -183,7 +193,7 @@ def _draw_header(ctx, state):
     # PAUSE + projected-net row: button on the left, net text to its right
     pause_w    = min(rb_w - 6, 100)
     pause_rect = pygame.Rect(rb_x, _r4, pause_w, _btn_h)
-    draw_button(ctx, pause_rect, "|| PAUSE",
+    draw_button(ctx, pause_rect, "PAUSE",
                 lambda: ctx.set_screen(GameScreen.PAUSE),
                 bg_color=C_GREY_DARK, border_color=C_GREY_MID, text_color=C_GREY_LIGHT)
 
@@ -194,6 +204,7 @@ def _draw_header(ctx, state):
     )
     net_y = _r4 + max(0, (_btn_h - net_surf.get_height()) // 2)
     ctx.screen.blit(net_surf, (rb_x + pause_w + 6, net_y))
+    ctx.screen.set_clip(_hud_clip)
 
     # ── AIR SEASON button (full header height, far right) ─────────────────────
     air_rect  = pygame.Rect(air_x, 4, air_w, hud_h - 8)
@@ -223,7 +234,7 @@ def _draw_header(ctx, state):
                     bg_color=C_TINT_GREEN_VIVID, border_color=C_GREEN_BRIGHT,
                     text_color=C_GREEN_BRIGHT)
     else:
-        draw_button(ctx, air_rect, "ADD SHOWS FIRST", _air_season,
+        draw_button(ctx, air_rect, "ADD SHOWS", _air_season,
                     bg_color=C_GREY_DARK, border_color=C_GREY_MID, text_color=C_GREY_MID)
 
     # Vertical dividers between blocks

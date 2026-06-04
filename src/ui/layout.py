@@ -153,12 +153,12 @@ def compute_layout(sw: int, sh: int) -> Layout:
     # Scale component heights proportionally to stage height
     scale = stage_h / _REF_STAGE_H
 
-    slot_h           = max(72, int(106 * scale))
+    slot_h           = max(80, int(120 * scale))
     vault_h          = max(70, int(102 * scale))
     upgrade_row_h    = max(40, int( 56 * scale))
     monopoly_bar_h   = max(20, int( 28 * scale))
     seasonal_strip_h = max(36, int( 52 * scale))
-    shop_card_h      = max(80, int(110 * scale))
+    shop_card_h      = max(90, int(132 * scale))
     tab_row_h        = max(36, int( 48 * scale))
     reroll_h         = max(36, int( 50 * scale))
 

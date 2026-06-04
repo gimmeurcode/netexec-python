@@ -16,5 +16,6 @@ class GameScreen(Enum):
     SEASON_SUMMARY = auto()
     PAUSE         = auto()
     GAME_OVER     = auto()
+    WIN           = auto()
     WILDCARD_SHOW = auto()
     WILDCARD_AD   = auto()

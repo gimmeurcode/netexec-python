@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Build artifacts in wrong locations
+src/NETEXEC.exe
+src/NETEXEC.app
+
+# Coverage
+.coverage

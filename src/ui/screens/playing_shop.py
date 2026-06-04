@@ -32,10 +32,10 @@ from content.ads import net_cost as _ad_net_cost
 from ..assets import (
     draw_genre_icon, draw_star_icon, draw_ad_icon,
     draw_upgrade_icon, draw_event_icon, draw_genre_badge,
-    draw_panel_box,
+    draw_panel_box, draw_show_thumb,
 )
 from ..screen_enum import GameScreen
-from ..widgets import draw_button, draw_scrollbar, draw_text_wrapped
+from ..widgets import draw_button, draw_scrollbar, draw_text_wrapped, draw_row, draw_kv, line_step
 
 
 _SBAR_W = 8   # scrollbar track width (px)
@@ -100,13 +100,22 @@ def _draw_right_panel(ctx, state):
         tc = accent if active else dim_accent
         # Ellipsize label if tab is narrow
         lbl = label if tab_w >= 72 else label[:3]
-        label_surf = ctx._f("small").render(lbl, True, tc)
-        lx = tr.centerx - label_surf.get_width() // 2
-        ly = tr.centery - label_surf.get_height() // 2
-        ctx.screen.blit(label_surf, (lx, ly - 2))
+        # Pick a label font that lets the label and its count stack on two
+        # separated lines inside the tab cell; fall back to micro when short.
+        tab_h    = lo.tab_row_h - 4
+        lbl_font = ctx._f("small") if tab_h >= 46 else ctx._f("micro")
+        label_surf = lbl_font.render(lbl, True, tc)
         if count > 0:
-            cnt_s = ctx._f("micro").render(str(count), True, tc)
-            ctx.screen.blit(cnt_s, (tr.centerx - cnt_s.get_width() // 2, ly + 11))
+            cnt_col = tuple(int(c * 0.7) for c in tc)
+            cnt_s   = ctx._f("micro").render(str(count), True, cnt_col)
+            step    = line_step(lbl_font, 0.74)
+            block_h = step + cnt_s.get_bounding_rect().height
+            y1      = tr.y + max(2, (tab_h - block_h) // 2)
+            ctx.screen.blit(label_surf, (tr.centerx - label_surf.get_width() // 2, y1))
+            ctx.screen.blit(cnt_s, (tr.centerx - cnt_s.get_width() // 2, y1 + step))
+        else:
+            ctx.screen.blit(label_surf,
+                            label_surf.get_rect(center=tr.center))
 
         def _tab(k=key):
             state.set_tab(k)
@@ -253,21 +262,29 @@ def _draw_shop_card(ctx, rect, item, category, state):
                      pygame.Rect(rect.x, rect.y + 6, 3, rect.h - 12),
                      border_radius=2)
 
-    ICON_SZ   = 24
-    icon_rect = pygame.Rect(rect.x + 6, rect.y + 6, ICON_SZ, ICON_SZ)
+    # SHOWS lead with a broadcast thumbnail (channel preview); other card types
+    # keep a small category icon. ``content_x`` is where the text column starts.
     if category == "shows":
-        draw_genre_icon(ctx.screen, item.get("genre", ""), icon_rect)
-    elif category == "stars":
-        draw_star_icon(ctx.screen, icon_rect, C_AMBER, filled=True)
-    elif category == "ads":
-        draw_ad_icon(ctx.screen, icon_rect, C_GREEN_MID)
-    elif category == "upgrades":
-        draw_upgrade_icon(ctx.screen, icon_rect, C_CYAN)
-    elif category == "events":
-        draw_event_icon(ctx.screen, icon_rect, C_AMBER)
+        th_h = min(54, rect.h - 14)
+        th_w = min(int(th_h * 1.5), rect.w // 3)
+        thumb_rect = pygame.Rect(rect.x + 8, rect.y + 8, th_w, th_h)
+        draw_show_thumb(ctx.screen, thumb_rect, item.get("genre", ""), ctx._tick_ms)
+        content_x = thumb_rect.right + 10
+    else:
+        ICON_SZ   = 24
+        icon_rect = pygame.Rect(rect.x + 6, rect.y + 6, ICON_SZ, ICON_SZ)
+        if category == "stars":
+            draw_star_icon(ctx.screen, icon_rect, C_AMBER, filled=True)
+        elif category == "ads":
+            draw_ad_icon(ctx.screen, icon_rect, C_GREEN_MID)
+        elif category == "upgrades":
+            draw_upgrade_icon(ctx.screen, icon_rect, C_CYAN)
+        elif category == "events":
+            draw_event_icon(ctx.screen, icon_rect, C_AMBER)
+        content_x = rect.x + ICON_SZ + 12
 
     is_ad     = (category == "ads")
-    PILL_W, PILL_H = 100, 22
+    PILL_W, PILL_H = 136, 22
     pill_rect = pygame.Rect(rect.right - PILL_W - 6, rect.y + 6, PILL_W, PILL_H)
 
     if is_ad:
@@ -290,11 +307,9 @@ def _draw_shop_card(ctx, rect, item, category, state):
         net_label = f"SIGN  {net_sign}${abs(_nc):.0f}"
         p_surf = ctx._f("small").render(net_label, True, cost_col)
         ctx.screen.blit(p_surf, p_surf.get_rect(center=pill_rect.center))
-
-        _mcol = C_GREEN_MID if can_buy else C_GREY_MID
-        _math = ctx._f("micro").render(
-            f"+${_uf:.0f} upfront - ${cost} buy = {net_sign}${abs(_nc):.0f} net", True, _mcol)
-        ctx.screen.blit(_math, (pill_rect.right - _math.get_width(), pill_rect.bottom + 2))
+        # The verbose "upfront - buy = net" breakdown lives in the tooltip; a
+        # compact net is shown right-aligned on the econ row below (see ads body)
+        # so it can never collide with the left-aligned payout line.
     else:
         cost_col = C_RED if not can_buy else C_AMBER
         pill_bg  = C_RED_DIM if not can_buy else C_TINT_SHOW_PILL
@@ -331,7 +346,7 @@ def _draw_shop_card(ctx, rect, item, category, state):
     ctx._add_click(pill_rect, _buy)
     ctx._add_click(rect, _buy)
 
-    tx   = rect.x + ICON_SZ + 12
+    tx   = content_x
     ty   = rect.y + 6
     f_mi = ctx._f("micro")
     f_bd = ctx._f("bold")
@@ -379,22 +394,26 @@ def _draw_shop_card(ctx, rect, item, category, state):
         upk_surf  = f_mi.render(slots_str, True, upk_col)
         ctx.screen.blit(upk_surf, (tx, ty))
         slots_info = f_mi.render(f"  STARS:{star_s}  ADS:{ad_s}", True, C_GREY_LIGHT)
-        ctx.screen.blit(slots_info, (tx + upk_surf.get_width(), ty))
+        _slots_x = tx + upk_surf.get_width()
+        if _slots_x + slots_info.get_width() <= pill_rect.left - 4:
+            ctx.screen.blit(slots_info, (_slots_x, ty))
         ty += lh
 
-        if upk:
-            net_str = f"NET: -{upk}/s upkeep  (+ ad income when ads attached)"
-            net_col = C_NET_NEG
-        else:
-            net_str = "NET: $0 upkeep - attach ads for income"
-            net_col = C_NET_NEUTRAL
-        net_surf = f_mi.render(net_str[:72], True, net_col)
-        ctx.screen.blit(net_surf, (tx, ty))
-        ty += lh
+        if ty + lh <= rect.bottom - 2:
+            if upk:
+                net_str = f"NET: -{upk}/s upkeep  (+ ad income when ads attached)"
+                net_col = C_NET_NEG
+            else:
+                net_str = "NET: $0 upkeep - attach ads for income"
+                net_col = C_NET_NEUTRAL
+            net_surf = f_mi.render(net_str[:72], True, net_col)
+            ctx.screen.blit(net_surf, (tx, ty))
+            ty += lh
 
         desc = item.get("desc", "")
         if desc and ty + lh <= rect.bottom - 3:
-            desc_surf = f_mi.render(desc[:75], True, C_GREY_MID)
+            desc_str  = desc[:75] + ("..." if len(desc) > 75 else "")
+            desc_surf = f_mi.render(desc_str, True, C_GREY_MID)
             ctx.screen.blit(desc_surf, (tx, ty))
 
     elif category == "stars":
@@ -402,8 +421,8 @@ def _draw_shop_card(ctx, rect, item, category, state):
         fall_obj = item.get("fallback", {}) if isinstance(item.get("fallback"), dict) else {}
         eff_upk  = eff_obj.get("upkeep", 0) or fall_obj.get("upkeep", 0)
 
-        upk_str = f"UPKEEP: -{eff_upk}/s" if eff_upk else "UPKEEP: Free"
-        upk_col = C_RED_GLOW if eff_upk else C_NET_POS
+        upk_str = f"UPKEEP: -{abs(eff_upk)}/s" if eff_upk else "UPKEEP: Free"
+        upk_col = C_RED_GLOW if eff_upk > 0 else C_NET_POS
         ctx.screen.blit(f_mi.render(upk_str, True, upk_col), (tx, ty))
         ty += lh
 
@@ -445,11 +464,22 @@ def _draw_shop_card(ctx, rect, item, category, state):
         fall_obj = item.get("fallback", {}) if isinstance(item.get("fallback"), dict) else {}
         fb_sea   = fall_obj.get("income", 0)
 
+        # Right-aligned net summary on this row; the payout text is clipped so
+        # it always stops short of it (no horizontal collision).
+        _nc      = _ad_net_cost(item, state)
+        net_sign = "+" if _nc <= 0 else "-"
+        net_surf = f_mi.render(f"= {net_sign}${abs(_nc):.0f} net", True,
+                               C_GREEN_MID if can_buy else C_GREY_MID)
+        net_x    = rect.right - net_surf.get_width() - 8
+        ctx.screen.blit(net_surf, (net_x, ty))
+
         inc_parts = [f"+${uf} now"]
         if sea:                         inc_parts.append(f"+${sea}/s on match")
         if fb_sea and fb_sea != sea:    inc_parts.append(f"+${fb_sea}/s otherwise")
-        ctx.screen.blit(
-            f_mi.render("  -  ".join(inc_parts)[:70], True, C_NET_POS), (tx, ty))
+        inc_str = "  -  ".join(inc_parts)
+        while inc_str and f_mi.size(inc_str)[0] > net_x - tx - 8:
+            inc_str = inc_str[:-1]
+        ctx.screen.blit(f_mi.render(inc_str, True, C_NET_POS), (tx, ty))
         ty += lh
 
         v_flat = eff_obj.get("v_flat", 0)
@@ -482,12 +512,18 @@ def _draw_shop_card(ctx, rect, item, category, state):
 
         eff_lbl = f_mi.render("EFFECT: ", True, C_GREY_MID)
         ctx.screen.blit(eff_lbl, (tx, ty))
-        eff_x   = tx + eff_lbl.get_width()
-        line1   = desc[:68]
-        ctx.screen.blit(f_mi.render(line1, True, C_GREY_LIGHT), (eff_x, ty))
-        ty += lh
-        if len(desc) > 68 and ty + lh <= rect.bottom - 16:
-            ctx.screen.blit(f_mi.render(desc[68:136], True, C_GREY_LIGHT), (tx, ty))
+        eff_x          = tx + eff_lbl.get_width()
+        has_line2      = len(desc) > 68
+        line2_will_fit = has_line2 and (ty + lh * 2 <= rect.bottom - 16)
+        if line2_will_fit:
+            ctx.screen.blit(f_mi.render(desc[:68], True, C_GREY_LIGHT), (eff_x, ty))
+            ty += lh
+            line2 = desc[68:136] + ("..." if len(desc) > 136 else "")
+            ctx.screen.blit(f_mi.render(line2, True, C_GREY_LIGHT), (tx, ty))
+            ty += lh
+        else:
+            line1 = desc[:68] + ("..." if has_line2 else "")
+            ctx.screen.blit(f_mi.render(line1, True, C_GREY_LIGHT), (eff_x, ty))
             ty += lh
 
         slots_str  = f"ACTIVE UPGRADES: {active_cnt}/{MAX_ACTIVE_UPGRADES}"
@@ -754,9 +790,13 @@ def _draw_contract_card(ctx, rect, ev, state, available=True):
     tx = rect.x + 10
     ty = rect.y + 5
 
-    name_surf = f_bd.render(ev.get("name", "???")[:36], True, C_WHITE)
+    name_str = ev.get("name", "???")
+    name_max = pill_rect.left - tx - 8
+    while name_str and f_bd.size(name_str)[0] > name_max:
+        name_str = name_str[:-1]
+    name_surf = f_bd.render(name_str, True, C_WHITE)
     ctx.screen.blit(name_surf, (tx, ty))
-    ty += 16
+    ty += line_step(f_bd, 0.80)
 
     req_str = describe_req(ev.get("requirement", {}))
     rew     = ev.get("reward", {})
@@ -809,10 +849,15 @@ def _draw_active_contract(ctx, rect, ev, remaining_seasons, fulfilled):
     status_txt = "FULFILLED" if fulfilled else f"{remaining_seasons}s LEFT"
     status_col = C_NET_POS  if fulfilled else C_AMBER
     st_s = f_mi.render(status_txt, True, status_col)
-    ctx.screen.blit(st_s, (rect.right - st_s.get_width() - 8, ty + 1))
+    st_x = rect.right - st_s.get_width() - 8
+    ctx.screen.blit(st_s, (st_x, ty + 1))
 
-    name_surf = f_bd.render(ev.get("name", "???")[:32], True, C_WHITE)
-    ctx.screen.blit(name_surf, (tx, ty)); ty += 15
+    name_str = ev.get("name", "???")
+    name_max = st_x - tx - 8
+    while name_str and f_bd.size(name_str)[0] > name_max:
+        name_str = name_str[:-1]
+    name_surf = f_bd.render(name_str, True, C_WHITE)
+    ctx.screen.blit(name_surf, (tx, ty)); ty += line_step(f_bd, 0.80)
 
     req_str = describe_req(ev.get("requirement", {}))
     ctx.screen.blit(f_mi.render(f"REQ: {req_str}", True, C_GREY_LIGHT), (tx, ty))

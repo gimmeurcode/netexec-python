@@ -25,7 +25,7 @@ from engine.network import calculate_yield
 from engine.cards import check_condition, evaluate_star, evaluate_ad
 from content.ads import net_cost as _ad_net_cost
 from ..assets import draw_genre_badge
-from ..widgets import draw_button, draw_modal_overlay, draw_text_wrapped
+from ..widgets import draw_button, draw_modal_overlay, draw_text_wrapped, draw_kv
 
 # --- SHOW DETAIL MODAL ---
 
@@ -218,11 +218,15 @@ def _draw_show_detail_modal(ctx, state):
     left_x = x
     right_x = x + col_w + 10
 
+    # Column width = widest label in either grid + gap, so the value column is
+    # aligned AND can never overlap a wide label (draw_kv measures the label).
+    _kv_keys = ["BASE VIEWS", "WITH STARS", "PROJECTED", "UPKEEP", "AD INCOME",
+                "NET", "CURRENT SLOT", "RECOMMENDED", "AGE", "SIZE", "SLOTS"]
+    _kv_col_w = max(f_mi.size(f"{k}:")[0] for k in _kv_keys) + 10
+
     def _draw_kv(x_pos: int, y_pos: int, key: str, value: str, val_col: tuple):
-        k = f_mi.render(f"{key}:", True, C_GREY_LIGHT)
-        v = f_mi.render(value, True, val_col)
-        ctx.screen.blit(k, (x_pos, y_pos))
-        ctx.screen.blit(v, (x_pos + 92, y_pos))
+        draw_kv(ctx, f"{key}:", value, x_pos, y_pos, f_mi,
+                C_GREY_LIGHT, val_col, col_w=_kv_col_w, gap=8)
 
     net_col = C_NET_POS if net_val >= 0 else C_NET_NEG
     upkeep_col = C_AMBER_DIM if upkeep_val else C_NET_POS

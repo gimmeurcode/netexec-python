@@ -102,7 +102,7 @@ def net_cost(ad: dict, state) -> float:
     -------
     float  Net dollars deducted from budget.
     """
-    from engine.network import rnd2
+    from engine.yields import rnd2
     return rnd2(ad.get("cost", 0)) - rnd2(upfront_payment(ad, state))
 
 

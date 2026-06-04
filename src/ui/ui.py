@@ -38,7 +38,7 @@ from engine.constants import (
     FLASH_DURATION_MS, BLINK_PERIOD_MS, SCANLINE_ALPHA, SCANLINE_SPACING,
 )
 from .theme import load_fonts
-from .assets import draw_crt_scanlines, NumberPop
+from .assets import draw_crt_scanlines, apply_crt, NumberPop
 from .bezel import draw_bezel, C_CHROME_BASE
 from .layout import compute_layout, Layout, MIN_W, MIN_H
 from .screen_enum import GameScreen
@@ -49,6 +49,7 @@ from .screens.settings import SettingsScreen
 from .screens.summary import SummaryScreen
 from .screens.pause import PauseScreen
 from .screens.game_over import GameOverScreen
+from .screens.win import WinScreen
 from .screens.wildcard_show import WildcardShowScreen
 from .screens.wildcard_ad import WildcardAdScreen
 
@@ -76,6 +77,45 @@ class GameUI:
 
         # ── Click regions (rebuilt every frame) ────────────────────────────────
         self._click_regions: list[tuple[pygame.Rect, callable]] = []
+
+        # ── Scrollbar regions (rebuilt every frame) + active drag state ────────
+        self._scrollbar_regions: list[dict] = []
+        self._sb_drag: dict | None = None
+
+        # ── Slider regions (rebuilt every frame) + active drag state ───────────
+        self._slider_regions: list[dict] = []
+        self._slider_drag: dict | None = None
+
+        # Settings screen tab index + RULES-tab scroll offset.
+        self._settings_tab: int = 0
+        self._settings_scroll: int = 0
+
+        # ── Graphics toggles ───────────────────────────────────────────────────
+        # When the GPU CRT presenter (self._gl) is active the full curved-tube
+        # shader runs every frame, so the effect can default ON. Without GPU,
+        # the CPU path is heavier, so it stays opt-in (see render()).
+        self._crt_enabled: bool = True
+
+        # GPU CRT presenter (ModernGL). Set by main.py when a GL context is
+        # available; None means the CPU/numpy path is used instead.
+        self._gl = None
+        self._present_surf = None   # offscreen full-window composite for GL mode
+
+        # Drifting atmosphere haze (rendered before the CRT pass). Toggle in
+        # settings; subtle by default.
+        from .atmosphere import Atmosphere
+        self._atmosphere = Atmosphere()
+        # Off by default so the baseline look is clean; opt-in via settings.
+        self._atmosphere_enabled: bool = False
+
+        # Per-effect CRT intensities (normalized 0..1), driven by Settings
+        # sliders and applied by the GPU shader (see crt_gl.present).
+        self._crt_params = {
+            "curvature":  0.45,
+            "scanline":   0.40,
+            "aberration": 0.40,
+            "vignette":   0.55,
+        }
 
         # ── Toast notifications {text, level, color, elapsed} ──────────────────
         self._toasts: list[dict] = []
@@ -136,6 +176,7 @@ class GameUI:
             GameScreen.SEASON_SUMMARY: SummaryScreen(),
             GameScreen.PAUSE:          PauseScreen(),
             GameScreen.GAME_OVER:      GameOverScreen(),
+            GameScreen.WIN:            WinScreen(),
             GameScreen.WILDCARD_SHOW:  WildcardShowScreen(),
             GameScreen.WILDCARD_AD:    WildcardAdScreen(),
         }
@@ -236,12 +277,37 @@ class GameUI:
 
         if event.type == pygame.MOUSEMOTION:
             self._mouse_pos = (event.pos[0] - cut.x, event.pos[1] - cut.y)
+            # Live thumb drag: map mouse-y within the track to a scroll offset.
+            if self._sb_drag is not None:
+                d      = self._sb_drag
+                track  = d["track"]
+                travel = max(1, track.height - d["thumb_h"])
+                rel    = (self._mouse_pos[1] - track.y - d["grab"]) / travel
+                d["set"](int(max(0.0, min(1.0, rel)) * d["max_scroll"]))
+            # Live slider drag: map mouse-x within the slider to a 0..1 value.
+            elif self._slider_drag is not None:
+                from .widgets import slider_value_at
+                r = self._slider_drag["rect"]
+                self._slider_drag["set"](slider_value_at(r, self._mouse_pos[0]))
+
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            pos = (event.pos[0] - cut.x, event.pos[1] - cut.y)
+            if self._handle_scrollbar_press(pos):
+                return
+            if self._handle_slider_press(pos):
+                return
 
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
             # Right-click: pin/unpin a tooltip for the region under the cursor.
             self._toggle_pinned_tooltip(event.pos)
 
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            if self._slider_drag is not None:
+                self._slider_drag = None    # finish slider drag; swallow the click
+                return
+            if self._sb_drag is not None:
+                self._sb_drag = None        # finish thumb drag; swallow the click
+                return
             pos = (event.pos[0] - cut.x, event.pos[1] - cut.y)
             if self._tutorial and not self._tutorial.done:
                 return
@@ -259,8 +325,14 @@ class GameUI:
 
         elif event.type == pygame.MOUSEWHEEL:
             dy = -event.y * self._SCROLL_SPEED
+            # Wheel over a slider nudges its value (takes priority over scroll).
+            if self._nudge_slider_under_cursor(event.y):
+                return
             if self._tutorial and not self._tutorial.done:
                 self._tutorial.scroll(dy)
+            elif self.screen_name == GameScreen.SETTINGS:
+                # Wheel scrolls the RULES tab content
+                self._settings_scroll = max(0, self._settings_scroll + dy)
             elif self._show_detail:
                 # Wheel on show detail modal scrolls the modal content
                 self._detail_scroll = max(0, self._detail_scroll + dy)
@@ -280,6 +352,60 @@ class GameUI:
             if self._tutorial and not self._tutorial.done:
                 return
             self._handle_key(event, state)
+
+    def _handle_scrollbar_press(self, pos: tuple) -> bool:
+        """Left-press on a scrollbar: arrows step, thumb begins drag, track pages.
+
+        Returns True if the press hit a scrollbar (so the click is consumed).
+        """
+        for r in self._scrollbar_regions:
+            if r["thumb"].collidepoint(pos):
+                # Begin dragging — remember where on the thumb we grabbed.
+                self._sb_drag = {
+                    "track": r["track"], "thumb_h": r["thumb_h"],
+                    "max_scroll": r["max_scroll"], "set": r["set"],
+                    "grab": pos[1] - r["thumb"].y,
+                }
+                return True
+            if r["up"].collidepoint(pos):
+                r["set"](max(0, r["scroll"] - r["step"]))
+                return True
+            if r["down"].collidepoint(pos):
+                r["set"](min(r["max_scroll"], r["scroll"] + r["step"]))
+                return True
+            if r["track"].collidepoint(pos):
+                # Page toward the click position.
+                if pos[1] < r["thumb"].y:
+                    r["set"](max(0, r["scroll"] - r["view_h"]))
+                else:
+                    r["set"](min(r["max_scroll"], r["scroll"] + r["view_h"]))
+                return True
+        return False
+
+    def _handle_slider_press(self, pos: tuple) -> bool:
+        """Left-press on a slider: jump to the clicked value and begin dragging.
+
+        Returns True if the press hit a slider (so the click is consumed).
+        """
+        from .widgets import slider_value_at
+        for r in self._slider_regions:
+            rect = r["rect"]
+            # Generous vertical hit area so the thin slider is easy to grab.
+            hit = rect.inflate(0, 10)
+            if hit.collidepoint(pos):
+                r["set"](slider_value_at(rect, pos[0]))
+                self._slider_drag = {"rect": rect, "set": r["set"]}
+                return True
+        return False
+
+    def _nudge_slider_under_cursor(self, wheel_y: int) -> bool:
+        """Mouse wheel over a slider nudges its value by a small step."""
+        for r in self._slider_regions:
+            if r["rect"].inflate(0, 10).collidepoint(self._mouse_pos):
+                step = 0.05 * (1 if wheel_y > 0 else -1)
+                r["set"](max(0.0, min(1.0, r["value"] + step)))
+                return True
+        return False
 
     def _toggle_pinned_tooltip(self, raw_pos: tuple):
         """Pin or unpin a tooltip at raw_pos (window coords). Called on right-click or Ctrl+click."""
@@ -356,13 +482,26 @@ class GameUI:
 
     def render(self, state):
         """Draw the current screen; rebuild click/tooltip regions each frame."""
-        self._click_regions   = []
-        self._tooltip_regions = []
+        self._click_regions     = []
+        self._tooltip_regions   = []
+        self._scrollbar_regions = []
+        self._slider_regions    = []
 
-        win_w = self.screen.get_width()
-        win_h = self.screen.get_height()
+        _window = self.screen
+        win_w = _window.get_width()
+        win_h = _window.get_height()
         self._layout = compute_layout(win_w, win_h)
         cutout = self._layout.cutout
+
+        # In GPU mode the whole frame is composited onto an offscreen surface and
+        # presented through the CRT shader; the GL window itself is never blitted.
+        if self._gl is not None:
+            if (self._present_surf is None or
+                    self._present_surf.get_size() != (win_w, win_h)):
+                self._present_surf = pygame.Surface((win_w, win_h))
+            main_target = self._present_surf
+        else:
+            main_target = _window
 
         # Recreate the game sub-surface whenever the cutout size changes.
         if (self._game_surf is None or
@@ -374,10 +513,10 @@ class GameUI:
         self._sh = cutout.h
 
         # Fill the main window with chrome background colour.
-        self.screen.fill(C_CHROME_BASE)
+        main_target.fill(C_CHROME_BASE)
 
         # ── Render game content into the sub-surface ──────────────────────────
-        _main_screen    = self.screen
+        _main_screen    = main_target
         self.screen     = self._game_surf
         self.screen.fill(C_BG)
 
@@ -388,14 +527,21 @@ class GameUI:
             # Overlay screens (pause, wildcard, summary) block game interaction:
             # discard any click/tooltip regions the game just registered so that
             # only the overlay's own regions are active this frame.
-            self._click_regions   = []
-            self._tooltip_regions = []
+            self._click_regions     = []
+            self._tooltip_regions   = []
+            self._scrollbar_regions = []
+        self._slider_regions    = []
         if s in self._screen_map:
             self._screen_map[s].render(self, state)
 
-        # CRT scanlines applied to game surface — skipped when frame time > 50 ms
-        if self._last_dt_ms <= 50:
-            draw_crt_scanlines(self.screen, SCANLINE_ALPHA, SCANLINE_SPACING)
+        # CRT filter on the game surface. In GPU mode the shader handles the
+        # whole frame at present time, so skip the CPU pass here. Otherwise the
+        # baseline is cheap cached scanlines; the full numpy pipeline is opt-in.
+        if self._gl is None and self._last_dt_ms <= 50:
+            if self._crt_enabled:
+                apply_crt(self.screen, True)
+            else:
+                draw_crt_scanlines(self.screen, SCANLINE_ALPHA, SCANLINE_SPACING)
 
         # Flash overlay on game surface
         if self._flash_color:
@@ -419,7 +565,21 @@ class GameUI:
         _on_air = getattr(state, 'season', 0) > 0
         draw_bezel(self.screen, self._layout, self._tick_ms, on_air=_on_air)
 
-        pygame.display.flip()
+        # Drifting atmosphere haze over the screen cutout, before the CRT pass.
+        if self._atmosphere_enabled:
+            self._atmosphere.draw(self.screen, cutout, self._tick_ms, intensity=0.4)
+
+        # ── Present ───────────────────────────────────────────────────────────
+        if self._gl is not None:
+            try:
+                self._gl.present(main_target, self._crt_enabled,
+                                 self._tick_ms * 0.001, self._crt_params)
+            except Exception:
+                # GPU present failed mid-run: disable GL and fall back next frame
+                self._gl = None
+            self.screen = _window      # keep the window as the stable reference
+        else:
+            pygame.display.flip()
 
     # ─── SHARED HELPERS (called by screen modules via ctx) ────────────────────
 
@@ -455,14 +615,18 @@ class GameUI:
     def _toggle_fullscreen(self):
         """Toggle fullscreen mode."""
         self._fullscreen = not self._fullscreen
+        # Preserve the OpenGL context flags when GPU CRT is active.
+        _gl = (pygame.OPENGL | pygame.DOUBLEBUF) if self._gl else 0
         if self._fullscreen:
-            pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+            pygame.display.set_mode((0, 0), pygame.FULLSCREEN | _gl)
         else:
             from engine.constants import RESOLUTIONS
             r = RESOLUTIONS[self._settings_res_idx % len(RESOLUTIONS)]
             # Include RESIZABLE so the window can be resized after exiting fullscreen
-            pygame.display.set_mode(r, pygame.RESIZABLE)
+            pygame.display.set_mode(r, pygame.RESIZABLE | _gl)
         self.screen     = pygame.display.get_surface()
+        if self._gl:
+            self._gl.resize(self.screen.get_width(), self.screen.get_height())
         # Reset cached dimensions and game sub-surface so the next render()
         # recomputes layout and recreates the cutout at the new window size.
         self._sw        = self.screen.get_width()

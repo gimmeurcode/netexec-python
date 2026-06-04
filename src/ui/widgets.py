@@ -10,6 +10,9 @@ controller so that widget logic has a single canonical home.
 
 Public API
 ----------
+  line_step            Minimum safe vertical step between two lines of a font.
+  draw_row             Draw a run of coloured text segments on one line.
+  draw_kv              Draw a label/value pair with collision-free spacing.
   draw_button          Draw a CRT-style button and register its click region.
   draw_modal_overlay   Draw a semi-transparent darkening layer for modals.
   draw_label           Draw a plain text label.
@@ -24,6 +27,67 @@ from engine.constants import (
     C_WHITE, C_BORDER, C_BORDER_DIM,
 )
 from .theme import C_TINT_BTN_HOVER, C_TINT_SHADOW
+
+
+def line_step(font: pygame.font.Font, scale: float = 1.0) -> int:
+    """
+    Return the minimum safe vertical distance between two consecutive lines
+    of ``font``.
+
+    This is the font's true rendered line height (``get_linesize``) scaled by
+    ``scale``. Use it instead of a hardcoded ``y += N`` so stacked rows can
+    never collide regardless of the font role in play.
+    """
+    return int(font.get_linesize() * scale)
+
+
+def draw_row(ctx, segments, x: int, y: int, font: pygame.font.Font,
+             gap: int = 6) -> int:
+    """
+    Draw a horizontal run of coloured text segments on a single line.
+
+    Parameters
+    ----------
+    ctx      : GameUI  Controller instance (provides ``ctx.screen``).
+    segments : list of (text, color) tuples  Drawn left-to-right.
+    x, y     : int     Top-left origin of the run.
+    font     : Font    Font used for every segment.
+    gap      : int     Pixel gap inserted after each segment.
+
+    Each segment is rendered immediately after the previous one, advancing the
+    pen by ``font.size(text)[0] + gap`` so two segments can never share pixels.
+
+    Returns
+    -------
+    int  The x position just past the last segment (its right edge + gap).
+    """
+    cx = x
+    for text, color in segments:
+        surf = font.render(text, True, color)
+        ctx.screen.blit(surf, (cx, y))
+        cx += font.size(text)[0] + gap
+    return cx
+
+
+def draw_kv(ctx, label: str, value: str, x: int, y: int,
+            font: pygame.font.Font, label_color, value_color,
+            col_w=None, gap: int = 10) -> int:
+    """
+    Draw a ``label``/``value`` pair so the value can never overlap the label.
+
+    The value is placed at ``x + max(col_w or 0, font.size(label)[0] + gap)``,
+    i.e. at a fixed column when ``col_w`` is supplied, but always pushed past a
+    label that is wider than that column. Use a ``col_w`` equal to the widest
+    label in a group to get clean aligned columns.
+
+    Returns
+    -------
+    int  ``y + line_step(font)`` so callers can chain successive rows.
+    """
+    ctx.screen.blit(font.render(label, True, label_color), (x, y))
+    vx = x + max(col_w or 0, font.size(label)[0] + gap)
+    ctx.screen.blit(font.render(value, True, value_color), (vx, y))
+    return y + line_step(font)
 
 
 def draw_button(ctx, rect: pygame.Rect, label: str, callback,
@@ -85,32 +149,41 @@ def draw_label(ctx, text: str, x: int, y: int, color=None):
     ctx.screen.blit(surf, (x, y))
 
 
+def slider_value_at(rect: pygame.Rect, mouse_x: int) -> float:
+    """Return the [0,1] slider value for a mouse x within ``rect``."""
+    return max(0.0, min(1.0, (mouse_x - rect.x) / max(1, rect.width)))
+
+
 def draw_slider(ctx, rect: pygame.Rect, value: float, on_change):
     """
-    Draw a horizontal slider and register drag interaction.
+    Draw a horizontal slider and register a region the controller drives by
+    click (jump), drag (slide) and mouse wheel (nudge).
 
     Parameters
     ----------
     ctx       : GameUI  Controller instance.
     rect      : Rect    Slider bounding box.
     value     : float   Current value in [0.0, 1.0].
-    on_change : callable  Called with the new float value when dragged.
+    on_change : callable  Called with the new float value (0..1).
     """
+    value = max(0.0, min(1.0, value))
+    dragging = (getattr(ctx, "_slider_drag", None) is not None
+                and ctx._slider_drag.get("rect") == rect)
+    hovered  = rect.collidepoint(ctx._mouse_pos) or dragging
+
     pygame.draw.rect(ctx.screen, C_GREEN_DIM, rect)
-    pygame.draw.rect(ctx.screen, C_BORDER,    rect, 1)
+    pygame.draw.rect(ctx.screen, C_GREEN_BRIGHT if hovered else C_BORDER, rect, 1)
     filled_w = int(rect.width * value)
     if filled_w > 0:
         pygame.draw.rect(ctx.screen, C_GREEN_BRIGHT,
                          (rect.x, rect.y, filled_w, rect.height))
     hx = rect.x + filled_w
-    pygame.draw.rect(ctx.screen, C_WHITE, (hx - 3, rect.y - 2, 6, rect.height + 4))
+    knob = (255, 255, 255) if not dragging else C_GREEN_BRIGHT
+    pygame.draw.rect(ctx.screen, knob, (hx - 3, rect.y - 2, 6, rect.height + 4))
 
-    def _drag():
-        mx      = ctx._mouse_pos[0]
-        new_val = max(0.0, min(1.0, (mx - rect.x) / rect.width))
-        on_change(new_val)
-
-    ctx._click_regions.append((rect, _drag))
+    # Register for the controller's click/drag/wheel handling.
+    ctx._slider_regions.append({"rect": pygame.Rect(rect), "set": on_change,
+                                "value": value})
 
 
 def draw_scrollbar(ctx, track_rect: pygame.Rect,
@@ -140,27 +213,51 @@ def draw_scrollbar(ctx, track_rect: pygame.Rect,
     max_scroll = max(0, total_h - view_h)
     scroll_y   = max(0, min(max_scroll, scroll_y))
 
-    # Track background
-    pygame.draw.rect(ctx.screen, C_TINT_SHADOW, track_rect, border_radius=3)
-    pygame.draw.rect(ctx.screen, C_BORDER_DIM,  track_rect, 1, border_radius=3)
+    # ── Up / down arrow buttons at the track ends ────────────────────────────
+    arrow_h   = min(14, max(8, track_rect.height // 6))
+    up_rect   = pygame.Rect(track_rect.x, track_rect.y, track_rect.width, arrow_h)
+    down_rect = pygame.Rect(track_rect.x, track_rect.bottom - arrow_h,
+                            track_rect.width, arrow_h)
+    inner = pygame.Rect(track_rect.x, track_rect.y + arrow_h,
+                        track_rect.width, track_rect.height - arrow_h * 2)
+
+    # Track background (inner channel)
+    pygame.draw.rect(ctx.screen, C_TINT_SHADOW, inner, border_radius=3)
+    pygame.draw.rect(ctx.screen, C_BORDER_DIM,  inner, 1, border_radius=3)
 
     # Thumb size proportional to visible fraction, minimum 20px
     ratio    = view_h / total_h
-    thumb_h  = max(20, int(track_rect.height * ratio))
-    thumb_y  = track_rect.y + int((track_rect.height - thumb_h) * scroll_y / max_scroll)
+    thumb_h  = max(20, int(inner.height * ratio))
+    thumb_h  = min(thumb_h, inner.height)
+    travel   = inner.height - thumb_h
+    thumb_y  = inner.y + int(travel * scroll_y / max_scroll) if max_scroll else inner.y
 
-    thumb = pygame.Rect(track_rect.x + 2, thumb_y, track_rect.width - 4, thumb_h)
-    hovered = track_rect.collidepoint(ctx._mouse_pos)
-    thumb_col = C_GREEN_MID if hovered else C_GREEN_DIM
+    thumb = pygame.Rect(inner.x + 1, thumb_y, inner.width - 2, thumb_h)
+    mpos  = ctx._mouse_pos
+    dragging = (getattr(ctx, "_sb_drag", None) is not None
+                and ctx._sb_drag.get("track") == inner)
+    hovered  = inner.collidepoint(mpos) or dragging
+    thumb_col = C_GREEN_BRIGHT if dragging else (C_GREEN_MID if hovered else C_GREEN_DIM)
     pygame.draw.rect(ctx.screen, thumb_col, thumb, border_radius=3)
 
-    # Click anywhere on track: jump to that position
-    def _jump():
-        _, my = ctx._mouse_pos
-        rel   = (my - track_rect.y) / track_rect.height
-        on_scroll(int(rel * total_h - view_h / 2))
+    # Arrow glyphs
+    for arr, pts_fn in (
+        (up_rect,   lambda r: [(r.centerx, r.y + 3),
+                               (r.x + 3, r.bottom - 3), (r.right - 3, r.bottom - 3)]),
+        (down_rect, lambda r: [(r.centerx, r.bottom - 3),
+                               (r.x + 3, r.y + 3), (r.right - 3, r.y + 3)]),
+    ):
+        a_hot = arr.collidepoint(mpos)
+        pygame.draw.rect(ctx.screen, C_TINT_SHADOW, arr, border_radius=2)
+        pygame.draw.polygon(ctx.screen, C_GREEN_MID if a_hot else C_GREEN_DIM, pts_fn(arr))
 
-    ctx._click_regions.append((track_rect, _jump))
+    # Register a structured region so ui.py can handle press / drag / arrows.
+    step = max(view_h // 4, 24)
+    ctx._scrollbar_regions.append({
+        "track": inner, "thumb": thumb, "up": up_rect, "down": down_rect,
+        "total_h": total_h, "view_h": view_h, "max_scroll": max_scroll,
+        "scroll": scroll_y, "thumb_h": thumb_h, "step": step, "set": on_scroll,
+    })
     return scroll_y
 
 

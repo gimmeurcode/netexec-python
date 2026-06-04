@@ -449,6 +449,194 @@ def draw_crt_scanlines(surface: pygame.Surface, alpha: int = 28, spacing: int = 
     surface.blit(overlay, (0, 0))
 
 
+# ─── ENHANCED CRT (barrel + chromatic aberration + vignette + bloom) ──────────
+#
+# numpy is used for the full pipeline ONLY when it is already importable (pygame
+# pulls it in via surfarray). The shipped build must not gain numpy as a hard
+# dependency, so every numpy path falls back to a pure-pygame approximation
+# (scanlines + vignette overlay) when numpy is unavailable.
+
+try:                                   # pragma: no cover - import guard
+    import numpy as _np
+    _HAVE_NP = True
+except Exception:                      # pragma: no cover
+    _np = None
+    _HAVE_NP = False
+
+_CRTMAP: dict = {}          # (w,h) -> sample maps / vignette / scanline factors
+_VIG_CACHE: dict = {}       # (w,h) -> pure-pygame vignette+scanline overlay
+
+
+def _crt_maps(w: int, h: int):
+    """Cached barrel-distortion + chromatic-aberration sample maps, validity
+    mask, vignette and scanline factor for a w×h surface (numpy path)."""
+    key = (w, h)
+    cached = _CRTMAP.get(key)
+    if cached is not None:
+        return cached
+    X, Y = _np.meshgrid(_np.arange(w), _np.arange(h), indexing="ij")
+    nx = X / max(1, w - 1) * 2 - 1
+    ny = Y / max(1, h - 1) * 2 - 1
+    # Curved-tube look (this game wants visible CRT curvature, unlike the flat
+    # Animal Well style). Lower k = more bulge; corners round off into the bezel.
+    k = 5.0
+    dx = nx + nx * (ny / k) ** 2              # barrel distortion
+    dy = ny + ny * (nx / k) ** 2
+    r2 = nx * nx + ny * ny
+    ca = 1.0 + 2.2 * r2                       # edge-weighted chromatic aberration
+
+    def to_px(xoff):
+        sx = ((dx + 1) / 2) * (w - 1) + xoff
+        sy = ((dy + 1) / 2) * (h - 1)
+        valid = (sx >= 0) & (sx <= w - 1) & (sy >= 0) & (sy <= h - 1)
+        return (_np.clip(sx, 0, w - 1).astype(_np.intp),
+                _np.clip(sy, 0, h - 1).astype(_np.intp), valid)
+
+    rmap = to_px(ca)
+    gmap = to_px(0.0)
+    bmap = to_px(-ca)
+    mask = gmap[2]
+    r   = _np.sqrt(r2)
+    vig = _np.clip(1.0 - _np.clip(r - 0.6, 0, 1) * 0.8, 0.22, 1.0).astype(_np.float32)
+    vig = vig[:, :, None]
+    scan = _np.ones((1, h, 1), _np.float32)
+    scan[0, ::2, 0] = 0.88                    # fine alternating scanlines
+    result = (rmap, gmap, bmap, mask, vig, scan)
+    _CRTMAP[key] = result
+    return result
+
+
+def _crt_bloom(surface: pygame.Surface):
+    """Threshold bright pixels, blur at two scales, add back for a soft glow."""
+    w, h = surface.get_size()
+    small = pygame.transform.smoothscale(surface, (max(1, w // 5), max(1, h // 5)))
+    a = pygame.surfarray.array3d(small).astype(_np.float32)
+    a -= 155.0
+    _np.clip(a, 0, 255, a)
+    a *= 1.8
+    _np.clip(a, 0, 255, a)
+    bs = pygame.surfarray.make_surface(a.astype(_np.uint8))
+    bw, bh = bs.get_size()
+    for div in (3, 8):
+        tiny = pygame.transform.smoothscale(bs, (max(1, bw // div), max(1, bh // div)))
+        glow = pygame.transform.smoothscale(tiny, (w, h))
+        surface.blit(glow, (0, 0), special_flags=pygame.BLEND_RGB_ADD)
+
+
+def _pygame_vignette(w: int, h: int) -> pygame.Surface:
+    """Pure-pygame fallback: cached scanline + radial-ish vignette overlay."""
+    key = (w, h)
+    ov = _VIG_CACHE.get(key)
+    if ov is None:
+        ov = pygame.Surface((w, h), pygame.SRCALPHA)
+        strip = pygame.Surface((w, 2), pygame.SRCALPHA)
+        strip.fill((0, 0, 0, 26))
+        for y in range(0, h, 3):
+            ov.blit(strip, (0, y))
+        # Edge darkening: four border gradients approximate a vignette.
+        edge = max(8, min(w, h) // 8)
+        for i in range(edge):
+            a = int(70 * (1 - i / edge))
+            pygame.draw.rect(ov, (0, 0, 0, a), (i, i, w - 2 * i, h - 2 * i), 1)
+        _VIG_CACHE.clear()
+        _VIG_CACHE[key] = ov
+    return ov
+
+
+def apply_crt(surface: pygame.Surface, enabled: bool = True) -> None:
+    """Apply the CRT look to ``surface`` in place.
+
+    Full numpy pipeline (barrel + chromatic aberration + vignette + scanlines +
+    bloom) when numpy is available; otherwise a cached pure-pygame
+    scanline+vignette overlay. Sample maps and overlays are cached by size.
+    """
+    if not enabled:
+        return
+    w, h = surface.get_size()
+    if w < 4 or h < 4:
+        return
+    if not _HAVE_NP:
+        surface.blit(_pygame_vignette(w, h), (0, 0))
+        return
+    try:
+        src = pygame.surfarray.array3d(surface).astype(_np.float32)
+        rmap, gmap, bmap, mask, vig, scan = _crt_maps(w, h)
+        out = _np.empty((w, h, 3), _np.float32)
+        out[..., 0] = src[rmap[0], rmap[1], 0]
+        out[..., 1] = src[gmap[0], gmap[1], 1]
+        out[..., 2] = src[bmap[0], bmap[1], 2]
+        # Work in linear light so scanline/vignette darkening doesn't go muddy
+        # (decode sRGB -> linear, modulate, re-encode), per the CRT guides.
+        out *= (1.0 / 255.0)
+        _np.power(out, 2.2, out)
+        out *= vig
+        # Scanlines auto-disable below ~480 px tall to avoid moiré on small
+        # viewports (mirrors Animal Well's documented behaviour).
+        if h >= 480:
+            out *= scan
+        _np.power(out, 1.0 / 2.2, out)
+        out *= 255.0
+        out[~mask] = 0
+        _np.clip(out, 0, 255, out)
+        pygame.surfarray.blit_array(surface, out.astype(_np.uint8))
+        _crt_bloom(surface)
+    except Exception:                  # pragma: no cover - never crash on effect
+        surface.blit(_pygame_vignette(w, h), (0, 0))
+
+
+# ─── BROADCAST THUMBNAIL ──────────────────────────────────────────────────────
+
+def _blend(a, b, t: float):
+    """Linear blend between two RGB colours."""
+    return tuple(int(a[i] * (1 - t) + b[i] * t) for i in range(3))
+
+
+def draw_show_thumb(surface: pygame.Surface, rect: pygame.Rect,
+                    genre: str, tick: int = 0) -> pygame.Rect:
+    """
+    Draw a small animated "channel preview" of a show — a tiny genre-themed
+    scene with a horizon band, the genre motif, a moving scan sweep and a
+    blinking REC dot, matching draw_show_thumb in netexec_reference.py.
+
+    Returns the thumbnail rect so callers can lay text out to its right.
+    """
+    rect = pygame.Rect(rect)
+    fg, bg = GENRE_COLORS.get(genre, ((180, 180, 180), (20, 20, 24)))
+
+    prev = surface.get_clip()
+    surface.set_clip(rect)
+
+    surface.fill(bg, rect)
+    # Ground / horizon band on the lower half (slightly toward the accent).
+    pygame.draw.rect(surface, _blend(bg, fg, 0.22),
+                     (rect.x, rect.centery + 3, rect.w, rect.h))
+    # A few twinkling specks in the upper half (stars / studio lights).
+    for i in range(5):
+        sx = rect.x + (i * 31 + (tick // 40)) % max(1, rect.w)
+        sy = rect.y + 4 + (i * 9) % max(1, rect.h // 2)
+        surface.fill(_blend(bg, C_WHITE, 0.6), (sx, sy, 1, 1))
+
+    # Genre motif, centred, drawn in the bright accent colour.
+    isz = max(10, min(rect.w, rect.h) - 16)
+    icon_rect = pygame.Rect(0, 0, isz, isz)
+    icon_rect.center = rect.center
+    draw_genre_icon(surface, genre, icon_rect, fg)
+
+    # Moving scan sweep — the show is "on the air".
+    sweep_y = rect.y + (tick // 12) % max(1, rect.h)
+    glow = pygame.Surface((rect.w, 3), pygame.SRCALPHA)
+    glow.fill((*_blend(fg, C_WHITE, 0.4), 70))
+    surface.blit(glow, (rect.x, sweep_y))
+
+    surface.set_clip(prev)
+    pygame.draw.rect(surface, _blend(fg, bg, 0.5), rect, 1)
+
+    # Blinking red REC dot in the corner.
+    if (tick // 500) % 2 == 0:
+        pygame.draw.circle(surface, C_RED, (rect.right - 6, rect.y + 6), 2)
+    return rect
+
+
 # ─── GENRE BADGE ──────────────────────────────────────────────────────────────
 
 def draw_genre_badge(surface: pygame.Surface, genre: str,

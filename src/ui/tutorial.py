@@ -33,271 +33,54 @@ from engine.constants import (
 # ─── TUTORIAL STEPS DATA ──────────────────────────────────────────────────────
 
 STEPS = [
-    # ── 0 ─────────────────────────────────────────────────────────────────────
+    # ── 0 — WELCOME ────────────────────────────────────────────────────────────
     {
         "title":     "WELCOME, EXECUTIVE",
         "body": (
-            "You run a TV network. Your goal: hit the VIEWS QUOTA every 3 seasons "
-            "for 12 seasons without running out of budget. "
-            "Miss a quota and you are iced. Hit all four and you win. "
-            "The board is watching."
+            "You run a TV network. Fill the four time slots with shows and hit "
+            "each milestone's VIEWS QUOTA to survive all 12 seasons. Miss a quota "
+            "and you're iced; clear them all and you win."
         ),
         "highlight": None,
         "tab":       None,
         "trigger":   None,
     },
-    # ── 1 ─────────────────────────────────────────────────────────────────────
+    # ── 1 — THE SHOP ───────────────────────────────────────────────────────────
     {
-        "title":     "YOUR BUDGET",
+        "title":     "THE SHOP",
         "body": (
-            "The number at the top-right is your BUDGET (in dollars). "
-            "Every show you schedule costs UPKEEP each season. "
-            "Stars and Ads add costs or bonuses on top of that. "
-            "Run out of budget and your shows still air — "
-            "but you can't buy new ones. Keep an eye on the projected end-of-season "
-            "budget shown in the header."
-        ),
-        "highlight": "header",
-        "tab":       None,
-        "trigger":   None,
-    },
-    # ── 2 ─────────────────────────────────────────────────────────────────────
-    {
-        "title":     "THE SHOP (RIGHT PANEL)",
-        "body": (
-            "The right panel is your ACQUISITION TERMINAL. "
-            "Tabs: SHOWS, STARS, ADS, UPGRADES, EVENTS, CONTRACTS. "
-            "Click REROLL to draw fresh items — it costs a small fee that "
-            "rises slightly with each use, resetting at the start of every season. "
-            "The item pool also refills automatically each new season."
+            "The ACQUISITION TERMINAL on the right is where you BUY shows, stars, "
+            "ads, upgrades and events, and ACCEPT contracts — switch tabs along the "
+            "top. * REROLL draws a fresh pool for a small fee."
         ),
         "highlight": "shop",
         "tab":       None,
         "trigger":   None,
     },
-    # ── 3 ─────────────────────────────────────────────────────────────────────
+    # ── 2 — THE SCHEDULE ───────────────────────────────────────────────────────
     {
-        "title":     "BUYING & PLACING A SHOW",
+        "title":     "THE SCHEDULE",
         "body": (
-            "Click BUY on a SHOW card to queue it, then click an empty time-slot "
-            "on the left to place it. "
-            "Each show lists BASE VIEWS, UPKEEP, STAR SLOTS, and AD SLOTS. "
-            "2-SLOT shows occupy two adjacent positions for a large view bonus — "
-            "but use two lineup spots. "
-            "To remove a show, click SELL — you receive a partial refund based on "
-            "the show's cost and any attached stars."
+            "Click BUY on a show, then click an empty slot on the left to place it. "
+            "Each slot grants a different bonus, and a show's card lists its best "
+            "slots. Attach stars/ads, SELL, or VAULT shows from here."
         ),
         "highlight": "left",
         "tab":       "shows",
         "trigger":   "place",
     },
-    # ── 4 ─────────────────────────────────────────────────────────────────────
+    # ── 3 — AIR IT ─────────────────────────────────────────────────────────────
     {
-        "title":     "WILDCARD SHOWS & ADS",
+        "title":     "AIR IT",
         "body": (
-            "Each shop cycle includes one WILDCARD SHOW and one WILDCARD AD "
-            "(shown in cyan). Buying a wildcard opens a 3-step configurator: "
-            "Step 1 — enter a name (or leave blank for ???); "
-            "Step 2 — choose one of three offered genres; "
-            "Step 3 — choose one of three generated abilities with different "
-            "view, income, or other effects. Then place it like any regular show."
-        ),
-        "highlight": "shop",
-        "tab":       "shows",
-        "trigger":   None,
-    },
-    # ── 5 ─────────────────────────────────────────────────────────────────────
-    {
-        "title":     "TIME SLOT ABILITIES",
-        "body": (
-            "Each of the four time slots has a passive bonus shown on its header bar. "
-            "MORNING boosts ad income earned by the show in that slot. "
-            "AFTERNOON raises the show's base views. "
-            "PRIME TIME amplifies the bonus portion of star view multipliers — "
-            "great for high-multiplier stars. "
-            "LATE NIGHT cuts upkeep costs for that show. "
-            "Hover any slot header to see the exact bonus values and a full description."
-        ),
-        "highlight": "left",
-        "tab":       None,
-        "trigger":   None,
-    },
-    # ── 6 ─────────────────────────────────────────────────────────────────────
-    {
-        "title":     "SLOT PENALTY",
-        "body": (
-            "Every show lists RECOMMENDED SLOTS on its card (REC: ...). "
-            "Placing a show outside all its recommended slots applies a "
-            "significant view penalty for that season. "
-            "A warning marker appears on the slot card. "
-            "You may still do this intentionally to exploit a slot ability — "
-            "but account for the lost views in your planning."
-        ),
-        "highlight": None,
-        "tab":       None,
-        "trigger":   None,
-    },
-    # ── 7 ─────────────────────────────────────────────────────────────────────
-    {
-        "title":     "STARS",
-        "body": (
-            "Stars attach to shows (up to the show's STAR SLOTS limit). "
-            "Each star has a CONDITION — for example, the show must be a specific genre. "
-            "If the condition fires you get the primary effect (views, income, multiplier). "
-            "Otherwise you get a weaker FALLBACK effect, often with added upkeep. "
-            "PRIME TIME slot amplifies star view multipliers beyond their base value. "
-            "Check each star's card for exact match and fallback values."
-        ),
-        "highlight": "shop",
-        "tab":       "stars",
-        "trigger":   None,
-    },
-    # ── 8 ─────────────────────────────────────────────────────────────────────
-    {
-        "title":     "ADS — DUAL INCOME",
-        "body": (
-            "Click SIGN on an AD card to place it on a show (up to the show's AD SLOTS). "
-            "Ads pay you two ways: "
-            "UPFRONT CASH credited immediately to budget when you sign, "
-            "and SEASONAL INCOME every season the show airs. "
-            "The SIGN pill shows the net out-of-pocket cost after the upfront bonus. "
-            "Some ads have genre or slot conditions — check the CONDITION line. "
-            "The MORNING slot boosts positive ad income for shows placed there."
-        ),
-        "highlight": "shop",
-        "tab":       "ads",
-        "trigger":   None,
-    },
-    # ── 9 ─────────────────────────────────────────────────────────────────────
-    {
-        "title":     "GLOBAL UPGRADES",
-        "body": (
-            "UPGRADES apply to every show in your schedule — live shows AND vault reruns. "
-            "There is a maximum number of active upgrades at once; they do not expire. "
-            "Upgrades can boost genre-specific views, amplify slot bonuses, "
-            "increase vault rerun income, and more. "
-            "Stack compatible upgrades for stronger combined effects. "
-            "Read the EFFECT line on each upgrade card for exactly what it does."
-        ),
-        "highlight": "shop",
-        "tab":       "upgrades",
-        "trigger":   None,
-    },
-    # ── 10 ────────────────────────────────────────────────────────────────────
-    {
-        "title":     "ONE-OFF EVENTS (QUEUED)",
-        "body": (
-            "Click BUY on an EVENT card to queue it. "
-            "Events do NOT fire immediately — they activate at the "
-            "START of the NEXT season. Queued events appear in the "
-            "CONTRACTS & QUEUED EVENTS bar on the left panel. "
-            "Effects include: bonus views, budget injections, show age resets, "
-            "free shop rerolls, and other tradeoffs. "
-            "Hover any event card for full effect details."
-        ),
-        "highlight": "shop",
-        "tab":       "events",
-        "trigger":   None,
-    },
-    # ── 11 ────────────────────────────────────────────────────────────────────
-    {
-        "title":     "SYNDICATION VAULT",
-        "body": (
-            "The VAULT holds up to two shows in RERUN. "
-            "Vault shows earn a fraction of their live view total each season — "
-            "the exact rate is shown on the vault card, and the Syndication Deal "
-            "upgrade increases it further. "
-            "The show's AGE IS FROZEN when vaulted — no further decay. "
-            "Syndicating a show at peak age locks in its best view multiplier permanently. "
-            "Only size-1 shows can be syndicated (2-slot shows cannot fit the vault)."
-        ),
-        "highlight": "left",
-        "tab":       None,
-        "trigger":   None,
-    },
-    # ── 12 ────────────────────────────────────────────────────────────────────
-    {
-        "title":     "GENRE MONOPOLY",
-        "body": (
-            "Fill ALL 4 lineup slots with shows of the SAME genre for a MONOPOLY bonus. "
-            "Each genre has a completely different bonus type: "
-            "SITCOM cuts all show upkeep; "
-            "DRAMA boosts views and income; "
-            "SCIFI amplifies star bonuses across every slot, not just Prime Time; "
-            "REALITY multiplies ad income; "
-            "SPORTS gives the largest raw view multiplier; "
-            "NEWS reduces your next quota milestone target; "
-            "COOKING adds direct budget to your account each season. "
-            "Hover the MONOPOLY bar at the bottom of the left panel "
-            "to see the exact values for every genre."
-        ),
-        "highlight": "left",
-        "tab":       None,
-        "trigger":   None,
-    },
-    # ── 13 ────────────────────────────────────────────────────────────────────
-    {
-        "title":     "AIR SEASON — GO!",
-        "body": (
-            "You're ready. Click AIR SEASON in the top-right corner "
-            "to simulate one season. Your shows air, views and income "
-            "are calculated, and the Season Summary screen shows you exactly "
-            "what happened — views per show, ad revenue, star performance, "
-            "and your net profit/loss. "
-            "Hit the views quota by season 3 or the network ices you. Good luck."
+            "When your lineup is set, hit >> AIR SEASON in the header to tally "
+            "views and income. Full mechanics — slot bonuses, every genre's "
+            "monopoly, stars, ads, upgrades, events, contracts, the vault and "
+            "bailouts — are in SETTINGS - RULES any time."
         ),
         "highlight": "header",
         "tab":       None,
         "trigger":   "season",
-    },
-    # ── 14 ────────────────────────────────────────────────────────────────────
-    {
-        "title":     "SEASONAL NEWS",
-        "body": (
-            "At the END of every season, a random SEASONAL EVENT rolls for NEXT season. "
-            "Events can be positive (view boost, income bonus, ad bonuses) "
-            "or negative (upkeep spike, view penalty). "
-            "MODIFIER — passive multiplier active for several seasons (shown in left panel); "
-            "MANDATE — meet a requirement each season or pay an automatic fine; "
-            "CONTRACT — hit a target within a window for a budget reward; "
-            "INSTANT — one-time effect at the start of next season."
-        ),
-        "highlight": "left",
-        "tab":       None,
-        "trigger":   None,
-    },
-    # ── 15 ────────────────────────────────────────────────────────────────────
-    {
-        "title":     "CONTRACTS & THE OFFERS BOARD",
-        "body": (
-            "The CONTRACTS tab shows optional deals you can ACCEPT. "
-            "Hit the requirement within the contract window for a budget reward. "
-            "If the window closes unmet, a penalty applies instead. "
-            "MANDATES are non-optional: miss them each season and pay a fine automatically. "
-            "Accepted contracts appear in the CONTRACTS & QUEUED EVENTS bar on the left. "
-            "Note: selling an unaired show (Age 1) gives a smaller refund than "
-            "selling a show that has already aired and earned views."
-        ),
-        "highlight": "shop",
-        "tab":       "contracts",
-        "trigger":   None,
-    },
-    # ── 16 ────────────────────────────────────────────────────────────────────
-    {
-        "title":     "INSOLVENCY BAILOUTS",
-        "body": (
-            "If your budget goes negative at end of season, you may receive "
-            "a BAILOUT (available a limited number of times per run): "
-            "LOAN — a cash injection plus a binding contract attached; "
-            "miss the contract and pay penalties on top of the debt. "
-            "GRANT — a cash injection from a public broadcaster; "
-            "you forfeit a portion of your accumulated total views. "
-            "After the bailout limit is reached there is no rescue — "
-            "manage your upkeep carefully."
-        ),
-        "highlight": None,
-        "tab":       None,
-        "trigger":   None,
     },
 ]
 

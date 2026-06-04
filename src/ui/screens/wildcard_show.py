@@ -21,18 +21,12 @@ from ..theme import C_TINT_GREEN_NOTCH, C_TINT_GREEN_SEL, C_TINT_TEAL_BADGE
 from ..screen_enum import GameScreen
 from ..widgets import draw_button, draw_modal_overlay, draw_label
 from .base import Screen
+from .wildcard_base import fmt_effect as _fmt_effect, cancel_btn as _cancel_btn
 
 _MW = 580
 _MH = 490
 
 
-def _fmt_effect(eff: dict) -> str:
-    parts = []
-    if "v_flat"  in eff: parts.append(f"+{eff['v_flat']} views")
-    if "v_mult"  in eff: parts.append(f"{eff['v_mult']:.2f}x mult")
-    if "income"  in eff: parts.append(f"+${eff['income']}/season")
-    if "upkeep"  in eff: parts.append(f"{eff['upkeep']:+d} upkeep")
-    return "  -  ".join(parts) if parts else "--"
 
 
 class WildcardShowScreen(Screen):
@@ -222,10 +216,3 @@ def _step3(ctx, state, modal, cx, y):
 
 # ─── SHARED ───────────────────────────────────────────────────────────────────
 
-def _cancel_btn(ctx, state, x, y):
-    def _cancel():
-        state.clear_selection()
-        ctx.set_screen(GameScreen.PLAYING)
-
-    draw_button(ctx, pygame.Rect(x, y, 110, 38), "CANCEL", _cancel,
-                border_color=C_RED_DIM, text_color=C_RED)

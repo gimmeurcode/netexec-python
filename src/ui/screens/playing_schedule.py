@@ -33,9 +33,9 @@ from content.shows import get_genre_registry
 from ..assets import (
     draw_genre_icon, draw_star_icon, draw_ad_icon,
     draw_upgrade_icon, draw_event_icon, draw_genre_badge,
-    draw_panel_box, draw_signal_bars, draw_blink_dot,
+    draw_panel_box, draw_signal_bars, draw_blink_dot, draw_show_thumb,
 )
-from ..widgets import draw_button, draw_scrollbar
+from ..widgets import draw_button, draw_scrollbar, draw_row, line_step
 
 
 _SBAR_W = 8   # scrollbar track width (px)
@@ -66,10 +66,10 @@ def _draw_left_panel(ctx, state):
     mono_bar_h  = max(lo.monopoly_bar_h, _mono_lh * 9 + 6)
     total_content_h = (
         len(TIME_SLOTS) * (lo.slot_h + 3) + 4   # slots
-        + 18 + lo.vault_h + 6                     # vault header + slots
-        + 18 + lo.upgrade_row_h + 4               # upgrades header + row
+        + 26 + lo.vault_h + 6                     # vault header + slots
+        + 26 + lo.upgrade_row_h + 4               # upgrades header + row
         + mono_bar_h + 4                           # monopoly bar (dynamic)
-        + (18 + contract_bar_h + 4 if has_active_contracts else 0)  # active contracts bar
+        + (26 + contract_bar_h + 4 if has_active_contracts else 0)  # active contracts bar
         + (lo.seasonal_strip_h + 4 if has_seasonal else 0)
     )
 
@@ -106,12 +106,12 @@ def _draw_left_panel(ctx, state):
     pygame.draw.line(ctx.screen, C_GREEN_MID,
                      (vx + cw // 3, vy + 3 + ch - 1),
                      (vx + 2 * cw // 3, vy + 3 + ch - 1))
-    vault_label = ctx._f("small").render("SYNDICATION VAULT", True, C_GREEN_MID)
+    vault_label = ctx._f("bold").render("SYNDICATION VAULT", True, C_GREEN_MID)
     ctx.screen.blit(vault_label, (vx + cw + 4, vy))
     pygame.draw.line(ctx.screen, C_BORDER_DIM,
                      (vx + cw + 4 + vault_label.get_width() + 6, vy + 7),
                      (x + content_w - 6, vy + 7))
-    y += 18
+    y += line_step(ctx._f("bold"), 0.85)
 
     vault_w = (content_w - 8) // 2
     for vi in range(2):
@@ -124,7 +124,7 @@ def _draw_left_panel(ctx, state):
     pygame.draw.line(ctx.screen, C_BORDER_DIM,
                      (x + 4 + upg_label.get_width() + 6, y + 7),
                      (x + content_w - 6, y + 7))
-    y += 18
+    y += line_step(ctx._f("small"), 0.85)
     upg_row = pygame.Rect(x + 2, y, content_w, lo.upgrade_row_h)
     _draw_upgrades(ctx, upg_row, state)
     y += lo.upgrade_row_h + 4
@@ -139,7 +139,7 @@ def _draw_left_panel(ctx, state):
         pygame.draw.line(ctx.screen, C_BORDER_DIM,
                          (x + 4 + con_label.get_width() + 6, y + 7),
                          (x + content_w - 6, y + 7))
-        y += 18
+        y += line_step(ctx._f("small"), 0.85)
         con_rect = pygame.Rect(x + 2, y, content_w, contract_bar_h)
         _draw_active_contracts_bar(ctx, con_rect, state)
         y += contract_bar_h + 4
@@ -288,47 +288,63 @@ def _draw_show_in_slot(ctx, rect, content_y, tx, show, idx, state, hovered=False
                              active_perks=state.active_perks, season=state.season,
                              monopoly_bonus=mono_bonus, seasonal_mods=s_mods)
 
-    ty = content_y + 2
+    ty    = content_y + 2
+    btn_y = rect.bottom - 18
+    # Clip content area so no text row bleeds into the SELL/VAULT button strip
+    _sc_prev = ctx.screen.get_clip()
+    ctx.screen.set_clip(_sc_prev.clip(pygame.Rect(rect.x, rect.y, rect.width, rect.height - 18)))
 
-    icon_sz   = 20
-    icon_rect = pygame.Rect(rect.right - icon_sz - 6, ty, icon_sz, icon_sz)
-    draw_genre_icon(ctx.screen, show.get("genre", ""), icon_rect)
+    f_mi   = ctx._f("micro")
+    step_b = line_step(ctx._f("bold"), 0.80)   # ink-safe step for the name row
+    step_m = line_step(f_mi, 0.80)             # ink-safe step for micro rows
+    net_val = yld["i"]
+    net_col = C_NET_POS if net_val >= 0 else C_NET_NEG
 
+    # Broadcast thumbnail (channel preview) in the top-right of the slot.
+    th_h = min(38, max(22, rect.height - 60))
+    th_w = min(int(th_h * 1.6), rect.width // 4)
+    icon_rect = pygame.Rect(rect.right - th_w - 6, ty, th_w, th_h)
+    draw_show_thumb(ctx.screen, icon_rect, show.get("genre", ""), ctx._tick_ms)
+
+    age = show.get("age", 1)
+    age_col = C_AMBER if age == 2 else (C_RED if age >= 6 else C_GREEN_DIM)
+
+    # Row 1 — show name (left), AGE dot + label right-aligned before the thumb.
     name_col  = (C_SELECTED
                  if (state.selected_item and
                      state.selected_item.get("shop_type") in ("stars", "ads"))
                  else C_WHITE)
-    name_surf = ctx._f("bold").render(show.get("name", "???")[:24], True, name_col)
+    age_surf  = f_mi.render(f"AGE {age}", True, C_GREY_LIGHT)
+    age_x     = icon_rect.x - age_surf.get_width() - 8
+    pygame.draw.circle(ctx.screen, age_col, (age_x - 7, ty + 8), 3)
+    ctx.screen.blit(age_surf, (age_x, ty + 2))
+    name_max  = max(40, age_x - 12 - tx)
+    nm = show.get("name", "???")
+    while nm and ctx._f("bold").size(nm)[0] > name_max:
+        nm = nm[:-1]
+    name_surf = ctx._f("bold").render(nm, True, name_col)
     ctx.screen.blit(name_surf, (tx, ty))
-    ty += 14
+    ty += step_b
 
-    age = show.get("age", 1)
+    # Row 2 — genre badge, then projected views and net income on one measured
+    # line (draw_row spaces each segment so nothing collides with the badge).
+    vx = tx
     if show.get("genre"):
-        draw_genre_badge(ctx.screen, show["genre"], tx, ty, ctx._f("micro"))
-    age_col = C_AMBER if age == 2 else (C_RED if age >= 6 else C_GREEN_DIM)
-    pygame.draw.circle(ctx.screen, age_col, (tx + 54, ty + 5), 3)
-    age_surf = ctx._f("micro").render(f"AGE {age}", True, C_GREY_LIGHT)
-    ctx.screen.blit(age_surf, (tx + 59, ty + 1))
-    ty += 12
-
-    views_surf = ctx._f("micro").render(
-        f"> {yld['v']:,} views projected", True, C_VIEWS_ACCENT
-    )
-    ctx.screen.blit(views_surf, (tx, ty))
+        badge_rect = draw_genre_badge(ctx.screen, show["genre"], tx, ty, f_mi)
+        vx = badge_rect.right + 6
+    seg = [(f"{yld['v']:,}v", C_VIEWS_ACCENT)]
     if not in_rec and rec:
-        warn_surf = ctx._f("micro").render("  [!] -30%", True, C_RED)
-        ctx.screen.blit(warn_surf, (tx + views_surf.get_width(), ty))
-    ty += 12
+        seg.append(("[!]-30%", C_RED))
+    seg.append((f"${net_val:+.0f}/s", net_col))
+    draw_row(ctx, seg, vx, ty + 1, f_mi, gap=8)
+    ty += step_m
 
-    net_val  = yld["i"]
-    net_col  = C_NET_POS if net_val >= 0 else C_NET_NEG
-    c_s = ctx._f("micro").render(f"COST ${show.get('cost', 0)}",       True, C_AMBER)
-    u_s = ctx._f("micro").render(f"UPK ${show.get('upkeep', 0)}/s",    True, C_AMBER_DIM)
-    n_s = ctx._f("micro").render(f"NET ${net_val:+.0f}",               True, net_col)
-    ctx.screen.blit(c_s, (tx, ty))
-    ctx.screen.blit(u_s, (tx + c_s.get_width() + 8, ty))
-    ctx.screen.blit(n_s, (tx + c_s.get_width() + 8 + u_s.get_width() + 8, ty))
-    ty += 12
+    # Row 3 — one-time cost and per-second upkeep on one measured line.
+    draw_row(ctx, [
+        (f"COST ${show.get('cost', 0)}",    C_AMBER),
+        (f"UPK ${show.get('upkeep', 0)}/s", C_AMBER_DIM),
+    ], tx, ty, f_mi, gap=10)
+    ty += step_m
 
     stars    = show.get("attached", {}).get("star", [])
     star_max = show.get("star_slots", show.get("slots", {}).get("star", 0))
@@ -346,6 +362,8 @@ def _draw_show_in_slot(ctx, rect, content_y, tx, show, idx, state, hovered=False
         ad_empty    = (80, 180, 200)   # medium cyan-blue - still visible
         # Star slots: filled amber star or hollow dot
         for _i in range(star_max):
+            if _ax + 12 > rect.right - 8:
+                break
             filled = _i < len(stars)
             col = star_filled if filled else star_empty
             pygame.draw.circle(ctx.screen, col, (_ax + 5, ty + 5), 5,
@@ -362,6 +380,8 @@ def _draw_show_in_slot(ctx, rect, content_y, tx, show, idx, state, hovered=False
             _ax += 4
         # Ad slots: filled cyan diamond or hollow outline
         for _i in range(ad_max):
+            if _ax + 12 > rect.right - 8:
+                break
             filled = _i < len(ads_att)
             col = ad_filled if filled else ad_empty
             # Diamond shape via rotated rect
@@ -376,7 +396,7 @@ def _draw_show_in_slot(ctx, rect, content_y, tx, show, idx, state, hovered=False
                 ctx.screen.blit(_nt, (_ax + 12, ty))
                 _ax += 22
 
-    btn_y = rect.bottom - 18
+    ctx.screen.set_clip(_sc_prev)
     bw, gap = 60, 4
 
     sell_rect = pygame.Rect(tx, btn_y, bw, 14)
@@ -498,16 +518,21 @@ def _draw_vault_slot(ctx, rect, idx, state):
                      pygame.Rect(rect.x + 1, rect.y + 1, 4, rect.height - 2),
                      border_radius=2)
 
-    lbl = ctx._f("micro").render(f"VAULT {idx + 1}", True, C_GREEN_DIM)
-    ctx.screen.blit(lbl, (rect.x + 8, rect.y + 3))
+    f_mi  = ctx._f("micro")
+    step  = line_step(f_mi, 0.82)
+    ty    = rect.y + 3
+    lbl = f_mi.render(f"VAULT {idx + 1}", True, C_GREEN_DIM)
+    ctx.screen.blit(lbl, (rect.x + 8, ty))
+    ty += step
 
     if show is None:
         pygame.draw.line(ctx.screen, C_BORDER_DIM,
-                         (rect.x + 7, rect.y + 16), (rect.right - 4, rect.y + 16))
-        empty  = ctx._f("micro").render("EMPTY - vault a show", True, C_GREEN_DIM)
-        empty2 = ctx._f("micro").render("to earn passive reruns", True, C_BORDER_DIM)
-        ctx.screen.blit(empty,  (rect.x + 8, rect.y + 20))
-        ctx.screen.blit(empty2, (rect.x + 8, rect.y + 32))
+                         (rect.x + 7, ty), (rect.right - 4, ty))
+        ty += 3
+        empty  = f_mi.render("EMPTY - vault a show", True, C_GREEN_DIM)
+        empty2 = f_mi.render("to earn passive reruns", True, C_BORDER_DIM)
+        ctx.screen.blit(empty,  (rect.x + 8, ty))
+        ctx.screen.blit(empty2, (rect.x + 8, ty + step))
         ctx._add_tooltip(rect, {
             "type":   "generic",
             "accent": C_AMBER_DIM,
@@ -525,22 +550,27 @@ def _draw_vault_slot(ctx, rect, idx, state):
         yld = calculate_yield(show, is_rerun=True,
                               active_perks=state.active_perks, season=state.season)
 
+        _vc_prev = ctx.screen.get_clip()
+        ctx.screen.set_clip(_vc_prev.clip(pygame.Rect(rect.x, rect.y, rect.width, rect.height - 20)))
         name_s = ctx._f("small").render(show.get("name", "???")[:16], True, C_WHITE)
-        ctx.screen.blit(name_s, (rect.x + 8, rect.y + 16))
+        ctx.screen.blit(name_s, (rect.x + 8, ty))
+        ty += line_step(ctx._f("small"), 0.80)
 
         badge_txt  = f"AGE {age} - FROZEN"
-        badge_surf = ctx._f("micro").render(badge_txt, True, C_CYAN)
-        badge_bg   = pygame.Rect(rect.x + 8, rect.y + 32,
-                                 badge_surf.get_width() + 8, 13)
+        badge_surf = f_mi.render(badge_txt, True, C_CYAN)
+        badge_bg   = pygame.Rect(rect.x + 8, ty,
+                                 badge_surf.get_width() + 8, badge_surf.get_height() + 2)
         pygame.draw.rect(ctx.screen, C_TINT_TEAL_BADGE, badge_bg, border_radius=3)
         pygame.draw.rect(ctx.screen, C_CYAN,             badge_bg, 1, border_radius=3)
-        ctx.screen.blit(badge_surf, (rect.x + 12, rect.y + 33))
+        ctx.screen.blit(badge_surf, (rect.x + 12, ty + 1))
+        ty += step
 
         net_col = C_NET_POS if yld["i"] >= 0 else C_NET_NEG
-        yv = ctx._f("micro").render(
+        yv = f_mi.render(
             f"~{yld['v']} views  NET ${yld['i']:+.0f}/s", True, net_col
         )
-        ctx.screen.blit(yv, (rect.x + 8, rect.y + 49))
+        ctx.screen.blit(yv, (rect.x + 8, ty))
+        ctx.screen.set_clip(_vc_prev)
 
         rem_rect = pygame.Rect(rect.x + 8, rect.bottom - 18, rect.width - 16, 14)
 
@@ -603,11 +633,13 @@ def _draw_active_contracts_bar(ctx, rect, state):
         col  = C_NET_POS if done else C_VIEWS_ACCENT
         tick = "[DONE]" if done else f"[{rem}s LEFT]"
 
-        dot_col = C_NET_POS if done else C_AMBER
-        pygame.draw.circle(ctx.screen, dot_col, (x + 3, y + lh // 2), 3)
+        # Contract seal: outer ring + filled centre.
+        seal_col = C_NET_POS if done else C_VIEWS_ACCENT
+        pygame.draw.circle(ctx.screen, seal_col, (x + 4, y + lh // 2), 5, 1)
+        pygame.draw.circle(ctx.screen, seal_col, (x + 4, y + lh // 2), 2)
 
         name_s = f.render(f"{tick} {name[:22]}", True, col)
-        ctx.screen.blit(name_s, (x + 10, y + 1))
+        ctx.screen.blit(name_s, (x + 13, y + 1))
 
         req_s = f.render(f"  REQ: {req_d[:28]}", True, C_AMBER_DIM)
         ctx.screen.blit(req_s, (x + 10, y + f.get_linesize() + 2))
@@ -640,9 +672,10 @@ def _draw_active_contracts_bar(ctx, rect, state):
             break
         ev   = entry.get("event", {})
         name = ev.get("name", "?")
-        pygame.draw.circle(ctx.screen, C_AMBER, (x + 3, y + lh // 2), 3)
+        # Queued-event bolt icon.
+        draw_event_icon(ctx.screen, pygame.Rect(x - 1, y + lh // 2 - 6, 12, 12), C_AMBER)
         ev_s = f.render(f"[QUEUED] {name[:26]}  — fires next season", True, C_AMBER)
-        ctx.screen.blit(ev_s, (x + 10, y + 1))
+        ctx.screen.blit(ev_s, (x + 13, y + 1))
         ctx._add_tooltip(pygame.Rect(x, y, rect.width - 8, lh), {
             "type":  "event",
             "title": f"QUEUED EVENT: {name}",
@@ -661,50 +694,35 @@ def _draw_active_contracts_bar(ctx, rect, state):
 # --- UPGRADES ROW ---
 
 def _draw_upgrades(ctx, rect, state):
-    """Draw active upgrades as square hardware button tiles with glow effect."""
-    pygame.draw.rect(ctx.screen, C_GREEN_PANEL, rect, border_radius=3)
-    pygame.draw.rect(ctx.screen, C_BORDER_DIM,  rect, 1, border_radius=3)
+    """Draw active upgrades as labelled gear chips + empty slot boxes + count,
+    matching the status strip in netexec_reference.py."""
+    f_mi   = ctx._f("micro")
+    chip_h = min(rect.height - 4, line_step(f_mi) + 4)
+    top    = rect.y + (rect.height - chip_h) // 2
+    cx     = rect.x + 4
+    perks  = state.active_perks
 
-    if not state.active_perks:
-        empty = ctx._f("micro").render(
-            f"NO UPGRADES  (MAX {MAX_ACTIVE_UPGRADES})", True, C_GREEN_DIM
-        )
-        ctx.screen.blit(empty, (rect.x + 6, rect.centery - 6))
-        return
-
-    n      = len(state.active_perks)
-    tile_w = min(52, max(36, (rect.width - 8) // n - 4))
-    tile_h = rect.height - 8
-
-    for i, perk in enumerate(state.active_perks):
-        bx  = rect.x + 4 + i * (tile_w + 4)
-        by  = rect.y + 4
-        br  = pygame.Rect(bx, by, tile_w, tile_h)
-        hov = br.collidepoint(ctx._mouse_pos)
-
-        glow = pygame.Surface((tile_w + 10, tile_h + 10), pygame.SRCALPHA)
-        pygame.draw.rect(glow, (*C_GREEN_MID, 55 if hov else 25),
-                         (0, 0, tile_w + 10, tile_h + 10), border_radius=6)
-        ctx.screen.blit(glow, (bx - 5, by - 5))
-
-        bg_col = C_TINT_GREEN_HOVER if hov else C_TINT_GREEN_TILE
-        bd_col = C_GREEN_BRIGHT if hov else C_GREEN_MID
-        pygame.draw.rect(ctx.screen, bg_col, br, border_radius=4)
-        pygame.draw.rect(ctx.screen, bd_col, br, 1, border_radius=4)
-        pygame.draw.rect(ctx.screen, bd_col,
-                         pygame.Rect(bx + 2, by, tile_w - 4, 2), border_radius=1)
-
-        icon_sz   = min(20, tile_h - 16)
-        icon_rect = pygame.Rect(bx + (tile_w - icon_sz) // 2, by + 3, icon_sz, icon_sz)
-        draw_upgrade_icon(ctx.screen, icon_rect, bd_col)
-
-        nt = ctx._f("micro").render(perk.get("name", "?")[:10], True, bd_col)
-        ctx.screen.blit(nt, (bx + (tile_w - nt.get_width()) // 2, by + tile_h - 13))
+    # Equipped upgrades: a coloured pill with a gear icon and the name.
+    for perk in perks:
+        name = perk.get("name", "?")[:14]
+        nw   = f_mi.size(name)[0]
+        chip = pygame.Rect(cx, top, nw + 26, chip_h)
+        if chip.right > rect.right - 46:
+            break
+        hov  = chip.collidepoint(ctx._mouse_pos)
+        col  = C_GREEN_BRIGHT if hov else C_CYAN
+        pygame.draw.rect(ctx.screen, C_TINT_GREEN_TILE, chip, border_radius=3)
+        pygame.draw.rect(ctx.screen, col, chip, 1, border_radius=3)
+        gicon = pygame.Rect(chip.x + 4, chip.centery - 6, 12, 12)
+        draw_upgrade_icon(ctx.screen, gicon, col)
+        ctx.screen.blit(f_mi.render(name, True, C_WHITE),
+                        (chip.x + 19, chip.centery - f_mi.get_height() // 2))
+        cx = chip.right + 5
 
         upk_p = perk.get("upkeep", 0)
-        ctx._add_tooltip(br, {
+        ctx._add_tooltip(chip, {
             "type":  "upgrade",
-            "title": f" Gear {perk.get('name', '')}",
+            "title": f"Gear {perk.get('name', '')}",
             "sections": [
                 [
                     {"kind": "kv", "key": "UPKEEP",
@@ -716,6 +734,20 @@ def _draw_upgrades(ctx, rect, state):
                 [{"kind": "text", "text": perk.get("desc", ""), "col": C_GREY_LIGHT}],
             ],
         })
+
+    # Empty slot boxes for the remaining capacity.
+    empty_n = max(0, MAX_ACTIVE_UPGRADES - len(perks))
+    sq_y    = top + (chip_h - 11) // 2
+    for i in range(empty_n):
+        sq = pygame.Rect(cx + i * 15, sq_y, 11, 11)
+        if sq.right > rect.right - 34:
+            break
+        pygame.draw.rect(ctx.screen, C_BORDER_DIM, sq, 1)
+
+    # n / MAX count, right-aligned.
+    cnt = f_mi.render(f"{len(perks)}/{MAX_ACTIVE_UPGRADES}", True, C_GREY_LIGHT)
+    ctx.screen.blit(cnt, (rect.right - cnt.get_width() - 4,
+                          top + (chip_h - cnt.get_height()) // 2))
 
 
 # --- MONOPOLY BAR ---

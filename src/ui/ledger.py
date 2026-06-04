@@ -14,6 +14,7 @@ from engine.constants import (
     C_PANEL, C_PANEL_BORDER, C_GREEN_BRIGHT, C_GREEN_MID, C_GREEN_DIM,
     C_AMBER, C_RED, C_WHITE, C_GREY_LIGHT, C_GREY_MID, C_GREY_DARK, PAD,
 )
+from .widgets import line_step, draw_scrollbar
 
 
 # ─── CATEGORY COLOUR MAP ──────────────────────────────────────────────────────
@@ -64,19 +65,23 @@ class Ledger:
 
         header_surf = f_bold.render("LEDGER — FINANCIAL HISTORY", True, C_GREEN_BRIGHT)
         ctx.screen.blit(header_surf, (rx + 8, ry + 6))
+        # Divider sits a full header line-step below the title, and entries start
+        # below the divider — so the header can never overlap the first entry.
+        div_y       = ry + 6 + line_step(f_bold, 0.82)
+        entries_top = div_y + 6
         pygame.draw.line(ctx.screen, C_PANEL_BORDER,
-                         (rx + 4, ry + 24), (rx + rw - 4, ry + 24))
+                         (rx + 4, div_y), (rx + rw - 4, div_y))
 
         entries: list[str] = getattr(state, "ledger_log", [])
         if not entries:
             empty = f_mi.render("No entries yet — make purchases or air a season.", True, C_GREY_MID)
-            ctx.screen.blit(empty, (rx + 8, ry + 34))
+            ctx.screen.blit(empty, (rx + 8, entries_top))
             return
 
         # Scroll clamp: auto-scroll to bottom when a new entry arrived
-        line_h   = f_mi.get_linesize() + 2
+        line_h   = line_step(f_mi, 0.86)
         content_h = len(entries) * line_h
-        visible_h = rh - 30
+        visible_h = panel.bottom - entries_top - 4
         max_scroll = max(0, content_h - visible_h)
 
         # Track entry count to auto-scroll when new entries appear
@@ -87,10 +92,10 @@ class Ledger:
         ctx._ledger_scroll = max(0, min(ctx._ledger_scroll, max_scroll))
 
         # Clip rendering to the content area
-        clip = pygame.Rect(rx + 2, ry + 28, rw - 4, visible_h)
+        clip = pygame.Rect(rx + 2, entries_top, rw - 4, visible_h)
         ctx.screen.set_clip(clip)
 
-        y = ry + 30 - ctx._ledger_scroll
+        y = entries_top + 2 - ctx._ledger_scroll
         for entry in entries:
             if y + line_h < clip.top:
                 y += line_h
@@ -114,13 +119,11 @@ class Ledger:
 
         ctx.screen.set_clip(None)
 
-        # Scrollbar when content overflows
+        # Scrollbar (mouse-wheel + draggable thumb + arrow buttons) when overflowing
         if content_h > visible_h:
-            sb_x = rx + rw - 6
-            sb_h = int(visible_h * visible_h / content_h)
-            sb_y = ry + 28 + int(ctx._ledger_scroll / max(max_scroll, 1)
-                                  * (visible_h - sb_h))
-            pygame.draw.rect(ctx.screen, C_GREY_DARK,
-                             pygame.Rect(sb_x, ry + 28, 4, visible_h), border_radius=2)
-            pygame.draw.rect(ctx.screen, C_GREEN_MID,
-                             pygame.Rect(sb_x, sb_y, 4, max(sb_h, 16)), border_radius=2)
+            track = pygame.Rect(rx + rw - 10, entries_top, 8, visible_h)
+            new_scroll = draw_scrollbar(
+                ctx, track, content_h, visible_h, ctx._ledger_scroll,
+                lambda s: setattr(ctx, "_ledger_scroll", max(0, s)),
+            )
+            ctx._ledger_scroll = new_scroll
