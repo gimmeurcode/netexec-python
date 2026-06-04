@@ -5,6 +5,11 @@
 # macOS opens a Terminal window automatically, runs the install, then closes it.
 # No interaction required from the user.
 #
+# Gatekeeper note: macOS only quarantines files downloaded via a browser/email.
+# Testers who get the repo with `git clone` see NO "unidentified developer"
+# warning. For zip/browser downloads, this script strips the quarantine tag
+# from the installed app below.
+#
 # SCRIPT_DIR = installers/macos/ — two levels deep, so repo root is ../..
 
 set -e
@@ -51,6 +56,12 @@ echo ""
 [ -d "$APP_DEST" ] && rm -rf "$APP_DEST"
 cp -R "$APP_SRC" "$APP_DEST"
 echo "  App installed to /Applications/NETEXEC.app"
+
+# Strip any Gatekeeper quarantine tag so the app launches without the
+# "unidentified developer" warning. macOS only sets this tag on files that
+# arrive via a browser/email download — a repo pulled with `git clone` carries
+# no quarantine at all (recommended for testers). This covers the zip case.
+xattr -dr com.apple.quarantine "$APP_DEST" 2>/dev/null || true
 
 echo ""
 echo "[3/4]  Preserving user saves and settings..."

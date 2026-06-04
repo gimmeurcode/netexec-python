@@ -6,53 +6,7 @@ A TV network management roguelite. You are the executive. Hit the ratings quotas
 
 ## Download, install, and play
 
-### Windows (recommended — no terminal required)
-
-1. Download **`NETEXEC-Windows.zip`** from the releases page.
-2. Extract the zip — you get a folder containing `src\`, `dist\`, and `installers\`.
-3. Open `installers\windows\` and double-click **`install.vbs`**.
-4. Click **Yes** when Windows asks for administrator permission.
-5. Click **Yes** to confirm the install location.
-6. Launch **NetExecutive** from your Desktop or Start Menu.
-
-Settings are saved to `%APPDATA%\NETEXEC\`. No terminal or Python required.
-
----
-
-### macOS (no Python required)
-
-1. Download **`NETEXEC-Mac.zip`** from the releases page.
-2. Extract the zip — you get a folder containing `src/`, `dist/`, and `installers/`.
-3. Open `installers/macos/` and double-click **`install.command`**.
-   - macOS opens a Terminal window automatically; the install runs and the window closes.
-   - If macOS warns about an unverified developer: right-click → Open → Open.
-4. Launch **NetExecutive** from `/Applications` or your Desktop.
-
-Settings are saved to `~/.config/NETEXEC/`. No manual terminal commands required.
-
----
-
-### Developer — direct Python launch
-
-Requires **Python 3.11+** and **pygame-ce**:
-
-```bash
-pip install pygame-ce
-cd src
-python main.py
-```
-
----
-
-### Developer — build the standalone executable
-
-Requires Python 3.11+ (PyInstaller is auto-installed):
-
-```bash
-python dev/build/build_game.py
-```
-
-Output: `dist/NETEXEC.exe` (Windows) or `dist/NETEXEC.app` (macOS).
+See the [main README](../README.md) for download and install instructions.
 
 ---
 
@@ -67,95 +21,6 @@ Output: `dist/NETEXEC.exe` (Windows) or `dist/NETEXEC.app` (macOS).
 7. **Win** by completing all 12 seasons without missing a quota.
 
 ---
-
-## Folder Structure
-
-```
-src/                     ← game source root
-│
-├── main.py              Entry point — pygame init, game loop.
-├── version.py           Single source of truth for VERSION string.
-├── saves.py             Persistence layer (save/settings/achievements).
-│
-├── engine/
-│   ├── constants.py     All tunable values (budget, targets, growth rates, etc.)
-│   ├── network.py       GameState — all game logic and the 9-stage yield pipeline.
-│   ├── cards.py         JSON loaders, condition evaluator, show instance factory.
-│   ├── effects.py       Data-driven upgrade effect resolver.
-│   ├── difficulty.py    Stateless difficulty and prestige scaling.
-│   ├── requirements.py  Declarative requirement evaluator (contracts/mandates).
-│   └── seasonal.py      Seasonal event roll, aggregation, reward/penalty.
-│
-├── content/
-│   ├── cardpool.py      Generic lazy-loading shuffleable card pool.
-│   ├── shows.py         Show pool + placement validation.
-│   ├── stars.py         Star pool + attachment validation.
-│   ├── ads.py           Ad pool + dual-income helpers.
-│   ├── upgrades.py      Upgrade pool management.
-│   └── events.py        Event pool + handler registry.
-│
-├── ui/
-│   ├── ui.py            GameUI top-level controller.
-│   ├── layout.py        Responsive layout engine.
-│   ├── theme.py         Design tokens and font loading.
-│   ├── assets.py        Procedural card art and genre badges.
-│   ├── assets_loader.py SVG/PNG loader with procedural fallback.
-│   ├── audio.py         Synthesized sound engine (no external audio files).
-│   ├── bezel.py         CRT chrome frame renderer.
-│   ├── ledger.py        Terminal ledger panel.
-│   ├── tutorial.py      Step-by-step tutorial overlay.
-│   ├── widgets.py       Shared pygame drawing helpers.
-│   └── screens/         Per-screen modules (menu, playing, summary, etc.)
-│
-├── assets/              SVG icons, fonts.
-│
-└── data/
-    ├── shows.json        Shows across 7 genres + wildcard template.
-    ├── stars.json        Stars with JSON-encoded conditions.
-    ├── ads.json          Ads including wildcard template.
-    ├── upgrades.json     Global upgrades.
-    ├── events.json       One-off events.
-    ├── seasonal_events.json  Seasonal modifier/mandate/contract/instant events.
-    ├── wildcards.json    Wildcard configuration options.
-    └── bailouts.json     Insolvency bailout tiers.
-
-dist/                    ← build outputs (gitignored)
-    ├── NETEXEC.exe       Standalone Windows executable.
-    └── NETEXEC.app       Standalone macOS app bundle.
-```
-
----
-
-## Adding New Content
-
-All card content lives in `data/*.json`. No Python changes needed to add:
-
-- **New shows**: Add an entry to `data/shows.json` under `"shows"`. Match the field names of existing entries.
-- **New stars**: Add to `data/stars.json`. Use condition types: `always`, `genre` (with `genres` list), `size_min`, `ad_slots_min`, `age_min`.
-- **New ads**: Add to `data/ads.json`. Same condition types as stars.
-- **New upgrades**: Add an entry to `data/upgrades.json` with an `"effects"` list — no Python changes required.
-- **New events**: Add to `data/events.json` with an `effect_type` string.
-- **New genres**: Add a key to `genre_registry` in `shows.json`, add colour to `GENRE_COLORS` in `engine/constants.py`.
-- **New wildcard options**: Add genre or slot options to `data/wildcards.json`.
-
----
-
-## Balancing
-
-All numeric values live in `engine/constants.py`:
-
-| Constant               | Default | Effect                                  |
-|------------------------|---------|----------------------------------------|
-| `INITIAL_BUDGET`       | $75     | Starting budget before difficulty mod   |
-| `BASE_VIEW_TARGET`     | 1000    | Season-3 view quota (Normal)            |
-| `TARGET_GROWTH_RATE`   | 2.1     | Each milestone = previous × this        |
-| `MILESTONE_REWARD`     | $50     | Bonus dollars on hitting a milestone    |
-| `REROLL_COST`          | $5      | Cost to refresh the shop                |
-| `SELL_REFUND_RATE`     | 0.5     | Fraction of cost refunded on cancel     |
-| `MAX_ACTIVE_UPGRADES`  | 5       | Maximum simultaneous global upgrades    |
-| `SLOT_PENALTY_MULT`    | 0.70    | Views × this when show is in wrong slot |
-| `PRESTIGE_TARGET_SCALE`| 0.25    | +25% quota per prestige level           |
-| `PRESTIGE_GROWTH_BONUS`| 0.10    | +0.10 growth rate per prestige level    |
 
 ---
 
@@ -185,8 +50,6 @@ the next run harder but also signals mastery. Brutal + high prestige = endgame.
 ---
 
 ## Complete Game Compendium
-
-_Generated from data files. Re-run `python dev/scripts/devscripts/gen_compendium.py` after any content change._
 
 <!-- COMPENDIUM:START -->
 ## Core Rules & Economy
@@ -609,35 +472,6 @@ Binding contract: Reach 4,000 total views within 2 seasons. Miss it → −$60 p
 **GRANT (Emergency Broadcasting Grant)**  
 No ongoing obligation. Costs −450 views from your current total views immediately.
 
-## Autoplay Bots
-
-Three headless strategy bots drive the balance simulator
-(`python sim/run_batch.py`). Each bot calls `choose_actions(state)` once
-per season planning phase, then the engine calls `advance_season()`.
-
-**RandomBot**
-Buys random affordable items from any category. Wildcard cards are skipped.
-Serves as the floor baseline — roughly the performance of a player who makes
-no strategic decisions.
-
-**GreedyValueBot**
-Maximises views-per-dollar. Each season it:
-1. Rotates aging shows — vaults shows at age 5+, sells when the vault is full.
-2. Chases genre monopoly — fills all 4 slots with the most common genre it can afford.
-3. Buys view-boosting upgrades first (drama, laugh track, sweeps week, etc.).
-4. Attaches stars to prime-time shows, ads to morning shows.
-5. Adjusts priorities when mandate/contract requirements are active (seasonal awareness).
-
-**AdEconomyBot**
-Front-loads ad income for a budget snowball effect. Each season it:
-1. Buys ads aggressively to maximise the upfront cash + seasonal income stream.
-2. Prefers Morning slot placement for the +20% ad income bonus.
-3. Buys budget-boosting events (emergency grants, free rerolls) before view events.
-4. Falls back to GreedyValueBot show-buying logic when the ad pool is exhausted.
-
-The three bots together form the win-rate measurement used in balance tuning.
-Target bands (200-game batch, GreedyValueBot): EASY 50–70%, NORMAL 30–45%,
-HARD 0–5%, BRUTAL ~0%.
 
 <!-- COMPENDIUM:END -->
 
