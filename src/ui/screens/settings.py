@@ -241,7 +241,7 @@ def _rules_content(ctx):
     # Per-genre monopoly lines with concrete values from the registry.
     try:
         from content.shows import get_genre_registry
-        from .playing_schedule import _mono_short
+        from .playing.schedule import _mono_short
         reg = get_genre_registry()
         for g, entry in reg.items():
             mono = entry.get("monopoly")

@@ -1,5 +1,5 @@
 """
-playing_detail.py — NETEXEC
+playing/detail.py — NETEXEC
 ===========================
 Show detail modal: comprehensive info panel for a scheduled show.
 
@@ -24,8 +24,10 @@ from engine.constants import (
 from engine.network import calculate_yield
 from engine.cards import check_condition, evaluate_star, evaluate_ad
 from content.ads import net_cost as _ad_net_cost
-from ..assets import draw_genre_badge
-from ..widgets import draw_button, draw_modal_overlay, draw_text_wrapped, draw_kv
+from ...widgets import (
+    draw_button, draw_modal_overlay, draw_text_wrapped, draw_kv,
+    draw_genre_badge,
+)
 
 # --- SHOW DETAIL MODAL ---
 

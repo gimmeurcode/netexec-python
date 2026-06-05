@@ -39,7 +39,6 @@ from engine.constants import (
     C_AMBER, C_RED, C_WHITE, C_BORDER,
     GENRE_COLORS, MIN_FONT_SIZE,
 )
-from .theme import C_TINT_PANEL_TITLE
 
 
 def _try_svg_icon(surface: pygame.Surface, asset_name: str,
@@ -637,38 +636,6 @@ def draw_show_thumb(surface: pygame.Surface, rect: pygame.Rect,
     return rect
 
 
-# ─── GENRE BADGE ──────────────────────────────────────────────────────────────
-
-def draw_genre_badge(surface: pygame.Surface, genre: str,
-                     x: int, y: int, font: pygame.font.Font) -> pygame.Rect:
-    """
-    Draw a small coloured genre pill badge (e.g. [DRAMA] in purple).
-
-    Parameters
-    ----------
-    surface : pygame.Surface
-    genre   : str             Genre key.
-    x, y    : int             Top-left position.
-    font    : pygame.font.Font  Small font for the badge label.
-
-    Returns
-    -------
-    pygame.Rect  Bounding rect of the drawn badge (for layout purposes).
-    """
-    text_col, bg_col = GENRE_COLORS.get(genre, (C_GREEN_BRIGHT, C_GREEN_DIM))
-    label    = genre[:4]          # abbreviate to 4 chars: SITC DRAM SCIF REAL SPOR NEWS
-    txt_surf = font.render(label, True, text_col)
-    pad      = 4
-    badge_w  = txt_surf.get_width()  + pad * 2
-    badge_h  = txt_surf.get_height() + 2
-
-    badge_rect = pygame.Rect(x, y, badge_w, badge_h)
-    pygame.draw.rect(surface, bg_col, badge_rect, border_radius=3)
-    pygame.draw.rect(surface, text_col, badge_rect, 1, border_radius=3)
-    surface.blit(txt_surf, (x + pad, y + 1))
-    return badge_rect
-
-
 # ─── BLINKING DOT ─────────────────────────────────────────────────────────────
 
 def draw_blink_dot(surface: pygame.Surface, cx: int, cy: int, r: int,
@@ -774,40 +741,3 @@ def _star_points(cx: int, cy: int, outer_r: int, inner_r: int, n: int) -> list:
         pts.append((cx + int(r * math.cos(angle)),
                     cy + int(r * math.sin(angle))))
     return pts
-
-
-def draw_panel_box(surface: pygame.Surface, rect: pygame.Rect,
-                   border_color: tuple = None, bg_color: tuple = None,
-                   title: str = "", title_font: pygame.font.Font = None,
-                   title_color: tuple = None, border_radius: int = 4):
-    """
-    Draw a standard retro panel box: filled background + border + optional title bar.
-
-    Parameters
-    ----------
-    surface      : pygame.Surface
-    rect         : pygame.Rect  Panel bounding box.
-    border_color : tuple        Border RGB (defaults to C_BORDER).
-    bg_color     : tuple        Fill RGB (defaults to C_BG).
-    title        : str          Optional title string drawn at the top of the panel.
-    title_font   : Font         Font for the title text.
-    title_color  : tuple        Title text colour (defaults to C_GREEN_BRIGHT).
-    border_radius: int          Corner radius in pixels.
-    """
-    bg_color     = bg_color     or C_BG
-    border_color = border_color or C_BORDER
-    title_color  = title_color  or C_GREEN_BRIGHT
-
-    pygame.draw.rect(surface, bg_color,     rect, border_radius=border_radius)
-    pygame.draw.rect(surface, border_color, rect, 1, border_radius=border_radius)
-
-    if title and title_font:
-        # Shaded title bar across the top of the panel
-        th = title_font.get_linesize() + 6
-        title_bar = pygame.Rect(rect.x + 1, rect.y + 1, rect.width - 2, th)
-        pygame.draw.rect(surface, C_TINT_PANEL_TITLE, title_bar, border_radius=border_radius - 1)
-        # Accent separator line below title bar
-        sep_y = rect.y + th + 1
-        pygame.draw.line(surface, border_color, (rect.x + 1, sep_y), (rect.right - 1, sep_y))
-        txt = title_font.render(title, True, title_color)
-        surface.blit(txt, (rect.x + 8, rect.y + 4))

@@ -90,7 +90,7 @@ C_TINT_PANEL_TITLE   = (  0,  28,   8)  # draw_panel_box title bar fill
 # ── Time slot high-contrast identity colors ────────────────────────────────────
 # Each slot has a distinct background tint and accent so players can tell them
 # apart at a glance.  Defined here to avoid magic tuples scattered across
-# playing_schedule.py.  Index matches TIME_SLOTS order (Morning=0 … Late Night=3).
+# playing/schedule.py.  Index matches TIME_SLOTS order (Morning=0 … Late Night=3).
 
 SLOT_COLORS: list[dict] = [
     {"bg": (40, 20,  0), "accent": (220, 140,   0)},  # Morning    — orange-gold

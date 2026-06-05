@@ -1,6 +1,6 @@
 """
-playing.py — NETEXEC
-=====================
+playing/dispatcher.py — NETEXEC
+===============================
 Main game screen: broadcast schedule, acquisition terminal, season header.
 
 Public entry points
@@ -17,12 +17,12 @@ Public entry points
 
 import pygame
 
-from .base import Screen
-from .playing_header import _draw_header
-from .playing_schedule import _draw_left_panel
-from .playing_shop import _draw_right_panel
-from .playing_detail import _draw_show_detail_modal
-from ..ledger import Ledger
+from ..base import Screen
+from .header import _draw_header
+from .schedule import _draw_left_panel
+from .shop import _draw_right_panel
+from .detail import _draw_show_detail_modal
+from ...ledger import Ledger
 
 
 class PlayingScreen(Screen):

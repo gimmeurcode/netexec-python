@@ -588,11 +588,31 @@ class GameUI:
         _playing_mod.render_game(self, state)
 
     def _add_click(self, rect: pygame.Rect, callback):
-        """Register a clickable region for this frame."""
+        """Register a clickable region for this frame.
+
+        Clip-aware: the rect is intersected with the surface's active clip
+        region before being stored. Scroll panels (shop, schedule, ledger,
+        contracts) draw their content inside ``set_clip(view_rect)``, so a
+        card scrolled up behind a header/tab bar is visually hidden — this
+        ensures it is also non-interactive. A region that falls entirely
+        outside the clip is dropped, so hidden/clipped content never receives
+        clicks. Unclipped UI (header buttons, tabs, reroll) is unaffected
+        because their clip is the full surface.
+        """
+        clip = self.screen.get_clip()
+        if clip is not None:
+            rect = rect.clip(clip)
+            if rect.width <= 0 or rect.height <= 0:
+                return
         self._click_regions.append((rect, callback))
 
     def _add_tooltip(self, rect: pygame.Rect, data: dict):
-        """Register a tooltip region for this frame."""
+        """Register a tooltip region for this frame (clip-aware; see _add_click)."""
+        clip = self.screen.get_clip()
+        if clip is not None:
+            rect = rect.clip(clip)
+            if rect.width <= 0 or rect.height <= 0:
+                return
         self._tooltip_regions.append((rect, data))
 
     def _toast(self, message: str, level: str = "info"):

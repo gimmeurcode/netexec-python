@@ -1,205 +1,41 @@
 """
-playing_shop.py — NETEXEC
-=========================
-Right panel (Acquisition Terminal): shop cards, tabs, reroll button.
+cards.py — NETEXEC
+==================
+Shop item card rendering for the Acquisition Terminal (right panel). Draws one
+card per shop item across every category (shows / stars / ads / upgrades /
+events): the BUY/SIGN pill, stats, condition lines, the insufficient-funds
+overlay, and the hover tooltip. Called by ``shop.py``'s ``_draw_right_panel``
+for each visible item in the scroll viewport.
 
-Public entry point
-------------------
-  _draw_right_panel(ctx, state)
+Public entry points
+-------------------
+  _fmt_card_effect(eff) -> str
+  _draw_shop_card(ctx, rect, item, category, state)
 """
 
 import pygame
 
-# Shop rendering constants — MAX_ACTIVE_UPGRADES used in upgrade slot display.
 from engine.constants import (
-    PAD,
-    C_BG, C_PANEL_BORDER, C_BORDER, C_BORDER_DIM,
-    C_AMBER, C_AMBER_DIM, C_AMBER_GLOW,
-    C_GREEN_BRIGHT, C_GREEN_MID, C_GREEN_DIM, C_GREEN_PANEL,
-    C_BLUE, C_CYAN, C_RED, C_RED_GLOW, C_RED_DIM, C_WHITE,
+    C_BORDER, C_BORDER_DIM,
+    C_AMBER, C_AMBER_DIM,
+    C_GREEN_BRIGHT, C_GREEN_MID, C_GREEN_PANEL,
+    C_CYAN, C_RED, C_RED_GLOW, C_RED_DIM, C_WHITE,
     C_GREY_LIGHT, C_GREY_MID, C_GREY_DARK,
     C_HOVER_PANEL, C_SELECTED, C_VIEWS_ACCENT,
-    C_NET_POS, C_NET_NEG, C_NET_NEUTRAL, C_INCOME_ACCENT, MAX_ACTIVE_UPGRADES, TIME_SLOTS,
+    C_NET_POS, C_NET_NEG, C_NET_NEUTRAL, C_INCOME_ACCENT,
+    MAX_ACTIVE_UPGRADES, TIME_SLOTS,
 )
-from ..theme import (
-    C_TINT_GREEN_VIVID, C_TINT_GREEN_FILL, C_TINT_GREEN_TAB,
-    C_TINT_GREEN_HOVER, C_TINT_GREEN_PILL, C_TINT_SHOW_PILL,
-    C_TINT_TEAL_BADGE, C_TINT_RED_BADGE, C_TINT_RED_DARK, C_TINT_RED_PILL,
-    C_TINT_SHADOW,
-    TAB_COLORS,
+from ...theme import (
+    C_TINT_GREEN_FILL, C_TINT_GREEN_PILL, C_TINT_SHOW_PILL,
+    C_TINT_RED_DARK, C_TINT_RED_PILL, C_TINT_SHADOW,
 )
 from content.ads import net_cost as _ad_net_cost
-from ..assets import (
-    draw_genre_icon, draw_star_icon, draw_ad_icon,
-    draw_upgrade_icon, draw_event_icon, draw_genre_badge,
-    draw_panel_box, draw_show_thumb,
+from ...assets import (
+    draw_star_icon, draw_ad_icon, draw_upgrade_icon,
+    draw_event_icon, draw_show_thumb,
 )
-from ..screen_enum import GameScreen
-from ..widgets import draw_button, draw_scrollbar, draw_text_wrapped, draw_row, draw_kv, line_step
-
-
-_SBAR_W = 8   # scrollbar track width (px)
-# --- RIGHT PANEL (SHOP) ---
-
-def _draw_right_panel(ctx, state):
-    """Draw the shop: tabs, item cards, and reroll button."""
-    lo    = ctx.layout
-    # Use the layout's pre-computed shop rect so padding is not applied twice.
-    # lo.shop already includes inner PAD offsets from compute_layout().
-    panel = pygame.Rect(lo.shop.x, lo.shop.y,
-                        lo.shop.width, ctx._sh - lo.shop.y - PAD)
-    x     = panel.x
-    y0    = panel.y
-    w     = panel.width
-    draw_panel_box(ctx.screen, panel, title="ACQUISITION TERMINAL",
-                   title_font=ctx._f("small"), bg_color=C_BG)
-    y = y0 + 26
-
-    # --- Tab bar with overflow affordance ---
-    # Accent colors come from TAB_COLORS; active tab uses full color, inactive dimmed to 40%.
-    tab_defs = [
-        ("SHOWS",     "shows"),
-        ("STARS",     "stars"),
-        ("ADS",       "ads"),
-        ("UPGRADES",  "upgrades"),
-        ("EVENTS",    "events"),
-        ("CONTRACTS", "contracts"),
-    ]
-    # Compute how many tabs fit at minimum tab_w=56; show overflow › if needed.
-    min_tab_w  = 56
-    overflow_w = 20
-    n_fit      = min(len(tab_defs), max(1, (w - overflow_w) // min_tab_w))
-    has_overflow = n_fit < len(tab_defs)
-    tab_area_w = w - (overflow_w if has_overflow else 0)
-    tab_w = tab_area_w // n_fit
-
-    # Find which tabs to show: always include active tab
-    active_idx = next(
-        (i for i, (_, k) in enumerate(tab_defs) if k == state.current_tab), 0
-    )
-    start_tab = max(0, min(active_idx, len(tab_defs) - n_fit))
-    visible_tabs = tab_defs[start_tab: start_tab + n_fit]
-
-    for vi, (label, key) in enumerate(visible_tabs):
-        tr      = pygame.Rect(x + vi * tab_w, y, tab_w - 1, lo.tab_row_h - 4)
-        active  = state.current_tab == key
-        count   = (len(state.available_contracts) + len(state.active_contracts)
-                   if key == "contracts" else len(state.shop.get(key, [])))
-        accent  = TAB_COLORS.get(key, C_GREEN_BRIGHT)
-        # Inactive tabs dim to 40% so the active tab pops clearly (R3)
-        dim_accent = tuple(int(c * 0.4) for c in accent)
-
-        bg_col = C_TINT_GREEN_TAB if active else C_BG
-        pygame.draw.rect(ctx.screen, bg_col, tr, border_radius=3)
-        bd_col = accent if active else dim_accent
-        pygame.draw.rect(ctx.screen, bd_col, tr, 1 if not active else 2, border_radius=3)
-        if active:
-            pygame.draw.rect(ctx.screen, accent,
-                             pygame.Rect(tr.x + 2, tr.y, tr.width - 4, 3),
-                             border_radius=2)
-        tc = accent if active else dim_accent
-        # Ellipsize label if tab is narrow
-        lbl = label if tab_w >= 72 else label[:3]
-        # Pick a label font that lets the label and its count stack on two
-        # separated lines inside the tab cell; fall back to micro when short.
-        tab_h    = lo.tab_row_h - 4
-        lbl_font = ctx._f("small") if tab_h >= 46 else ctx._f("micro")
-        label_surf = lbl_font.render(lbl, True, tc)
-        if count > 0:
-            cnt_col = tuple(int(c * 0.7) for c in tc)
-            cnt_s   = ctx._f("micro").render(str(count), True, cnt_col)
-            step    = line_step(lbl_font, 0.74)
-            block_h = step + cnt_s.get_bounding_rect().height
-            y1      = tr.y + max(2, (tab_h - block_h) // 2)
-            ctx.screen.blit(label_surf, (tr.centerx - label_surf.get_width() // 2, y1))
-            ctx.screen.blit(cnt_s, (tr.centerx - cnt_s.get_width() // 2, y1 + step))
-        else:
-            ctx.screen.blit(label_surf,
-                            label_surf.get_rect(center=tr.center))
-
-        def _tab(k=key):
-            state.set_tab(k)
-            ctx._shop_scroll = 0
-        ctx._add_click(tr, _tab)
-
-    if has_overflow:
-        ov_r = pygame.Rect(x + tab_area_w, y, overflow_w - 2, lo.tab_row_h - 4)
-        pygame.draw.rect(ctx.screen, C_BG, ov_r, border_radius=3)
-        pygame.draw.rect(ctx.screen, C_BORDER_DIM, ov_r, 1, border_radius=3)
-        ov_s = ctx._f("micro").render(">", True, C_GREEN_MID)
-        ctx.screen.blit(ov_s, (ov_r.centerx - ov_s.get_width() // 2,
-                                ov_r.centery - ov_s.get_height() // 2))
-        next_start = (start_tab + n_fit) % len(tab_defs)
-        def _overflow(s=start_tab):
-            ns = (s + n_fit) % len(tab_defs)
-            state.set_tab(tab_defs[ns][1])
-            ctx._shop_scroll = 0
-        ctx._add_click(ov_r, _overflow)
-
-    y += lo.tab_row_h
-
-    # --- Scrollable shop item list ---
-    if state.current_tab == "contracts":
-        items = list(state.available_contracts)
-    else:
-        items = state.shop.get(state.current_tab, [])
-    item_stride   = lo.shop_card_h + 3
-    if state.current_tab == "contracts":
-        total_items_h = (
-            (len(state.available_contracts) * item_stride + 20 if state.available_contracts else 34)
-            + (len(state.active_contracts) * (lo.shop_card_h - 7) + 44 if state.active_contracts else 0)
-        )
-    else:
-        total_items_h = len(items) * item_stride
-    reroll_h      = lo.reroll_h + PAD
-    view_h        = panel.bottom - y - (reroll_h if state.current_tab != "contracts" else 0)
-    view_rect     = pygame.Rect(x, y, w - _SBAR_W, view_h)
-    sbar_rect     = pygame.Rect(x + w - _SBAR_W, y, _SBAR_W, view_h)
-
-    max_scroll = max(0, total_items_h - view_h)
-    ctx._shop_scroll = max(0, min(max_scroll, ctx._shop_scroll))
-    scroll = ctx._shop_scroll
-
-    old_clip = ctx.screen.get_clip()
-    ctx.screen.set_clip(view_rect)
-
-    if state.current_tab == "contracts":
-        _draw_contracts_section(ctx, x, y, w, view_h, scroll, lo, state)
-    elif not items:
-        empty = ctx._f("small").render("POOL EXHAUSTED - REROLL TO CONTINUE", True, C_GREEN_DIM)
-        ctx.screen.blit(empty, (x + 10, y + 20))
-    else:
-        iy = y - scroll
-        for item in items:
-            card_rect = pygame.Rect(x, iy, w - _SBAR_W - 2, lo.shop_card_h)
-            _draw_shop_card(ctx, card_rect, item, state.current_tab, state)
-            iy += item_stride
-
-    ctx.screen.set_clip(old_clip)
-
-    new_scroll = draw_scrollbar(
-        ctx, sbar_rect, total_items_h, view_h, scroll,
-        lambda s: setattr(ctx, '_shop_scroll', max(0, s)),
-    )
-    if new_scroll != scroll:
-        ctx._shop_scroll = new_scroll
-
-    # --- Reroll button (hidden on contracts tab) ---
-    if state.current_tab != "contracts":
-        rr_rect = pygame.Rect(x, panel.bottom - lo.reroll_h - PAD // 2, w, lo.reroll_h)
-
-        def _reroll():
-            r = state.reroll_shop()
-            ctx._toast(r["message"], r["level"])
-            ctx._shop_scroll = 0
-            if ctx.audio: ctx.audio.play("sfx_reroll")
-
-        can_reroll = state.budget >= state.reroll_cost
-        rr_label   = f"* REROLL (${state.reroll_cost})" if can_reroll else f"NEED ${state.reroll_cost} TO REROLL"
-        rr_border  = C_AMBER if can_reroll else C_RED_DIM
-        rr_text    = C_AMBER if can_reroll else C_GREY_MID
-        draw_button(ctx, rr_rect, rr_label, _reroll,
-                    border_color=rr_border, text_color=rr_text)
+from ...widgets import draw_text_wrapped, draw_genre_badge
+from ...screen_enum import GameScreen
 
 
 def _fmt_card_effect(eff: dict) -> str:
@@ -708,156 +544,3 @@ def _draw_shop_card(ctx, rect, item, category, state):
                 ],
             ],
         })
-
-
-# --- CONTRACTS SECTION ---
-
-def _draw_contracts_section(ctx, x, y, w, view_h, scroll, lo, state):
-    """Draw the contracts tab: available offers + active contracts."""
-    from engine.requirements import describe as describe_req
-
-    f_hd = ctx._f("small")
-    f_mi = ctx._f("micro")
-    lh   = f_mi.get_linesize() + 1
-    card_h = lo.shop_card_h
-
-    iy = y - scroll
-
-    # --- Available contracts ---
-    if state.available_contracts:
-        hdr = f_hd.render("AVAILABLE CONTRACTS", True, C_VIEWS_ACCENT)
-        ctx.screen.blit(hdr, (x + 6, iy + 4))
-        iy += 20
-        for ev in state.available_contracts:
-            card_rect = pygame.Rect(x, iy, w - _SBAR_W - 2, card_h)
-            _draw_contract_card(ctx, card_rect, ev, state, available=True)
-            iy += card_h + 3
-    else:
-        no_s = f_mi.render("No contracts available - air a season to receive offers.", True, C_GREEN_DIM)
-        ctx.screen.blit(no_s, (x + 10, iy + 10))
-        iy += 24
-
-    # --- Active contracts ---
-    if state.active_contracts:
-        iy += 6
-        pygame.draw.line(ctx.screen, C_BORDER_DIM, (x + 4, iy), (x + w - _SBAR_W - 6, iy))
-        iy += 6
-        hdr2 = f_hd.render("ACTIVE CONTRACTS", True, C_CYAN)
-        ctx.screen.blit(hdr2, (x + 6, iy + 2))
-        iy += 18
-        for entry in state.active_contracts:
-            ev   = entry.get("event", {})
-            rem  = entry.get("remaining_seasons", 0)
-            done = entry.get("fulfilled", False)
-            card_rect = pygame.Rect(x, iy, w - _SBAR_W - 2, card_h - 10)
-            _draw_active_contract(ctx, card_rect, ev, rem, done)
-            iy += card_h - 7
-
-
-def _draw_contract_card(ctx, rect, ev, state, available=True):
-    """Draw a single available-contract card with an ACCEPT button."""
-    from engine.requirements import describe as describe_req
-
-    hovered  = rect.collidepoint(ctx._mouse_pos)
-    bg       = C_HOVER_PANEL if hovered else C_GREEN_PANEL
-    bdr      = C_VIEWS_ACCENT if hovered else C_BORDER_DIM
-
-    pygame.draw.rect(ctx.screen, bg,  rect, border_radius=4)
-    pygame.draw.rect(ctx.screen, bdr, rect, 1, border_radius=4)
-    pygame.draw.rect(ctx.screen, C_VIEWS_ACCENT,
-                     pygame.Rect(rect.x, rect.y + 6, 3, rect.h - 12),
-                     border_radius=2)
-
-    f_bd = ctx._f("bold")
-    f_mi = ctx._f("micro")
-    lh   = f_mi.get_linesize() + 1
-
-    # Accept button pill
-    PILL_W, PILL_H = 80, 22
-    pill_rect = pygame.Rect(rect.right - PILL_W - 6, rect.y + 6, PILL_W, PILL_H)
-    pygame.draw.rect(ctx.screen, C_TINT_GREEN_FILL, pill_rect, border_radius=4)
-    pygame.draw.rect(ctx.screen, C_VIEWS_ACCENT,    pill_rect, 1, border_radius=4)
-    acc_s = ctx._f("small").render("ACCEPT", True, C_VIEWS_ACCENT)
-    ctx.screen.blit(acc_s, acc_s.get_rect(center=pill_rect.center))
-
-    def _accept(eid=ev.get("id", "")):
-        r = state.accept_contract(eid)
-        ctx._toast(r["message"], r["level"])
-
-    ctx._add_click(pill_rect, _accept)
-    ctx._add_click(rect, _accept)
-
-    tx = rect.x + 10
-    ty = rect.y + 5
-
-    name_str = ev.get("name", "???")
-    name_max = pill_rect.left - tx - 8
-    while name_str and f_bd.size(name_str)[0] > name_max:
-        name_str = name_str[:-1]
-    name_surf = f_bd.render(name_str, True, C_WHITE)
-    ctx.screen.blit(name_surf, (tx, ty))
-    ty += line_step(f_bd, 0.80)
-
-    req_str = describe_req(ev.get("requirement", {}))
-    rew     = ev.get("reward", {})
-    pen     = ev.get("penalty", {})
-    dur     = ev.get("duration", 3)
-    rew_str = f"+${rew.get('budget_bonus', 0)}" if rew.get("budget_bonus") else "Reward on fulfil"
-    pen_str = f"-${pen.get('budget_loss', 0)}"  if pen.get("budget_loss")  else "No penalty"
-
-    ctx.screen.blit(f_mi.render(f"REQ: {req_str}", True, C_AMBER),     (tx, ty)); ty += lh
-    ctx.screen.blit(f_mi.render(f"REWARD: {rew_str}  |  FAIL: {pen_str}",
-                                 True, C_NET_POS), (tx, ty)); ty += lh
-    ctx.screen.blit(f_mi.render(f"WINDOW: {dur} seasons",
-                                 True, C_GREY_MID), (tx, ty))
-
-    ctx._add_tooltip(rect, {
-        "type":  "event",
-        "title": f"CONTRACT: {ev.get('name', '')}",
-        "sections": [
-            [
-                {"kind": "kv", "key": "REQUIREMENT", "val": req_str,  "val_col": C_AMBER},
-                {"kind": "kv", "key": "REWARD",      "val": rew_str,  "val_col": C_NET_POS},
-                {"kind": "kv", "key": "PENALTY",     "val": pen_str,  "val_col": C_RED},
-                {"kind": "kv", "key": "WINDOW",
-                 "val": f"{dur} season{'s' if dur != 1 else ''}",
-                 "val_col": C_GREY_LIGHT},
-            ],
-            [{"kind": "text", "text": ev.get("desc", ""), "col": C_GREY_LIGHT}],
-        ],
-    })
-
-
-def _draw_active_contract(ctx, rect, ev, remaining_seasons, fulfilled):
-    """Draw a read-only active contract card showing status."""
-    from engine.requirements import describe as describe_req
-
-    done_col = C_NET_POS if fulfilled else C_AMBER
-    bg       = C_TINT_GREEN_FILL if fulfilled else C_GREEN_PANEL
-    bdr      = done_col
-
-    pygame.draw.rect(ctx.screen, bg,  rect, border_radius=4)
-    pygame.draw.rect(ctx.screen, bdr, rect, 1, border_radius=4)
-
-    f_bd = ctx._f("bold")
-    f_mi = ctx._f("micro")
-    lh   = f_mi.get_linesize() + 1
-
-    tx = rect.x + 10
-    ty = rect.y + 4
-
-    status_txt = "FULFILLED" if fulfilled else f"{remaining_seasons}s LEFT"
-    status_col = C_NET_POS  if fulfilled else C_AMBER
-    st_s = f_mi.render(status_txt, True, status_col)
-    st_x = rect.right - st_s.get_width() - 8
-    ctx.screen.blit(st_s, (st_x, ty + 1))
-
-    name_str = ev.get("name", "???")
-    name_max = st_x - tx - 8
-    while name_str and f_bd.size(name_str)[0] > name_max:
-        name_str = name_str[:-1]
-    name_surf = f_bd.render(name_str, True, C_WHITE)
-    ctx.screen.blit(name_surf, (tx, ty)); ty += line_step(f_bd, 0.80)
-
-    req_str = describe_req(ev.get("requirement", {}))
-    ctx.screen.blit(f_mi.render(f"REQ: {req_str}", True, C_GREY_LIGHT), (tx, ty))

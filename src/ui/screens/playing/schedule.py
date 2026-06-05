@@ -1,6 +1,6 @@
 """
-playing_schedule.py — NETEXEC
-==============================
+playing/schedule.py — NETEXEC
+=============================
 Left panel: broadcast schedule, vault, upgrades, and seasonal events.
 
 Public entry point
@@ -21,7 +21,7 @@ from engine.constants import (
     C_NET_POS, C_NET_NEG, C_NET_NEUTRAL, C_INCOME_ACCENT,
     TIME_SLOTS, MAX_ACTIVE_UPGRADES, GENRE_COLORS, BLINK_PERIOD_MS,
 )
-from ..theme import (
+from ...theme import (
     C_TINT_GREEN_DEEP, C_TINT_GREEN_FILL, C_TINT_GREEN_TAB,
     C_TINT_GREEN_HOVER, C_TINT_GREEN_TILE, C_TINT_RED_PILL,
     C_TINT_TEAL_BADGE, C_TINT_RED_BADGE, C_TINT_SHADOW,
@@ -30,12 +30,15 @@ from ..theme import (
 from engine.network import calculate_yield
 from engine.cards import check_condition, evaluate_star, evaluate_ad
 from content.shows import get_genre_registry
-from ..assets import (
+from ...assets import (
     draw_genre_icon, draw_star_icon, draw_ad_icon,
-    draw_upgrade_icon, draw_event_icon, draw_genre_badge,
-    draw_panel_box, draw_signal_bars, draw_blink_dot, draw_show_thumb,
+    draw_upgrade_icon, draw_event_icon,
+    draw_signal_bars, draw_blink_dot, draw_show_thumb,
 )
-from ..widgets import draw_button, draw_scrollbar, draw_row, line_step
+from ...widgets import (
+    draw_button, draw_scrollbar, draw_row, line_step,
+    draw_genre_badge, draw_panel_box,
+)
 
 
 _SBAR_W = 8   # scrollbar track width (px)

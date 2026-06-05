@@ -1,6 +1,6 @@
 """
-playing_header.py — NETEXEC
-=============================
+playing/header.py — NETEXEC
+===========================
 HUD bar and end-of-season projection counter for the PLAYING screen.
 
 Public entry point
@@ -18,12 +18,12 @@ from engine.constants import (
     C_NET_NEG, C_VIEWS_ACCENT, C_INCOME_ACCENT,
     BLINK_PERIOD_MS, MAX_SEASONS,
 )
-from ..theme import (
+from ...theme import (
     C_TINT_GREEN_VIVID, C_TINT_GREEN_BADGE, C_TINT_RED_BADGE,
 )
-from ..assets import draw_blink_dot
-from ..screen_enum import GameScreen
-from ..widgets import draw_button, draw_row, line_step
+from ...assets import draw_blink_dot
+from ...screen_enum import GameScreen
+from ...widgets import draw_button, draw_row, line_step
 
 
 def _draw_header(ctx, state):
