@@ -256,6 +256,11 @@ class GameUI:
         """Navigate to a new screen. All transitions go through this method."""
         if screen in (GameScreen.WILDCARD_SHOW, GameScreen.WILDCARD_AD):
             self._reset_wc_state()
+        # Clear any lingering action flash so it never carries across a screen
+        # transition (e.g. green card-play flash bleeding onto pause/settings).
+        # Gameplay flashes are re-armed by their callers *after* set_screen.
+        self._flash_color   = None
+        self._flash_elapsed = 0
         self.screen_name = screen
 
     def _reset_wc_state(self):
@@ -558,9 +563,11 @@ class GameUI:
             else:
                 draw_crt_scanlines(self.screen, SCANLINE_ALPHA, SCANLINE_SPACING)
 
-        # Flash overlay on game surface
-        if self._flash_color:
-            alpha = max(0, 180 - int(180 * self._flash_elapsed / FLASH_DURATION_MS))
+        # Flash overlay on game surface. Confined to gameplay screens so the
+        # green/red action flash can never bleed onto menus, pause or settings.
+        if self._flash_color and s in (GameScreen.PLAYING, GameScreen.SEASON_SUMMARY):
+            # Faint, momentary tint — just enough to register the action.
+            alpha = max(0, 55 - int(55 * self._flash_elapsed / FLASH_DURATION_MS))
             flash = pygame.Surface((self._sw, self._sh), pygame.SRCALPHA)
             flash.fill((*self._flash_color, alpha))
             self.screen.blit(flash, (0, 0))

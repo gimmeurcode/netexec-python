@@ -20,8 +20,17 @@ from engine.constants import (
 )
 from ..theme import C_TINT_RED_DARK, C_TINT_BLUE_DARK
 from ..screen_enum import GameScreen
-from ..widgets import draw_button, draw_modal_overlay, line_step
+from ..widgets import draw_button, draw_modal_overlay, line_step, draw_text_wrapped
 from .base import Screen
+
+
+def _fit(font, text: str, max_w: int) -> str:
+    """Trim ``text`` (adding an ellipsis) until it renders within ``max_w`` px."""
+    if font.size(text)[0] <= max_w:
+        return text
+    while text and font.size(text + "…")[0] > max_w:
+        text = text[:-1]
+    return text + "…"
 
 
 class SummaryScreen(Screen):
@@ -89,7 +98,7 @@ def render(ctx, state):
                 C_AMBER    if level == "warn"     else
                 C_GREY_LIGHT
             )
-            ms = ctx._f("micro").render(text[:90], True, col)
+            ms = ctx._f("micro").render(_fit(ctx._f("micro"), text, mw - 20), True, col)
             ctx.screen.blit(ms, (modal.x + 10, y))
             y += _mi_step
             if y > modal.bottom - 100:
@@ -150,17 +159,21 @@ def render(ctx, state):
             C_AMBER
         )
         ev_hdr = ctx._f("small").render(
-            f"INCOMING: {new_ev.get('name', '?')}  [{kind.upper()}]",
+            _fit(ctx._f("small"),
+                 f"INCOMING: {new_ev.get('name', '?')}  [{kind.upper()}]", mw - 20),
             True, kind_col,
         )
         ctx.screen.blit(ev_hdr, (modal.x + 10, y))
         y += line_step(ctx._f("small"), 0.82)
         if y < modal.bottom - 60:
-            ev_desc = ctx._f("micro").render(
-                new_ev.get("desc", "")[:95], True, C_GREY_LIGHT
+            # Word-wrap the description inside the modal so it never overflows.
+            _ls = ctx._f("micro").get_linesize()
+            desc_rect = pygame.Rect(modal.x + 10, y, mw - 20, _ls * 2 + 2)
+            draw_text_wrapped(
+                ctx.screen, new_ev.get("desc", ""), desc_rect,
+                ctx._f("micro"), C_GREY_LIGHT,
             )
-            ctx.screen.blit(ev_desc, (modal.x + 10, y))
-            y += _mi_step
+            y += _ls * 2 + 2
         dur = new_ev.get("duration", 1)
         dur_s = ctx._f("micro").render(
             f"Duration: {dur} season{'s' if dur > 1 else ''}  "
@@ -225,7 +238,7 @@ def _draw_bailout_modal(ctx, state, s):
     ctx.screen.blit(tier_s, tier_s.get_rect(center=(cx, y)))
     y += 20
 
-    desc_s = f_mi.render(tier.get("desc", "")[:90], True, C_GREY_LIGHT)
+    desc_s = f_mi.render(_fit(f_mi, tier.get("desc", ""), mw - 24), True, C_GREY_LIGHT)
     ctx.screen.blit(desc_s, desc_s.get_rect(center=(cx, y)))
     y += 20
 

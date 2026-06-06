@@ -67,6 +67,6 @@ def render(ctx, state):
         from version import VERSION
         ver_str = f"v{VERSION}"
     except Exception:
-        ver_str = "v1.1.0"
+        ver_str = "v1.1.1"
     ver = ctx._f("micro").render(ver_str, True, C_GREEN_DIM)
     ctx.screen.blit(ver, ver.get_rect(bottomright=(ctx._sw - 10, ctx._sh - 6)))
