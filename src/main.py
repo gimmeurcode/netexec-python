@@ -33,7 +33,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import pygame
-from engine.constants import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, WINDOW_TITLE, C_BG
+from engine.constants import FPS, WINDOW_TITLE, C_BG
 from engine.network   import GameState
 from saves import load_settings, save_settings
 from ui.ui     import GameUI

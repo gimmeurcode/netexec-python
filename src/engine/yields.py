@@ -9,30 +9,14 @@ Stateless functions only: the 9-stage view/income math culminating in
 """
 
 import math
-import random
 
-import saves as _platform
 from .constants import (
-    MAX_SEASONS, INITIAL_BUDGET, MAX_RERUN_SLOTS, REROLL_BASE_COST,
-    BASE_INCOME, MAX_ACTIVE_UPGRADES, TARGET_INTERVAL,
-    BASE_VIEW_TARGET, TARGET_GROWTH_RATE, MILESTONE_REWARD,
-    SELL_REFUND_RATE, STAR_REFUND_RATE, SHOP_SHOW_COUNT, SHOP_STAR_COUNT,
-    SHOP_AD_COUNT, SHOP_UPG_COUNT, SHOP_EVENT_COUNT,
-    AGE_MULTIPLIERS, SLOT_PENALTY_MULT, DIFFICULTY_LEVELS,
-    DEFAULT_DIFFICULTY, TIME_SLOTS,
+    AGE_MULTIPLIERS, SLOT_PENALTY_MULT,
 )
 from .cards import (
-    evaluate_star, evaluate_ad, make_show_instance, stamp_uids,
+    evaluate_star, evaluate_ad,
 )
-from .difficulty import DifficultyManager
 from .effects import resolve_upgrade_effects, resolve_vault_rerun
-from .requirements import evaluate as eval_requirement, describe as describe_requirement
-from . import seasonal as seasonal_mod
-from content import shows   as show_pool
-from content import stars   as star_pool
-from content import ads     as ad_pool
-from content import upgrades as upg_pool
-from content import events   as event_pool
 
 
 # ─── ROUNDING HELPER ─────────────────────────────────────────────────────────

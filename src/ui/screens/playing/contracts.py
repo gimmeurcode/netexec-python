@@ -30,11 +30,8 @@ _SBAR_W = 8   # scrollbar track width (px) — must match shop.py
 
 def _draw_contracts_section(ctx, x, y, w, view_h, scroll, lo, state):
     """Draw the contracts tab: available offers + active contracts."""
-    from engine.requirements import describe as describe_req
-
     f_hd = ctx._f("small")
     f_mi = ctx._f("micro")
-    lh   = f_mi.get_linesize() + 1
     card_h = lo.shop_card_h
 
     iy = y - scroll
@@ -157,7 +154,6 @@ def _draw_active_contract(ctx, rect, ev, remaining_seasons, fulfilled):
 
     f_bd = ctx._f("bold")
     f_mi = ctx._f("micro")
-    lh   = f_mi.get_linesize() + 1
 
     tx = rect.x + 10
     ty = rect.y + 4

@@ -22,7 +22,7 @@ Usage
 # Bump PATCH for bug-fix-only builds.
 # Bump MINOR for new features / balance passes.
 # Bump MAJOR for full reboots or breaking save-format changes.
-VERSION = "0.1.0"
+VERSION = "1.1.0"
 
 # Human-readable title used in window title, About screen, etc.
 DISPLAY_NAME = "NETEXEC: Network Executive Simulator"

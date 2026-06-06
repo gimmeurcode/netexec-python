@@ -68,22 +68,16 @@ def render(ctx, state):
         pending  = getattr(ctx, "_pending_new_run", False)
 
         def _select(dk=sel_key, pnr=pending):
-            state.start_new_run(increment_run=pnr, difficulty=dk)
-            ctx.set_screen(GameScreen.PLAYING)
-            if ctx.audio:
-                ctx.audio.start_bg_music()
-            ctx._toast("GOOD LUCK, EXECUTIVE.", "success")
-            show_tut = (
-                (state.run == 1 and not ctx._tutorial_done)
-                or ctx._replay_tutorial_requested
-            )
-            if show_tut:
-                from ..tutorial import TutorialController
-                ctx._tutorial = TutorialController()
-                ctx._replay_tutorial_requested = False
+            # Difficulty chosen — defer the run start to the executive-select
+            # screen, which offers 3 of the 7 executives to pick from.
+            from engine import cards
+            ctx._pending_difficulty   = dk
+            ctx._pending_new_run_flag = pnr
+            ctx._exec_offers = cards.draw_executive_offers(3)
+            ctx.set_screen(GameScreen.EXECUTIVE_SELECT)
 
         draw_button(ctx, btn_rect, "SELECT", _select, border_color=dcol)
 
     back_rect = pygame.Rect(20, 20, 100, 36)
     draw_button(ctx, back_rect, "< BACK",
-                lambda: ctx.set_screen(GameScreen.MENU))
+                lambda: ctx.set_screen(GameScreen.SEED_SELECT))

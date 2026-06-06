@@ -13,7 +13,7 @@ by render_game are cleared before the modal registers its own regions.
 import pygame
 
 from engine.constants import (
-    C_BG, C_AMBER, C_RED, C_RED_DIM, C_BORDER, C_WHITE,
+    C_BG, C_AMBER, C_BORDER, C_WHITE,
     C_GREEN_DIM, C_GREY_MID,
     GENRE_COLORS,
 )

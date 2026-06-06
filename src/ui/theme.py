@@ -16,29 +16,11 @@ import from here.
 
 from __future__ import annotations
 
-import os
 import sys
 import pathlib
 import pygame
 
-# ── Re-export canonical colours from constants ─────────────────────────────────
 from engine.constants import (
-    # Phosphor
-    C_GREEN_BRIGHT, C_GREEN_MID, C_GREEN_DIM, C_GREEN_PANEL, C_PANEL_ACCENT,
-    # Plate / background
-    C_BG, C_PANEL, C_PANEL_ALT, C_PANEL_BORDER,
-    C_GREY_DARK, C_GREY_MID, C_GREY_LIGHT, C_WHITE,
-    # Status (chrome)
-    C_AMBER, C_AMBER_DIM, C_AMBER_GLOW,
-    C_RED, C_RED_DIM, C_RED_GLOW,
-    C_BLUE, C_BLUE_DIM, C_CYAN,
-    C_SELECTED, C_HOVER, C_HOVER_PANEL, C_BORDER, C_BORDER_DIM,
-    # Flash / scan
-    C_FLASH_POS, C_FLASH_NEG, C_SCANLINE,
-    # Net / projection
-    C_NET_POS, C_NET_NEG, C_NET_NEUTRAL, C_VIEWS_ACCENT, C_INCOME_ACCENT,
-    # Genre
-    GENRE_COLORS,
     # Font size constants (kept in constants.py as single source)
     MIN_FONT_SIZE, FONT_TITLE, FONT_HEADER, FONT_BODY, FONT_SMALL, FONT_MICRO,
     # Spacing

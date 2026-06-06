@@ -63,5 +63,10 @@ def render(ctx, state):
         rect = pygame.Rect(cx - btn_w // 2, by, btn_w, btn_h)
         draw_button(ctx, rect, label, cb)
 
-    ver = ctx._f("micro").render("v1.0 - PHASE I-V COMPLETE", True, C_GREEN_DIM)
+    try:
+        from version import VERSION
+        ver_str = f"v{VERSION}"
+    except Exception:
+        ver_str = "v1.1.0"
+    ver = ctx._f("micro").render(ver_str, True, C_GREEN_DIM)
     ctx.screen.blit(ver, ver.get_rect(bottomright=(ctx._sw - 10, ctx._sh - 6)))

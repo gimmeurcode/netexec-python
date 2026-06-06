@@ -25,26 +25,25 @@ import pygame
 import math
 
 from engine.constants import (
-    SCREEN_WIDTH, SCREEN_HEIGHT, FPS,
-    HEADER_H, PAD,
+    SCREEN_WIDTH, SCREEN_HEIGHT,
     C_BG, C_PANEL, C_PANEL_BORDER,
-    C_GREEN_BRIGHT, C_GREEN_MID, C_GREEN_DIM,
-    C_AMBER, C_AMBER_DIM, C_RED, C_RED_DIM, C_WHITE, C_CYAN,
-    C_GREY_LIGHT, C_GREY_MID, C_GREY_DARK,
-    C_SELECTED, C_BORDER, C_BORDER_DIM,
+    C_GREEN_BRIGHT, C_GREEN_MID,
+    C_AMBER, C_RED, C_WHITE, C_CYAN,
+    C_GREY_LIGHT, C_GREY_MID,
     C_FLASH_POS, C_FLASH_NEG,
-    C_NET_POS, C_NET_NEG, C_VIEWS_ACCENT,
     TOAST_DURATION, TOAST_FADE_MS,
-    FLASH_DURATION_MS, BLINK_PERIOD_MS, SCANLINE_ALPHA, SCANLINE_SPACING,
+    FLASH_DURATION_MS, SCANLINE_ALPHA, SCANLINE_SPACING,
 )
 from .theme import load_fonts
 from .assets import draw_crt_scanlines, apply_crt, NumberPop
 from .bezel import draw_bezel, C_CHROME_BASE
-from .layout import compute_layout, Layout, MIN_W, MIN_H
+from .layout import compute_layout, Layout
 from .screen_enum import GameScreen
 from .screens import playing as _playing_mod
 from .screens.menu import MenuScreen
+from .screens.seed_select import SeedSelectScreen
 from .screens.difficulty import DifficultyScreen
+from .screens.executive_select import ExecutiveSelectScreen
 from .screens.settings import SettingsScreen
 from .screens.summary import SummaryScreen
 from .screens.pause import PauseScreen
@@ -170,7 +169,9 @@ class GameUI:
         # ── Screen instances ──────────────────────────────────────────────────
         self._screen_map = {
             GameScreen.MENU:           MenuScreen(),
+            GameScreen.SEED_SELECT:    SeedSelectScreen(),
             GameScreen.DIFFICULTY:     DifficultyScreen(),
+            GameScreen.EXECUTIVE_SELECT: ExecutiveSelectScreen(),
             GameScreen.SETTINGS:       SettingsScreen(),
             GameScreen.PLAYING:        _playing_mod.PlayingScreen(),
             GameScreen.SEASON_SUMMARY: SummaryScreen(),
@@ -426,6 +427,20 @@ class GameUI:
 
     def _handle_key(self, event: pygame.event.Event, state):
         key = event.key
+
+        # Seed-chooser numeric text input
+        if self.screen_name == GameScreen.SEED_SELECT:
+            from .screens.seed_select import ensure_seed_str, commit_seed_and_continue, _MAX_DIGITS
+            ensure_seed_str(self)
+            if key == pygame.K_BACKSPACE:
+                self._seed_input_str = self._seed_input_str[:-1]
+            elif key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+                commit_seed_and_continue(self)
+            elif key == pygame.K_ESCAPE:
+                self.set_screen(GameScreen.MENU)
+            elif event.unicode.isdigit() and len(self._seed_input_str) < _MAX_DIGITS:
+                self._seed_input_str += event.unicode
+            return
 
         # Wildcard text input
         if (self.screen_name in (GameScreen.WILDCARD_SHOW, GameScreen.WILDCARD_AD)
@@ -688,9 +703,12 @@ class GameUI:
         ))
 
     def _start_new_game(self, state, new_run: bool):
-        """Navigate to difficulty selection."""
+        """Navigate to the seed chooser (first step of the new-game flow)."""
         self._pending_new_run = new_run
-        self.set_screen(GameScreen.DIFFICULTY)
+        # Fresh random seed proposed each time the chooser opens.
+        self._seed_input_str = None
+        self._pending_seed   = None
+        self.set_screen(GameScreen.SEED_SELECT)
 
     def _resume_game(self, state):
         """Load save slot 0 and resume the game from the exact saved state."""

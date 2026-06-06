@@ -96,6 +96,46 @@ def _check_min_budget(req: dict, state: Any) -> bool:
     return state.budget >= req.get("value", 0)
 
 
+@requirement_handler("air_size2_count")
+def _check_air_size2_count(req: dict, state: Any) -> bool:
+    count = req.get("count", 1)
+    big = [
+        s for s in state.lineup
+        if s and not s.get("is_extension") and s.get("size", 1) >= 2
+    ]
+    return len(big) >= count
+
+
+@requirement_handler("attach_ads_count")
+def _check_attach_ads_count(req: dict, state: Any) -> bool:
+    count = req.get("count", 1)
+    total = sum(
+        len(s.get("attached", {}).get("ad", []))
+        for s in state.lineup
+        if s and not s.get("is_extension")
+    )
+    return total >= count
+
+
+@requirement_handler("genre_variety")
+def _check_genre_variety(req: dict, state: Any) -> bool:
+    count = req.get("count", 2)
+    genres = {
+        s.get("genre")
+        for s in state.lineup
+        if s and not s.get("is_extension")
+    }
+    genres.discard(None)
+    return len(genres) >= count
+
+
+@requirement_handler("fill_lineup")
+def _check_fill_lineup(req: dict, state: Any) -> bool:
+    count = req.get("count", len(state.lineup))
+    live = [s for s in state.lineup if s and not s.get("is_extension")]
+    return len(live) >= count
+
+
 # ─── PUBLIC API ───────────────────────────────────────────────────────────────
 
 def evaluate(requirement: dict, state: Any) -> bool:
@@ -131,4 +171,12 @@ def describe(requirement: dict) -> str:
         return f"No {requirement.get('genre', '?')} shows on air"
     if rtype == "min_budget":
         return f"Budget >= ${requirement.get('value', 0)}"
+    if rtype == "air_size2_count":
+        return f"Air {requirement.get('count', 1)}+ 2-slot shows"
+    if rtype == "attach_ads_count":
+        return f"Attach {requirement.get('count', 1)}+ ads"
+    if rtype == "genre_variety":
+        return f"Air {requirement.get('count', 2)}+ different genres"
+    if rtype == "fill_lineup":
+        return f"Fill {requirement.get('count', 4)}+ lineup slots"
     return "Special condition"

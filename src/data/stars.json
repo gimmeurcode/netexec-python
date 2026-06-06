@@ -366,6 +366,155 @@
       "effect":   {"v_flat": 90, "income": 3},
       "fallback": {"v_flat": 40, "upkeep": 2},
       "desc": "Won the fan lottery. Brings a homemade replica prop and needs no direction. The internet clips their scene immediately."
+    },
+
+    // ── TRADEOFF / SCALING STARS ──
+    {
+      "id": "st_veteran_anchor",
+      "name": "Dame Marguerite Vale",
+      "cost": 34,
+      "condition": {
+        "type": "age_min",
+        "value": 3
+      },
+      "condition_text": "If show age 3+: Views x2.1. Otherwise: +30 views but +3 upkeep",
+      "effect": {
+        "v_mult": 2.1
+      },
+      "fallback": {
+        "v_flat": 30,
+        "upkeep": 3
+      },
+      "desc": "A grande dame of the screen who only truly shines once a show has settled into its legend. Patience pays — lavishly."
+    },
+
+    {
+      "id": "st_diva_supreme",
+      "name": "Roxxy Sterling",
+      "cost": 40,
+      "condition": {
+        "type": "always"
+      },
+      "condition_text": "Always: Views x1.9, but +14 upkeep (the entourage)",
+      "effect": {
+        "v_mult": 1.9,
+        "upkeep": 14
+      },
+      "fallback": {},
+      "desc": "Box-office lightning in a sequined jacket. The ratings explode; so does the catering budget, the trailer rider, and the personal-chef invoice."
+    },
+
+    {
+      "id": "st_ensemble_glue",
+      "name": "Hank Modine",
+      "cost": 30,
+      "condition": {
+        "type": "has_stars"
+      },
+      "condition_text": "If sharing with other stars: +20 views +40 per attached star",
+      "effect": {
+        "v_flat": 20,
+        "v_flat_per_star": 40
+      },
+      "fallback": {
+        "v_flat": 25
+      },
+      "desc": "The character actor who makes everyone around him better. The more big names you crowd onto a show, the harder he lifts the whole ensemble."
+    },
+
+    {
+      "id": "st_ad_whisperer",
+      "name": "Cici Bankroll",
+      "cost": 28,
+      "condition": {
+        "type": "has_ads"
+      },
+      "condition_text": "If show has ads: Views x1.1 and +8 income per attached ad",
+      "effect": {
+        "v_mult": 1.1,
+        "income_per_ad": 8
+      },
+      "fallback": {
+        "v_flat": 15
+      },
+      "desc": "A pitch-perfect host who turns commercial breaks into appointment viewing. Every sponsor she shares a screen with pays more for the privilege."
+    },
+
+    {
+      "id": "st_scifi_oracle",
+      "name": "Zandor Pyx",
+      "cost": 32,
+      "condition": {
+        "type": "genre",
+        "genres": [
+          "SCIFI"
+        ]
+      },
+      "condition_text": "On SCIFI: Views x1.85. Off-genre: Views x0.85 (miscast)",
+      "effect": {
+        "v_mult": 1.85
+      },
+      "fallback": {
+        "v_mult": 0.85
+      },
+      "desc": "Born for the green-screen void; utterly lost anywhere else. Cast him in a sitcom and audiences will feel the wrongness in their bones."
+    },
+
+    {
+      "id": "st_aging_legend",
+      "name": "Sir Bertram Coyle",
+      "cost": 36,
+      "condition": {
+        "type": "age_min",
+        "value": 4
+      },
+      "condition_text": "If show age 4+: Views x2.5. While younger: just +6 upkeep",
+      "effect": {
+        "v_mult": 2.5
+      },
+      "fallback": {
+        "upkeep": 6
+      },
+      "desc": "A living legend who treats new shows with contempt and old ones with devotion. Carry him through the lean years and he becomes a ratings titan."
+    },
+
+    {
+      "id": "st_method_purist",
+      "name": "Dashiell Crowe",
+      "cost": 33,
+      "condition": {
+        "type": "not",
+        "condition": {
+          "type": "has_ads"
+        }
+      },
+      "condition_text": "If show has NO ads: Views x1.75. With ads: Views x1.0 (he sulks)",
+      "effect": {
+        "v_mult": 1.75
+      },
+      "fallback": {
+        "v_mult": 1.0
+      },
+      "desc": "Refuses to share the frame with commerce. Keep his show pure and he is transcendent; sell out and he phones it in."
+    },
+
+    {
+      "id": "st_franchise_lead",
+      "name": "Nova Reyes",
+      "cost": 31,
+      "condition": {
+        "type": "always"
+      },
+      "condition_text": "Always: +35 views per season of age, +4 income",
+      "effect": {
+        "v_per_age": 35,
+        "income": 4
+      },
+      "fallback": {
+        "v_per_age": 35,
+        "income": 4
+      },
+      "desc": "A bankable franchise face whose draw compounds every year she stays. Build the brand around her and she grows into a juggernaut."
     }
   ]
 }

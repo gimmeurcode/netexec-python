@@ -5,24 +5,22 @@ The mutable :class:`GameState` container and all game-flow logic (split out of
 network.py). Imports the stateless yield pipeline from :mod:`engine.yields`.
 """
 
-import math
 import random
 
 import saves as _platform
 from .constants import (
     MAX_SEASONS, INITIAL_BUDGET, MAX_RERUN_SLOTS, REROLL_BASE_COST,
     BASE_INCOME, MAX_ACTIVE_UPGRADES, TARGET_INTERVAL,
-    BASE_VIEW_TARGET, TARGET_GROWTH_RATE, MILESTONE_REWARD,
-    SELL_REFUND_RATE, STAR_REFUND_RATE, SHOP_SHOW_COUNT, SHOP_STAR_COUNT,
+    BASE_VIEW_TARGET, MILESTONE_REWARD,
+    SHOP_SHOW_COUNT, SHOP_STAR_COUNT,
     SHOP_AD_COUNT, SHOP_UPG_COUNT, SHOP_EVENT_COUNT,
-    AGE_MULTIPLIERS, SLOT_PENALTY_MULT, DIFFICULTY_LEVELS,
+    DIFFICULTY_LEVELS,
     DEFAULT_DIFFICULTY, TIME_SLOTS,
 )
 from .cards import (
-    evaluate_star, evaluate_ad, make_show_instance, stamp_uids,
+    make_show_instance,
 )
 from .difficulty import DifficultyManager
-from .effects import resolve_upgrade_effects, resolve_vault_rerun
 from .requirements import evaluate as eval_requirement, describe as describe_requirement
 from . import seasonal as seasonal_mod
 from content import shows   as show_pool
@@ -31,7 +29,7 @@ from content import ads     as ad_pool
 from content import upgrades as upg_pool
 from content import events   as event_pool
 
-from .yields import rnd2, _get_age_mult, calculate_yield
+from .yields import rnd2, calculate_yield
 
 
 class GameState:
@@ -55,6 +53,12 @@ class GameState:
         self.difficulty           = DEFAULT_DIFFICULTY
         self.last_season_summary  = None
         self.last_monopoly_genre  = None
+        # Master RNG seed for the current run (set in start_new_run). Recorded so
+        # any game can be replayed; random-by-default so each new game differs.
+        self.seed: int | None     = None
+        # Chosen executive character (entry from executives.json) + its id.
+        self.executive: dict | None    = None
+        self.executive_id: str | None  = None
 
         # ── Seasonal events (Prompt 11) ────────────────────────────────────────
         # active_seasonal_modifiers: list of {event, remaining_seasons}
@@ -93,8 +97,25 @@ class GameState:
 
     # ─── RUN MANAGEMENT ───────────────────────────────────────────────────────
 
-    def start_new_run(self, increment_run: bool = False, difficulty: str = None) -> None:
-        """Reset all transient state and begin a new run."""
+    def start_new_run(self, increment_run: bool = False, difficulty: str = None,
+                      seed: int = None, executive: dict = None) -> None:
+        """Reset all transient state and begin a new run.
+
+        Parameters
+        ----------
+        executive : dict, optional
+            The chosen executive character (an entry from executives.json).
+            Its ``effects`` apply for the whole run: a persistent passive yield
+            modifier plus economy/progression levers (starting budget, per-season
+            budget, view-quota multiplier, reroll-cost multiplier).
+        seed : int, optional
+            The master RNG seed for this run.  When ``None`` (the default) a
+            fresh random seed is chosen, so every new game differs.  The chosen
+            seed is recorded on ``self.seed`` and used to reseed the global RNG,
+            which means the ENTIRE run — shop draws, rerolls, seasonal rolls —
+            is fully reproducible from that one seed.  Passing the same seed
+            (and difficulty) replays an identical game.
+        """
         if increment_run:
             self.run             += 1
             self.network_prestige += 1
@@ -102,8 +123,21 @@ class GameState:
         if difficulty is not None:
             self.difficulty = difficulty
 
+        # ── Reproducible-run seed ───────────────────────────────────────────
+        # Random by default; recorded so any game can be replayed by seed.
+        if seed is None:
+            seed = random.randrange(2 ** 31)
+        self.seed = int(seed)
+        random.seed(self.seed)
+
+        # ── Executive choice (persists for the whole run) ───────────────────
+        if executive is not None:
+            self.executive    = executive
+            self.executive_id = executive.get("id")
+
         self.season          = 1
         self.budget          = DifficultyManager.effective_starting_budget(self)
+        self.budget         += self._exec_eff("start_budget_delta", 0)
         self.total_views     = 0
         self.lineup          = [None] * 4
         self.reruns          = [None] * MAX_RERUN_SLOTS
@@ -111,7 +145,8 @@ class GameState:
         self.selected_item   = None
         self.current_tab     = "shows"
         self.next_target     = TARGET_INTERVAL
-        self.current_target  = DifficultyManager.effective_opening_target(self)
+        self.current_target  = self._apply_target_mult(
+            DifficultyManager.effective_opening_target(self))
         self.last_season_summary = None
         self.last_monopoly_genre = None
 
@@ -128,7 +163,7 @@ class GameState:
         self._seasonal_rng = random.Random(random.getrandbits(32))
         self.bailouts_used             = 0
         self._seasonal_mods_cache      = None
-        self.reroll_cost               = REROLL_BASE_COST
+        self.reroll_cost               = self._base_reroll_cost()
         self._proj_cache_key           = None
         self._proj_cache_pv            = 0
         self._proj_cache_pi            = 0.0
@@ -173,6 +208,9 @@ class GameState:
             "next_target":             self.next_target,
             "current_target":          self.current_target,
             "difficulty":              self.difficulty,
+            "seed":                    self.seed,
+            "executive":               self.executive,
+            "executive_id":            self.executive_id,
             "last_season_summary":     self.last_season_summary,
             "last_monopoly_genre":     self.last_monopoly_genre,
             "active_seasonal_modifiers": self.active_seasonal_modifiers,
@@ -207,6 +245,9 @@ class GameState:
         self.next_target               = data.get("next_target", TARGET_INTERVAL)
         self.current_target            = data.get("current_target", BASE_VIEW_TARGET)
         self.difficulty                = data.get("difficulty", DEFAULT_DIFFICULTY)
+        self.seed                      = data.get("seed")
+        self.executive                 = data.get("executive")
+        self.executive_id              = data.get("executive_id")
         self.last_season_summary       = data.get("last_season_summary")
         self.last_monopoly_genre       = data.get("last_monopoly_genre")
         self.active_seasonal_modifiers = data.get("active_seasonal_modifiers", [])
@@ -291,6 +332,61 @@ class GameState:
                 self.active_seasonal_modifiers
             )
         return self._seasonal_mods_cache
+
+    # ─── EXECUTIVE HELPERS ────────────────────────────────────────────────────
+
+    def _exec_eff(self, key: str, default):
+        """Return one of the chosen executive's effect values (or default)."""
+        if not self.executive:
+            return default
+        return self.executive.get("effects", {}).get(key, default)
+
+    def _apply_target_mult(self, target):
+        """Scale a view quota by the executive's target multiplier (1.0 if none)."""
+        mult = self._exec_eff("target_mult", 1.0)
+        return int(round(target * mult)) if mult != 1.0 else target
+
+    def _base_reroll_cost(self) -> int:
+        """Base shop reroll cost, scaled by the executive's reroll-cost multiplier."""
+        mult = self._exec_eff("reroll_cost_mult", 1.0)
+        return max(0, int(round(REROLL_BASE_COST * mult))) if mult != 1.0 else REROLL_BASE_COST
+
+    def _executive_passive_mods(self) -> dict | None:
+        """Return the executive's persistent passive yield modifier, or None."""
+        if not self.executive:
+            return None
+        pm = self.executive.get("effects", {}).get("passive_mods")
+        if not pm:
+            return None
+        # Normalize to the full seasonal-mod shape.
+        return {
+            "view_mult":       pm.get("view_mult", 1.0),
+            "upkeep_mult":     pm.get("upkeep_mult", 1.0),
+            "income_flat":     pm.get("income_flat", 0.0),
+            "genre_view_mult": dict(pm.get("genre_view_mult", {})),
+        }
+
+    def effective_yield_mods(self) -> dict | None:
+        """Combine the executive's passive mods with active seasonal mods.
+
+        Executive mods always apply; seasonal mods apply only when enabled.
+        Returns a single seasonal-mod-shaped dict (or None when neither exists),
+        so the yield pipeline can consume it exactly like a seasonal modifier.
+        """
+        exec_mods = self._executive_passive_mods()
+        seas_mods = self.aggregate_seasonal_mods()
+        if exec_mods is None and seas_mods is None:
+            return None
+        result = {"view_mult": 1.0, "upkeep_mult": 1.0, "income_flat": 0.0, "genre_view_mult": {}}
+        for src in (exec_mods, seas_mods):
+            if not src:
+                continue
+            result["view_mult"]   *= src.get("view_mult", 1.0)
+            result["upkeep_mult"] *= src.get("upkeep_mult", 1.0)
+            result["income_flat"] += src.get("income_flat", 0.0)
+            for genre, mult in src.get("genre_view_mult", {}).items():
+                result["genre_view_mult"][genre] = result["genre_view_mult"].get(genre, 1.0) * mult
+        return result
 
     def accept_contract(self, event_id: str) -> dict:
         """Accept a contract from the offers board; return {ok, message, level}."""
@@ -656,9 +752,10 @@ class GameState:
 
     def advance_season(self) -> dict:
         """Advance one season: calculate yields, update totals, check milestones; return summary dict."""
-        self.reroll_cost = REROLL_BASE_COST
+        self.reroll_cost = self._base_reroll_cost()
         season_views  = 0
-        season_income = float(BASE_INCOME)
+        # Executive per-season budget stipend folds into this season's income.
+        season_income = float(BASE_INCOME) + self._exec_eff("budget_per_season", 0)
         seasonal_event_messages: list = []
         # Season-level budget delta trackers for the totals breakdown
         cooking_boost_amount  = 0
@@ -678,8 +775,9 @@ class GameState:
             seasonal_event_messages.extend(fired_messages)
             self.pending_events = []
 
-        # ── (a) Aggregate seasonal modifiers for this season's yield calc ─────
-        s_mods = self.aggregate_seasonal_mods() if self.seasonal_events_enabled else None
+        # ── (a) Aggregate seasonal + executive modifiers for this season ──────
+        # Executive passive mods always apply; seasonal mods only when enabled.
+        s_mods = self.effective_yield_mods()
 
         # ── Genre monopoly detection ──────────────────────────────────────────
         live_shows     = show_pool.all_live_shows(self.lineup)

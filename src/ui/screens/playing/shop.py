@@ -116,7 +116,6 @@ def _draw_right_panel(ctx, state):
         ov_s = ctx._f("micro").render(">", True, C_GREEN_MID)
         ctx.screen.blit(ov_s, (ov_r.centerx - ov_s.get_width() // 2,
                                 ov_r.centery - ov_s.get_height() // 2))
-        next_start = (start_tab + n_fit) % len(tab_defs)
         def _overflow(s=start_tab):
             ns = (s + n_fit) % len(tab_defs)
             state.set_tab(tab_defs[ns][1])

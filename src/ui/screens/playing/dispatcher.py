@@ -15,8 +15,6 @@ Public entry points
       game drawn underneath their modal layer.
 """
 
-import pygame
-
 from ..base import Screen
 from .header import _draw_header
 from .schedule import _draw_left_panel

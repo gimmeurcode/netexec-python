@@ -11,7 +11,7 @@ import pygame
 
 from engine.constants import (
     C_BG, C_GREEN_BRIGHT, C_GREEN_MID, C_AMBER, C_CYAN, C_WHITE,
-    C_GREY_LIGHT, C_GREY_MID, C_NET_POS, MAX_SEASONS,
+    C_GREY_LIGHT, C_GREY_MID, MAX_SEASONS,
 )
 from ..screen_enum import GameScreen
 from ..widgets import draw_button, draw_kv, line_step

@@ -258,6 +258,138 @@ def _handle_age_show_and_boost_views(event, state, generate_shop_fn):
     }
 
 
+@event_handler("add_views_cost_budget")
+def _handle_add_views_cost_budget(event, state, generate_shop_fn):
+    """TRADEOFF: a big immediate view injection paid for in cash."""
+    params = event.get("effect_params", {})
+    name   = event.get("name", "Event")
+    views  = params.get("views", 0)
+    cost   = params.get("budget_cost", 0)
+    state.total_views += views
+    state.budget      -= cost
+    return {
+        "ok": True,
+        "message": f"{name}: +{views} VIEWS / -${cost} BUDGET",
+        "level": "warn",
+    }
+
+
+@event_handler("swap_budget_for_views")
+def _handle_swap_budget_for_views(event, state, generate_shop_fn):
+    """UNIQUE: convert a chunk of cash into views at a favourable rate.
+
+    Spends up to `max_spend` (capped by available budget) and converts it to
+    views at `views_per_dollar`. A net-positive money sink for cash-rich runs.
+    """
+    params  = event.get("effect_params", {})
+    name    = event.get("name", "Event")
+    rate    = params.get("views_per_dollar", 8)
+    desired = params.get("max_spend", 40)
+    spend   = int(max(0, min(desired, state.budget)))
+    if spend <= 0:
+        return {"ok": True, "message": f"{name}: NO BUDGET TO SPEND", "level": "warn"}
+    gained = spend * rate
+    state.budget      -= spend
+    state.total_views += gained
+    return {
+        "ok": True,
+        "message": f"{name}: -${spend} BUDGET → +{gained} VIEWS",
+        "level": "success",
+    }
+
+
+@event_handler("multiply_total_views")
+def _handle_multiply_total_views(event, state, generate_shop_fn):
+    """UNIQUE/TRADEOFF: scale current lifetime views by a factor, paid in cash.
+
+    The reward scales with how far along the run is — strongest late-game — and
+    is offset by a flat budget cost so it is not free.
+    """
+    params = event.get("effect_params", {})
+    name   = event.get("name", "Event")
+    factor = params.get("factor", 1.15)
+    cost   = params.get("budget_cost", 0)
+    before = state.total_views
+    gained = int(before * factor) - before
+    state.total_views += gained
+    state.budget      -= cost
+    return {
+        "ok": True,
+        "message": f"{name}: +{gained} VIEWS (x{factor}) / -${cost} BUDGET",
+        "level": "warn",
+    }
+
+
+@event_handler("genre_surge")
+def _handle_genre_surge(event, state, generate_shop_fn):
+    """TRADEOFF/UNIQUE: supercharge one genre's base views, at the expense of the rest."""
+    params   = event.get("effect_params", {})
+    name     = event.get("name", "Event")
+    genre    = params.get("genre", "")
+    boost    = params.get("boost", 0)
+    penalty  = params.get("penalty", 0)
+    min_base = params.get("min_base_views", 10)
+    up = down = 0
+    for show in state.lineup:
+        if not show or show.get("is_extension"):
+            continue
+        if show.get("genre") == genre:
+            show["base_views"] += boost
+            up += 1
+        elif penalty:
+            show["base_views"] = max(min_base, show["base_views"] - penalty)
+            down += 1
+    if up == 0 and down == 0:
+        return {"ok": True, "message": f"{name}: NO SHOWS IN LINEUP", "level": "warn"}
+    return {
+        "ok": True,
+        "message": f"{name}: {genre} +{boost} BASE ({up}) / -{penalty} OTHERS ({down})",
+        "level": "warn",
+    }
+
+
+@event_handler("boost_views_per_ad")
+def _handle_boost_views_per_ad(event, state, generate_shop_fn):
+    """UNIQUE: a view payout that scales with how ad-saturated your lineup is."""
+    params  = event.get("effect_params", {})
+    name    = event.get("name", "Event")
+    per_ad  = params.get("views_per_ad", 30)
+    total_ads = 0
+    for show in state.lineup:
+        if show and not show.get("is_extension"):
+            total_ads += len(show.get("attached", {}).get("ad", []))
+    gained = per_ad * total_ads
+    state.total_views += gained
+    if total_ads == 0:
+        return {"ok": True, "message": f"{name}: NO ADS ATTACHED (+0 VIEWS)", "level": "warn"}
+    return {
+        "ok": True,
+        "message": f"{name}: +{gained} VIEWS ({total_ads} ADS x{per_ad})",
+        "level": "success",
+    }
+
+
+@event_handler("retool_lineup_for_views")
+def _handle_retool_lineup_for_views(event, state, generate_shop_fn):
+    """TRADEOFF: rejuvenate the whole lineup (reset ages) — but burn lifetime views to do it."""
+    params     = event.get("effect_params", {})
+    name       = event.get("name", "Event")
+    reset_to   = params.get("reset_age_to", 1)
+    views_cost = params.get("views_cost", 0)
+    affected = 0
+    for show in state.lineup:
+        if show and not show.get("is_extension"):
+            if show.get("age", 1) > reset_to:
+                show["age"] = reset_to
+                affected += 1
+    state.total_views = max(0, state.total_views - views_cost)
+    return {
+        "ok": True,
+        "message": f"{name}: {affected} SHOW(S) RETOOLED / -{views_cost} VIEWS",
+        "level": "warn",
+    }
+
+
 # ─── DISPATCHER ───────────────────────────────────────────────────────────────
 
 def apply_event(event: dict, state, generate_shop_fn=None) -> dict:

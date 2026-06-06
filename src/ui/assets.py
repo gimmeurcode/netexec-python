@@ -35,7 +35,7 @@ Genre badge   coloured pill with genre abbreviation text
 import math
 import pygame
 from engine.constants import (
-    C_BG, C_GREEN_BRIGHT, C_GREEN_MID, C_GREEN_DIM,
+    C_GREEN_BRIGHT, C_GREEN_MID, C_GREEN_DIM,
     C_AMBER, C_RED, C_WHITE, C_BORDER,
     GENRE_COLORS, MIN_FONT_SIZE,
 )

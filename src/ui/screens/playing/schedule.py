@@ -12,26 +12,24 @@ import pygame
 
 from engine.constants import (
     PAD,
-    C_BG, C_PANEL_BORDER, C_BORDER, C_BORDER_DIM,
-    C_AMBER, C_AMBER_DIM, C_AMBER_GLOW,
+    C_BG, C_BORDER, C_BORDER_DIM,
+    C_AMBER, C_AMBER_DIM,
     C_GREEN_BRIGHT, C_GREEN_MID, C_GREEN_DIM, C_GREEN_PANEL,
-    C_BLUE, C_BLUE_DIM, C_CYAN, C_RED, C_RED_GLOW, C_RED_DIM, C_WHITE,
-    C_GREY_LIGHT, C_GREY_MID, C_GREY_DARK,
+    C_BLUE, C_BLUE_DIM, C_CYAN, C_RED, C_RED_DIM, C_WHITE,
+    C_GREY_LIGHT, C_GREY_MID,
     C_HOVER_PANEL, C_SELECTED, C_VIEWS_ACCENT,
-    C_NET_POS, C_NET_NEG, C_NET_NEUTRAL, C_INCOME_ACCENT,
+    C_NET_POS, C_NET_NEG, C_INCOME_ACCENT,
     TIME_SLOTS, MAX_ACTIVE_UPGRADES, GENRE_COLORS, BLINK_PERIOD_MS,
 )
 from ...theme import (
-    C_TINT_GREEN_DEEP, C_TINT_GREEN_FILL, C_TINT_GREEN_TAB,
-    C_TINT_GREEN_HOVER, C_TINT_GREEN_TILE, C_TINT_RED_PILL,
-    C_TINT_TEAL_BADGE, C_TINT_RED_BADGE, C_TINT_SHADOW,
+    C_TINT_GREEN_DEEP, C_TINT_GREEN_FILL,
+    C_TINT_GREEN_TILE,
+    C_TINT_TEAL_BADGE,
     SLOT_COLORS,
 )
 from engine.network import calculate_yield
-from engine.cards import check_condition, evaluate_star, evaluate_ad
 from content.shows import get_genre_registry
 from ...assets import (
-    draw_genre_icon, draw_star_icon, draw_ad_icon,
     draw_upgrade_icon, draw_event_icon,
     draw_signal_bars, draw_blink_dot, draw_show_thumb,
 )

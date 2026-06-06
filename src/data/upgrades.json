@@ -341,6 +341,176 @@
           "apply": {"v_flat": 55}
         }
       ]
+    },
+
+    // -- COMPLEX / TRADEOFF UPGRADES --
+    {
+      "id": "upg_prestige_division",
+      "name": "Prestige Division",
+      "cost": 55,
+      "desc": "DRAMA & SCIFI shows surge x1.5 Views - but REALITY is starved (x0.8). A bet on prestige over trash.",
+      "effects": [
+        {
+          "when": {
+            "type": "genre",
+            "genres": [
+              "DRAMA",
+              "SCIFI"
+            ]
+          },
+          "apply": {
+            "v_mult": 1.5
+          }
+        },
+        {
+          "when": {
+            "type": "genre",
+            "genres": [
+              "REALITY"
+            ]
+          },
+          "apply": {
+            "v_mult": 0.8
+          }
+        }
+      ]
+    },
+
+    {
+      "id": "upg_syndication_engine",
+      "name": "Syndication Engine",
+      "cost": 48,
+      "desc": "Shows aged 3+ gain +25 Views for every season they have run. Old hits become evergreen cash cows.",
+      "effects": [
+        {
+          "when": {
+            "type": "age_min",
+            "value": 3
+          },
+          "apply": {
+            "v_flat_per_age": 25
+          }
+        }
+      ]
+    },
+
+    {
+      "id": "upg_ad_conglomerate",
+      "name": "Ad Conglomerate",
+      "cost": 42,
+      "desc": "+$6 income per attached ad everywhere. But ad-heavy shows (2+ ads) take a Views x0.92 clutter penalty.",
+      "effects": [
+        {
+          "when": {
+            "type": "always"
+          },
+          "apply": {
+            "income_per_ad": 6
+          }
+        },
+        {
+          "when": {
+            "type": "ad_count_min",
+            "value": 2
+          },
+          "apply": {
+            "v_mult": 0.92
+          }
+        }
+      ]
+    },
+
+    {
+      "id": "upg_star_factory",
+      "name": "Star Factory",
+      "cost": 46,
+      "desc": "Any show with a star gets Views x1.1 and +$7 income per attached star. Talent compounds.",
+      "effects": [
+        {
+          "when": {
+            "type": "has_stars"
+          },
+          "apply": {
+            "v_mult": 1.1,
+            "income_per_star": 7
+          }
+        }
+      ]
+    },
+
+    {
+      "id": "upg_late_bloomer",
+      "name": "Late Bloomer Strategy",
+      "cost": 38,
+      "desc": "Dormant early, devastating late: from Season 6 onward ALL shows gain Views x1.4.",
+      "effects": [
+        {
+          "when": {
+            "type": "season_min",
+            "value": 6
+          },
+          "apply": {
+            "v_mult": 1.4
+          }
+        }
+      ]
+    },
+
+    {
+      "id": "upg_lean_operation",
+      "name": "Lean Operation",
+      "cost": 40,
+      "desc": "+$12 flat income on every show, at the cost of a slight across-the-board Views x0.95. Margins over reach.",
+      "effects": [
+        {
+          "when": {
+            "type": "always"
+          },
+          "apply": {
+            "income_flat": 12,
+            "v_mult": 0.95
+          }
+        }
+      ]
+    },
+
+    {
+      "id": "upg_tentpole_doctrine",
+      "name": "Tentpole Doctrine",
+      "cost": 50,
+      "desc": "Two-slot shows become monsters: +60 Views and Views x1.6. Single-slot shows get nothing.",
+      "effects": [
+        {
+          "when": {
+            "type": "size_min",
+            "value": 2
+          },
+          "apply": {
+            "v_flat": 60,
+            "v_mult": 1.6
+          }
+        }
+      ]
+    },
+
+    {
+      "id": "upg_counterprogramming",
+      "name": "Counterprogramming",
+      "cost": 36,
+      "desc": "Everything that is NOT a sitcom gets +40 Views. Reward for a diverse, un-safe schedule.",
+      "effects": [
+        {
+          "when": {
+            "type": "genre_not",
+            "genres": [
+              "SITCOM"
+            ]
+          },
+          "apply": {
+            "v_flat": 40
+          }
+        }
+      ]
     }
   ]
 }

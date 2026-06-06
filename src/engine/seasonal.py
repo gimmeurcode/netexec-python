@@ -40,8 +40,10 @@ def _load() -> None:
     global _EVENTS, _LOADED
     if _LOADED:
         return
-    from .cards import load_seasonal_events
-    _EVENTS = load_seasonal_events()
+    from .cards import load_seasonal_events, load_contracts
+    # Contracts now live in their own contracts.json; merge them back in so the
+    # rest of the seasonal pipeline (offers board, rolls, rewards) is unchanged.
+    _EVENTS = load_seasonal_events() + load_contracts()
     _LOADED = True
 
 

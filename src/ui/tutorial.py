@@ -25,8 +25,8 @@ Each step dict:
 
 import pygame
 from engine.constants import (
-    C_BG, C_GREEN_BRIGHT, C_GREEN_MID, C_GREEN_DIM,
-    C_AMBER, C_WHITE, C_CYAN, C_BORDER,
+    C_GREEN_MID, C_GREEN_DIM,
+    C_WHITE, C_CYAN,
     SCREEN_WIDTH, SCREEN_HEIGHT,
 )
 
@@ -45,7 +45,21 @@ STEPS = [
         "tab":       None,
         "trigger":   None,
     },
-    # ── 1 — THE SHOP ───────────────────────────────────────────────────────────
+    # ── 1 — YOUR EXECUTIVE ─────────────────────────────────────────────────────
+    {
+        "title":     "YOUR EXECUTIVE",
+        "body": (
+            "Starting a game you picked a SEED (random by default — same seed "
+            "replays the same run), then a DIFFICULTY, then one of three "
+            "EXECUTIVES drawn from a roster of seven. Your executive's perk "
+            "applies all run — a passive boost with a real tradeoff, e.g. bigger "
+            "budget but weaker views. Full details in SETTINGS - RULES."
+        ),
+        "highlight": None,
+        "tab":       None,
+        "trigger":   None,
+    },
+    # ── 2 — THE SHOP ───────────────────────────────────────────────────────────
     {
         "title":     "THE SHOP",
         "body": (

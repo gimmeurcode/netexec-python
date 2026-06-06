@@ -25,6 +25,7 @@ Effect/fallback dicts (all fields optional, defaults shown):
 
 import json
 import os
+import random
 import sys
 import uuid
 
@@ -104,10 +105,38 @@ def load_seasonal_events() -> list:
     return data["events"]
 
 
+def load_contracts() -> list:
+    """Load the contract-kind seasonal events from contracts.json.
+
+    Contracts were split out of seasonal_events.json into their own file;
+    engine.seasonal merges this list back in with the other seasonal events.
+    """
+    data = _load_json("contracts.json")
+    return data["events"]
+
+
 def load_bailouts() -> list:
     """Load bailout tier definitions from bailouts.json."""
     data = _load_json("bailouts.json")
     return data["tiers"]
+
+
+def load_executives() -> list:
+    """Load the selectable executive characters from executives.json."""
+    data = _load_json("executives.json")
+    return data["executives"]
+
+
+def draw_executive_offers(count: int = 3, rng=None) -> list:
+    """Draw `count` distinct executives to offer the player at new-game.
+
+    Random by default (each new game offers a different subset of the roster),
+    so the player cannot always pick the same executive. Pass an ``rng`` (a
+    ``random.Random``) for deterministic draws in tests.
+    """
+    execs = load_executives()
+    r = rng if rng is not None else random
+    return r.sample(execs, min(count, len(execs)))
 
 
 # ─── CONDITION EVALUATION ─────────────────────────────────────────────────────
@@ -126,6 +155,10 @@ def check_condition(condition: dict | None, show: dict) -> bool:
         genres = condition.get("genres", [])
         return show.get("genre") in genres
 
+    elif ctype == "genre_not":
+        genres = condition.get("genres", [])
+        return show.get("genre") not in genres
+
     elif ctype == "size_min":
         return show.get("size", 1) >= condition.get("value", 2)
 
@@ -134,8 +167,29 @@ def check_condition(condition: dict | None, show: dict) -> bool:
         ad_slots = show.get("ad_slots", show.get("slots", {}).get("ad", 0))
         return ad_slots >= condition.get("value", 2)
 
+    elif ctype == "star_slots_min":
+        return show.get("star_slots", 0) >= condition.get("value", 1)
+
     elif ctype == "age_min":
         return show.get("age", 1) >= condition.get("value", 1)
+
+    elif ctype == "age_max":
+        return show.get("age", 1) <= condition.get("value", 1)
+
+    elif ctype == "has_stars":
+        return bool(show.get("attached", {}).get("star", []))
+
+    elif ctype == "has_ads":
+        return bool(show.get("attached", {}).get("ad", []))
+
+    elif ctype == "and":
+        return all(check_condition(c, show) for c in condition.get("conditions", []))
+
+    elif ctype == "or":
+        return any(check_condition(c, show) for c in condition.get("conditions", []))
+
+    elif ctype == "not":
+        return not check_condition(condition.get("condition", {"type": "always"}), show)
 
     # Unknown condition type — fail safe (fires effect so player doesn't
     # silently lose a card's bonus without explanation).
@@ -152,6 +206,38 @@ def normalize_effect(effect: dict) -> dict:
     }
 
 
+def expand_dynamic_effect(raw: dict, show: dict) -> dict:
+    """Resolve context-scaling effect keys into the base v_flat / income channels.
+
+    Lets a star or ad scale with the host show's age and attachment counts
+    (e.g. a star that grows stronger the longer a show runs, or an ad that pays
+    more the more other ads share the slot) without changing the yield math.
+    Recognised dynamic keys:
+        v_per_age        → v_flat += value * show.age
+        v_flat_per_star  → v_flat += value * (# attached stars)
+        v_flat_per_ad    → v_flat += value * (# attached ads)
+        income_per_ad    → income += value * (# attached ads)
+        income_per_star  → income += value * (# attached stars)
+    """
+    if not raw:
+        return raw
+    attached = show.get("attached", {})
+    n_star = len(attached.get("star", []))
+    n_ad   = len(attached.get("ad", []))
+    age    = show.get("age", 1)
+    bonus_v = (raw.get("v_per_age", 0) * age
+               + raw.get("v_flat_per_star", 0) * n_star
+               + raw.get("v_flat_per_ad", 0) * n_ad)
+    bonus_inc = (raw.get("income_per_ad", 0) * n_ad
+                 + raw.get("income_per_star", 0) * n_star)
+    if not bonus_v and not bonus_inc:
+        return raw
+    out = dict(raw)
+    out["v_flat"] = out.get("v_flat", 0) + bonus_v
+    out["income"] = out.get("income", 0) + bonus_inc
+    return out
+
+
 def evaluate_star(star: dict, show: dict) -> dict:
     """Apply a star's condition against a show and return the active normalized effect dict."""
     condition = star.get("condition")
@@ -159,7 +245,7 @@ def evaluate_star(star: dict, show: dict) -> dict:
         raw = star.get("effect", {})
     else:
         raw = star.get("fallback", {})
-    return normalize_effect(raw)
+    return normalize_effect(expand_dynamic_effect(raw, show))
 
 
 def evaluate_ad(ad: dict, show: dict) -> dict:
@@ -169,7 +255,7 @@ def evaluate_ad(ad: dict, show: dict) -> dict:
         raw = ad.get("effect", {})
     else:
         raw = ad.get("fallback", {})
-    eff = normalize_effect(raw)
+    eff = normalize_effect(expand_dynamic_effect(raw, show))
     eff["upkeep"] = 0   # ads never add upkeep
     return eff
 

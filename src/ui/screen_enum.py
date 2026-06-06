@@ -10,7 +10,9 @@ from enum import Enum, auto
 
 class GameScreen(Enum):
     MENU          = auto()
+    SEED_SELECT   = auto()
     DIFFICULTY    = auto()
+    EXECUTIVE_SELECT = auto()
     SETTINGS      = auto()
     PLAYING       = auto()
     SEASON_SUMMARY = auto()

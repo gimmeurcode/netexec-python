@@ -1070,7 +1070,142 @@
       "ad_slots": 3,
       "rec_slots": [0],
       "desc": "Everything is a crisis by 7 AM. A format perfected over forty years of morning television. The coffee is complimentary."
+    },
+
+    // ── TRADEOFF / TENTPOLE SHOWS (high ceiling, real downside) ──
+    {
+      "id": "sh_starfall_armada",
+      "name": "Starfall Armada",
+      "genre": "SCIFI",
+      "size": 2,
+      "cost": 48,
+      "upkeep": 14,
+      "base_views": 320,
+      "star_slots": 2,
+      "ad_slots": 1,
+      "rec_slots": [
+        1,
+        2
+      ],
+      "desc": "A galaxy-spanning space opera with a cast of thousands and a VFX bill to match. Colossal numbers — if you can keep the lights on. Two slots of prestige and an upkeep bill that will haunt your ledger."
+    },
+
+    {
+      "id": "sh_crown_of_ash",
+      "name": "Crown of Ash",
+      "genre": "DRAMA",
+      "size": 2,
+      "cost": 44,
+      "upkeep": 12,
+      "base_views": 300,
+      "star_slots": 2,
+      "ad_slots": 0,
+      "rec_slots": [
+        1,
+        2
+      ],
+      "desc": "Royal intrigue, dragons of allegory, and a shocking death per episode. Awards bait that bleeds money but commands a premium audience. No ad slots — too prestigious for commercials."
+    },
+
+    {
+      "id": "sh_bargain_bin_bonanza",
+      "name": "Bargain Bin Bonanza",
+      "genre": "REALITY",
+      "size": 1,
+      "cost": 10,
+      "upkeep": 2,
+      "base_views": 70,
+      "star_slots": 0,
+      "ad_slots": 3,
+      "rec_slots": [
+        0,
+        3
+      ],
+      "desc": "Contestants dig through a warehouse for hidden treasure. Cheap, low ceiling alone — but three ad slots make it a billboard with a pulse. An ad-stacker's dream."
+    },
+
+    {
+      "id": "sh_gridiron_sunday",
+      "name": "Gridiron Sunday Primetime",
+      "genre": "SPORTS",
+      "size": 2,
+      "cost": 52,
+      "upkeep": 16,
+      "base_views": 360,
+      "star_slots": 0,
+      "ad_slots": 2,
+      "rec_slots": [
+        2
+      ],
+      "desc": "Live championship football in the marquee slot. The biggest audience on the dial — and the biggest rights fee. Every season the upkeep tries to bankrupt you and every season the numbers make it worth it."
+    },
+
+    {
+      "id": "sh_midnight_diner",
+      "name": "The Midnight Diner",
+      "genre": "COOKING",
+      "size": 1,
+      "cost": 22,
+      "upkeep": 5,
+      "base_views": 140,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [
+        3
+      ],
+      "desc": "Comfort food and quiet confessions served after hours. A warm, dependable mid-tier earner with a star slot for a celebrity chef and room for two sponsors."
+    },
+
+    {
+      "id": "sh_breaking_point_news",
+      "name": "Breaking Point",
+      "genre": "NEWS",
+      "size": 1,
+      "cost": 16,
+      "upkeep": 6,
+      "base_views": 120,
+      "star_slots": 1,
+      "ad_slots": 2,
+      "rec_slots": [
+        0,
+        3
+      ],
+      "desc": "Wall-to-wall breaking coverage with an anchor who never blinks. Reliable, ad-friendly, and slightly pricier to run than it looks — those satellite trucks aren't free."
+    },
+
+    {
+      "id": "sh_laugh_riot_live",
+      "name": "Laugh Riot Live",
+      "genre": "SITCOM",
+      "size": 1,
+      "cost": 12,
+      "upkeep": 3,
+      "base_views": 95,
+      "star_slots": 2,
+      "ad_slots": 1,
+      "rec_slots": [
+        1,
+        2
+      ],
+      "desc": "A live multi-cam taped before a studio audience. Modest alone, but TWO star slots make it a vehicle built for talent — load it up and watch it climb."
+    },
+
+    {
+      "id": "sh_quantum_paradox",
+      "name": "Quantum Paradox",
+      "genre": "SCIFI",
+      "size": 1,
+      "cost": 30,
+      "upkeep": 9,
+      "base_views": 185,
+      "star_slots": 1,
+      "ad_slots": 0,
+      "rec_slots": [
+        2
+      ],
+      "desc": "A cerebral time-loop thriller that demands a prestige slot and pays back hard once it ages into a cult favourite. No ad slots — zero interruptions mandated. High maintenance, high reward."
     }
+
 
   ]
 }

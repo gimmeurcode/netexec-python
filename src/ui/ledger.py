@@ -11,8 +11,8 @@ integration; the actual log list lives on GameState to avoid UI→engine imports
 import pygame
 
 from engine.constants import (
-    C_PANEL, C_PANEL_BORDER, C_GREEN_BRIGHT, C_GREEN_MID, C_GREEN_DIM,
-    C_AMBER, C_RED, C_WHITE, C_GREY_LIGHT, C_GREY_MID, C_GREY_DARK, PAD,
+    C_PANEL, C_PANEL_BORDER, C_GREEN_BRIGHT, C_GREEN_DIM,
+    C_AMBER, C_RED, C_WHITE, C_GREY_LIGHT, C_GREY_MID, PAD,
 )
 from .widgets import line_step, draw_scrollbar
 
@@ -61,7 +61,6 @@ class Ledger:
         # Header row
         f_bold = ctx._f("bold")
         f_mi   = ctx._f("micro")
-        f_sm   = ctx._f("small")
 
         header_surf = f_bold.render("LEDGER — FINANCIAL HISTORY", True, C_GREEN_BRIGHT)
         ctx.screen.blit(header_surf, (rx + 8, ry + 6))

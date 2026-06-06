@@ -28,7 +28,7 @@ from __future__ import annotations
 import math
 import pygame
 
-from ui.layout import Layout, BEZEL_RAIL_H, BEZEL_PAD
+from ui.layout import Layout, BEZEL_PAD
 from engine.constants import BLINK_PERIOD_MS, MIN_FONT_SIZE
 
 # ── Chrome palette ─────────────────────────────────────────────────────────────

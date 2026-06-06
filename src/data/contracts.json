@@ -1,0 +1,336 @@
+{
+  "version": "1.0.0",
+  "notes": "Contract-kind seasonal events, split out of seasonal_events.json. Loaded and MERGED with seasonal_events.json by engine.seasonal._load() via cards.load_contracts(). Fields: id, name, desc, weight, min_season, duration, kind('contract'), is_offerable, requirement{type,...}, reward{budget_bonus|...}, penalty{budget_loss|...}. Offerable contracts (is_offerable:true) appear on the offers board to accept voluntarily; non-offerable auto-fire.",
+  "events": [
+    {
+      "id": "sev_streaming_acquisition",
+      "name": "Streaming Acquisition Offer",
+      "desc": "NEXT SEASON NEWS [CONTRACT - AUTO]: StreamVault wants your back catalogue. Reach 3,000 total lifetime views within 4 seasons to earn +$60 budget. Miss the window: -$25 budget penalty. Checked at the END of each season.",
+      "weight": 3,
+      "min_season": 4,
+      "duration": 4,
+      "kind": "contract",
+      "is_offerable": false,
+      "requirement": {
+        "type": "reach_views",
+        "value": 3000
+      },
+      "reward": {
+        "budget_bonus": 60
+      },
+      "penalty": {
+        "budget_loss": 25
+      }
+    },
+    {
+      "id": "sev_network_merger",
+      "name": "Network Merger Talks",
+      "desc": "NEXT SEASON NEWS [CONTRACT - AUTO]: A rival network is sniffing around. Avoid running a Reality genre monopoly for 3 seasons to earn +$40 budget. If you hold a Reality monopoly when the window closes: -$15 penalty.",
+      "weight": 3,
+      "min_season": 5,
+      "duration": 3,
+      "kind": "contract",
+      "is_offerable": false,
+      "requirement": {
+        "type": "avoid_genre",
+        "genre": "REALITY"
+      },
+      "reward": {
+        "budget_bonus": 40
+      },
+      "penalty": {
+        "budget_loss": 15
+      }
+    },
+    {
+      "id": "sev_offer_sports_deal",
+      "name": "Live Sports Exclusivity",
+      "desc": "OPTIONAL CONTRACT: Air 2+ Sports shows within the 3-season window. Reward: +$30 budget. Penalty if window closes unmet: -$15 budget. Accept on the CONTRACTS tab. Checked at END of each season.",
+      "weight": 5,
+      "min_season": 2,
+      "duration": 3,
+      "kind": "contract",
+      "is_offerable": true,
+      "requirement": {
+        "type": "air_genre_count",
+        "genre": "SPORTS",
+        "count": 2
+      },
+      "reward": {
+        "budget_bonus": 30
+      },
+      "penalty": {
+        "budget_loss": 15
+      }
+    },
+    {
+      "id": "sev_offer_drama_prestige",
+      "name": "Prestige Drama Commission",
+      "desc": "OPTIONAL CONTRACT: Keep 2+ Drama shows on air within the 3-season window. Reward: +$28 budget. Penalty if window closes unmet: -$12 budget. Accept on the CONTRACTS tab.",
+      "weight": 5,
+      "min_season": 2,
+      "duration": 3,
+      "kind": "contract",
+      "is_offerable": true,
+      "requirement": {
+        "type": "air_genre_count",
+        "genre": "DRAMA",
+        "count": 2
+      },
+      "reward": {
+        "budget_bonus": 28
+      },
+      "penalty": {
+        "budget_loss": 12
+      }
+    },
+    {
+      "id": "sev_offer_cooking_sponsor",
+      "name": "Culinary Brand Sponsorship",
+      "desc": "OPTIONAL CONTRACT: Air 2+ Cooking shows within the 3-season window. Reward: +$26 budget. Penalty if window closes unmet: -$10 budget. Accept on the CONTRACTS tab.",
+      "weight": 5,
+      "min_season": 2,
+      "duration": 3,
+      "kind": "contract",
+      "is_offerable": true,
+      "requirement": {
+        "type": "air_genre_count",
+        "genre": "COOKING",
+        "count": 2
+      },
+      "reward": {
+        "budget_bonus": 26
+      },
+      "penalty": {
+        "budget_loss": 10
+      }
+    },
+    {
+      "id": "sev_offer_views_milestone",
+      "name": "Ratings Agency Challenge",
+      "desc": "OPTIONAL CONTRACT: Reach 6,000 total lifetime views within 4 seasons. Reward: +$40 budget. No penalty if unmet — purely an upside opportunity. Accept on the CONTRACTS tab.",
+      "weight": 4,
+      "min_season": 5,
+      "duration": 4,
+      "kind": "contract",
+      "is_offerable": true,
+      "requirement": {
+        "type": "reach_views",
+        "value": 6000
+      },
+      "reward": {
+        "budget_bonus": 40
+      },
+      "penalty": {}
+    },
+    {
+      "id": "sev_offer_star_showcase",
+      "name": "Talent Agency Showcase",
+      "desc": "OPTIONAL CONTRACT: Keep 4+ stars attached across your full lineup for 3 seasons. Reward: +$32 budget. Penalty if window closes unmet: -$14 budget. Stars in vault count. Accept on the CONTRACTS tab.",
+      "weight": 4,
+      "min_season": 3,
+      "duration": 3,
+      "kind": "contract",
+      "is_offerable": true,
+      "requirement": {
+        "type": "attach_stars_count",
+        "count": 4
+      },
+      "reward": {
+        "budget_bonus": 32
+      },
+      "penalty": {
+        "budget_loss": 14
+      }
+    },
+    {
+      "id": "sev_offer_news_grant",
+      "name": "Public Broadcasting Grant",
+      "desc": "OPTIONAL CONTRACT: Keep at least 1 News show on air for 4 seasons. Reward: +$30 budget. Penalty if window closes unmet: -$10 budget. Accept on the CONTRACTS tab.",
+      "weight": 4,
+      "min_season": 2,
+      "duration": 4,
+      "kind": "contract",
+      "is_offerable": true,
+      "requirement": {
+        "type": "air_genre_count",
+        "genre": "NEWS",
+        "count": 1
+      },
+      "reward": {
+        "budget_bonus": 30
+      },
+      "penalty": {
+        "budget_loss": 10
+      }
+    },
+
+    // -- EXPANSION CONTRACTS (new requirement types) --
+    {
+      "id": "sev_offer_blockbuster",
+      "name": "Blockbuster Slate Deal",
+      "desc": "OPTIONAL CONTRACT: Air 2+ two-slot tentpole shows within the 3-season window. Reward: +$45 budget. Penalty if unmet: -$18. Accept on the CONTRACTS tab.",
+      "weight": 4,
+      "min_season": 4,
+      "duration": 3,
+      "kind": "contract",
+      "is_offerable": true,
+      "requirement": {
+        "type": "air_size2_count",
+        "count": 2
+      },
+      "reward": {
+        "budget_bonus": 45
+      },
+      "penalty": {
+        "budget_loss": 18
+      }
+    },
+
+    {
+      "id": "sev_offer_ad_saturation",
+      "name": "Sponsor Saturation Pact",
+      "desc": "OPTIONAL CONTRACT: Keep 6+ ads attached across your lineup within the 3-season window. Reward: +$36 budget. Penalty if unmet: -$14. Accept on the CONTRACTS tab.",
+      "weight": 5,
+      "min_season": 3,
+      "duration": 3,
+      "kind": "contract",
+      "is_offerable": true,
+      "requirement": {
+        "type": "attach_ads_count",
+        "count": 6
+      },
+      "reward": {
+        "budget_bonus": 36
+      },
+      "penalty": {
+        "budget_loss": 14
+      }
+    },
+
+    {
+      "id": "sev_offer_variety_showcase",
+      "name": "Variety Showcase Mandate",
+      "desc": "OPTIONAL CONTRACT: Air 4+ different genres at once within the 3-season window. Reward: +$40 budget. Penalty if unmet: -$16. Rewards a broad, balanced schedule.",
+      "weight": 4,
+      "min_season": 3,
+      "duration": 3,
+      "kind": "contract",
+      "is_offerable": true,
+      "requirement": {
+        "type": "genre_variety",
+        "count": 4
+      },
+      "reward": {
+        "budget_bonus": 40
+      },
+      "penalty": {
+        "budget_loss": 16
+      }
+    },
+
+    {
+      "id": "sev_offer_full_schedule",
+      "name": "Full Schedule Guarantee",
+      "desc": "OPTIONAL CONTRACT: Keep all 4 lineup slots filled within the 2-season window. Reward: +$30 budget. Penalty if unmet: -$12. No dead air allowed.",
+      "weight": 5,
+      "min_season": 2,
+      "duration": 2,
+      "kind": "contract",
+      "is_offerable": true,
+      "requirement": {
+        "type": "fill_lineup",
+        "count": 4
+      },
+      "reward": {
+        "budget_bonus": 30
+      },
+      "penalty": {
+        "budget_loss": 12
+      }
+    },
+
+    {
+      "id": "sev_offer_mega_views",
+      "name": "Ratings Empire Challenge",
+      "desc": "OPTIONAL CONTRACT: Reach 9,000 total lifetime views within 4 seasons. Reward: +$60 budget. No penalty - pure upside for a strong run.",
+      "weight": 3,
+      "min_season": 6,
+      "duration": 4,
+      "kind": "contract",
+      "is_offerable": true,
+      "requirement": {
+        "type": "reach_views",
+        "value": 9000
+      },
+      "reward": {
+        "budget_bonus": 60
+      },
+      "penalty": {}
+    },
+
+    {
+      "id": "sev_offer_star_power",
+      "name": "All-Star Network Deal",
+      "desc": "OPTIONAL CONTRACT: Keep 6+ stars attached across your lineup within the 3-season window. Reward: +$44 budget. Penalty if unmet: -$18. A talent-heavy gamble.",
+      "weight": 4,
+      "min_season": 4,
+      "duration": 3,
+      "kind": "contract",
+      "is_offerable": true,
+      "requirement": {
+        "type": "attach_stars_count",
+        "count": 6
+      },
+      "reward": {
+        "budget_bonus": 44
+      },
+      "penalty": {
+        "budget_loss": 18
+      }
+    },
+
+    {
+      "id": "sev_offer_sports_block",
+      "name": "Weekend Sports Block",
+      "desc": "OPTIONAL CONTRACT: Air 2+ Sports shows within the 3-season window. Reward: +$34 budget. Penalty if unmet: -$14. Accept on the CONTRACTS tab.",
+      "weight": 5,
+      "min_season": 3,
+      "duration": 3,
+      "kind": "contract",
+      "is_offerable": true,
+      "requirement": {
+        "type": "air_genre_count",
+        "genre": "SPORTS",
+        "count": 2
+      },
+      "reward": {
+        "budget_bonus": 34
+      },
+      "penalty": {
+        "budget_loss": 14
+      }
+    },
+
+    {
+      "id": "sev_offer_war_chest",
+      "name": "War Chest Audit",
+      "desc": "OPTIONAL CONTRACT: Hold a budget of $200+ at season end within the 3-season window. Reward: +$30 budget. Penalty if unmet: -$10. Rewards disciplined cash management.",
+      "weight": 4,
+      "min_season": 4,
+      "duration": 3,
+      "kind": "contract",
+      "is_offerable": true,
+      "requirement": {
+        "type": "min_budget",
+        "value": 200
+      },
+      "reward": {
+        "budget_bonus": 30
+      },
+      "penalty": {
+        "budget_loss": 10
+      }
+    }
+  ]
+}

@@ -349,6 +349,157 @@
       "effect":   {"income": 18, "v_flat": 28},
       "fallback": {"income": 8},
       "desc": "A startup that pivoted four times and is now a television sponsor. SCIFI audiences inexplicably trust them. Strong premium ROI."
+    },
+
+    // ── TRADEOFF / SCALING ADS ──
+    {
+      "id": "ad_luxury_timepiece",
+      "name": "Chronos Luxury Watches",
+      "cost": 0,
+      "upfront_cash": 0,
+      "condition": {
+        "type": "always"
+      },
+      "condition_text": "Always: +$30 income, but Views x0.85 (snobby, alienating)",
+      "effect": {
+        "income": 30,
+        "v_mult": 0.85
+      },
+      "fallback": {},
+      "desc": "An ad so opulent it makes your audience feel poor and slightly resentful. The cheque clears beautifully; the viewers drift."
+    },
+
+    {
+      "id": "ad_streamrival_takeover",
+      "name": "RivalStream Takeover",
+      "cost": 0,
+      "upfront_cash": 45,
+      "condition": {
+        "type": "always"
+      },
+      "condition_text": "Always: big +$45 upfront, then Views x0.8 ongoing",
+      "effect": {
+        "v_mult": 0.8,
+        "income": 4
+      },
+      "fallback": {},
+      "desc": "A competitor pays a fortune up front to advertise their own platform on your air. The cash is glorious. The slow viewer exodus, less so."
+    },
+
+    {
+      "id": "ad_synergy_consortium",
+      "name": "Synergy Ad Consortium",
+      "cost": 8,
+      "upfront_cash": 0,
+      "condition": {
+        "type": "has_ads"
+      },
+      "condition_text": "If sharing with other ads: +$10 income per attached ad",
+      "effect": {
+        "income_per_ad": 10,
+        "income": 4
+      },
+      "fallback": {
+        "income": 6
+      },
+      "desc": "A media buyer that pays bulk rates — the more sponsors already crowding the show, the sweeter the deal it cuts you."
+    },
+
+    {
+      "id": "ad_prestige_marque",
+      "name": "Maison Prestige",
+      "cost": 12,
+      "upfront_cash": 0,
+      "condition": {
+        "type": "genre",
+        "genres": [
+          "DRAMA"
+        ]
+      },
+      "condition_text": "On DRAMA: +$22 income & Views x1.05. Off-genre: +$6",
+      "effect": {
+        "income": 22,
+        "v_mult": 1.05
+      },
+      "fallback": {
+        "income": 6
+      },
+      "desc": "A heritage fashion house that only wants to be seen beside prestige drama. Put it where it belongs and it pays a premium and lends class."
+    },
+
+    {
+      "id": "ad_viral_guerrilla",
+      "name": "Guerrilla Viral Campaign",
+      "cost": 10,
+      "upfront_cash": 0,
+      "condition": {
+        "type": "always"
+      },
+      "condition_text": "Always: +90 views, but -$2 income (you foot the buzz bill)",
+      "effect": {
+        "v_flat": 90,
+        "income": -2
+      },
+      "fallback": {},
+      "desc": "A stunt campaign engineered for clicks, not cash. It drags eyeballs in by the thousand and quietly bills you for the privilege."
+    },
+
+    {
+      "id": "ad_latenight_informercial",
+      "name": "3AM Miracle Infomercial",
+      "cost": 6,
+      "upfront_cash": 0,
+      "condition": {
+        "type": "age_min",
+        "value": 3
+      },
+      "condition_text": "On age 3+ shows: +$26 income. Otherwise: +$8",
+      "effect": {
+        "income": 26
+      },
+      "fallback": {
+        "income": 8
+      },
+      "desc": "A relentless direct-response spot that prints money in the graveyard reruns of an established show. Set-and-forget revenue."
+    },
+
+    {
+      "id": "ad_energy_overdrive",
+      "name": "Overdrive Energy",
+      "cost": 9,
+      "upfront_cash": 3,
+      "condition": {
+        "type": "always"
+      },
+      "condition_text": "Always: +$18 income, +20 views, Views x0.95 (loud)",
+      "effect": {
+        "income": 18,
+        "v_flat": 20,
+        "v_mult": 0.95
+      },
+      "fallback": {},
+      "desc": "A garishly loud sponsor that pays well and pulls a few curious viewers, even as it grates on everyone else. A noisy net win."
+    },
+
+    {
+      "id": "ad_civic_trust",
+      "name": "Civic Trust Bank",
+      "cost": 14,
+      "upfront_cash": 0,
+      "condition": {
+        "type": "genre_not",
+        "genres": [
+          "REALITY"
+        ]
+      },
+      "condition_text": "On non-REALITY shows: +$20 income. On reality: +$5 (brand-unsafe)",
+      "effect": {
+        "income": 20
+      },
+      "fallback": {
+        "income": 5
+      },
+      "desc": "A buttoned-up institution that will pay handsomely to sit beside respectable programming — and flees the chaos of reality TV."
     }
   ]
 }

@@ -34,25 +34,47 @@ Scope semantics:
 """
 
 
-def _check_condition(when: dict, show: dict, slot_indices: list) -> bool:
+def _check_condition(when: dict, show: dict, slot_indices: list, season: int = 1) -> bool:
     ctype = when.get("type", "always")
     if ctype == "always":
         return True
     if ctype == "genre":
         return show.get("genre") in when.get("genres", [])
+    if ctype == "genre_not":
+        return show.get("genre") not in when.get("genres", [])
     if ctype == "age_min":
         return show.get("age", 1) >= when.get("value", 1)
+    if ctype == "age_max":
+        return show.get("age", 1) <= when.get("value", 1)
+    if ctype == "size_min":
+        return show.get("size", 1) >= when.get("value", 2)
     if ctype == "slot":
         return any(s in slot_indices for s in when.get("slots", []))
     if ctype == "has_stars":
         return bool(show.get("attached", {}).get("star", []))
     if ctype == "has_ads":
         return bool(show.get("attached", {}).get("ad", []))
+    if ctype == "star_count_min":
+        return len(show.get("attached", {}).get("star", [])) >= when.get("value", 1)
+    if ctype == "ad_count_min":
+        return len(show.get("attached", {}).get("ad", [])) >= when.get("value", 1)
+    if ctype == "season_min":
+        return season >= when.get("value", 1)
+    if ctype == "season_max":
+        return season <= when.get("value", 1)
     if ctype == "and":
         return all(
-            _check_condition(c, show, slot_indices)
+            _check_condition(c, show, slot_indices, season)
             for c in when.get("conditions", [])
         )
+    if ctype == "or":
+        return any(
+            _check_condition(c, show, slot_indices, season)
+            for c in when.get("conditions", [])
+        )
+    if ctype == "not":
+        return not _check_condition(when.get("condition", {"type": "always"}),
+                                    show, slot_indices, season)
     return True  # unknown type → fail-safe (don't silently drop bonuses)
 
 
@@ -68,7 +90,9 @@ def resolve_upgrade_effects(
     mult_factor = 1.0
     income_add = 0.0
 
-    ads = show.get("attached", {}).get("ad", [])
+    ads   = show.get("attached", {}).get("ad", [])
+    stars = show.get("attached", {}).get("star", [])
+    age   = show.get("age", 1)
 
     for eff in perk.get("effects", []):
         scope = eff.get("scope", "any")
@@ -78,12 +102,14 @@ def resolve_upgrade_effects(
             continue
 
         when = eff.get("when", {"type": "always"})
-        if not _check_condition(when, show, slot_indices):
+        if not _check_condition(when, show, slot_indices, season):
             continue
 
         ap = eff.get("apply", {})
         v_add += ap.get("v_flat", 0)
         v_add += ap.get("v_per_season", 0) * season
+        v_add += ap.get("v_per_ad", 0) * len(ads)
+        v_add += ap.get("v_flat_per_age", 0) * age
 
         vm = ap.get("v_mult", 1.0)
         if vm != 1.0:
@@ -91,6 +117,7 @@ def resolve_upgrade_effects(
 
         income_add += ap.get("income_flat", 0)
         income_add += ap.get("income_per_ad", 0) * len(ads)
+        income_add += ap.get("income_per_star", 0) * len(stars)
 
     return v_add, mult_factor, income_add
 

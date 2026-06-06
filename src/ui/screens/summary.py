@@ -13,10 +13,10 @@ Shows:
 import pygame
 
 from engine.constants import (
-    C_BG, C_PANEL, C_PANEL_BORDER, C_GREEN_BRIGHT, C_GREEN_DIM,
-    C_AMBER, C_AMBER_DIM, C_RED, C_RED_DIM, C_WHITE, C_BORDER,
+    C_BG, C_GREEN_BRIGHT, C_GREEN_DIM,
+    C_AMBER, C_RED, C_RED_DIM, C_WHITE, C_BORDER,
     C_CYAN, C_BLUE, C_GREY_LIGHT, C_GREY_MID, C_GREY_DARK,
-    C_NET_POS, C_NET_NEG, C_VIEWS_ACCENT,
+    C_NET_POS, C_VIEWS_ACCENT,
 )
 from ..theme import C_TINT_RED_DARK, C_TINT_BLUE_DARK
 from ..screen_enum import GameScreen

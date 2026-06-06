@@ -1,0 +1,98 @@
+{
+  "version": "1.0.0",
+  "notes": "Executive characters chosen at the start of a new run. The player is offered 3 of these 7 (drawn with the run seed) and must pick one, so the same executive is not always available. Each executive applies a persistent, run-long set of effects. Fields per executive: id, name, title, desc, effects{ start_budget_delta:int, budget_per_season:int, target_mult:float (multiplies every view quota; <1 is easier, >1 harder), reroll_cost_mult:float, passive_mods{ view_mult:float, upkeep_mult:float, income_flat:number (added per live show each season), genre_view_mult:{GENRE:float} } }. passive_mods share the exact shape of seasonal modifiers and are merged into the same yield pipeline, so they always apply (independent of seasonal events). Every executive pairs a clearly-above-normal bonus with a real downside.",
+
+  "executives": [
+    {
+      "id": "exec_mogul",
+      "name": "Lorne Castellano",
+      "title": "The Mogul",
+      "desc": "A cigar-chewing media baron who buys his way to the top. Starts flush with cash (+$120) and skims +$12 from every season — but he greenlights for profit, not quality, so everything he touches loses a little shine (Views x0.95).",
+      "effects": {
+        "start_budget_delta": 120,
+        "budget_per_season": 12,
+        "target_mult": 1.0,
+        "reroll_cost_mult": 1.0,
+        "passive_mods": { "view_mult": 0.95, "upkeep_mult": 1.0, "income_flat": 0, "genre_view_mult": {} }
+      }
+    },
+    {
+      "id": "exec_auteur",
+      "name": "Margot Devereux",
+      "title": "The Auteur",
+      "desc": "An award-hungry visionary obsessed with prestige. DRAMA and SCIFI soar under her eye (Views x1.30 each) — but her perfectionism is ruinously expensive (all upkeep x1.20).",
+      "effects": {
+        "start_budget_delta": 0,
+        "budget_per_season": 0,
+        "target_mult": 1.0,
+        "reroll_cost_mult": 1.0,
+        "passive_mods": { "view_mult": 1.0, "upkeep_mult": 1.20, "income_flat": 0, "genre_view_mult": { "DRAMA": 1.30, "SCIFI": 1.30 } }
+      }
+    },
+    {
+      "id": "exec_showrunner",
+      "name": "Dev Okonkwo",
+      "title": "The Showrunner",
+      "desc": "A hands-on craftsman who makes every show better across the board (Views x1.12). The catch: he was hired on a shoestring and you start $50 in the hole on your opening budget.",
+      "effects": {
+        "start_budget_delta": -50,
+        "budget_per_season": 0,
+        "target_mult": 1.0,
+        "reroll_cost_mult": 1.0,
+        "passive_mods": { "view_mult": 1.12, "upkeep_mult": 1.0, "income_flat": 0, "genre_view_mult": {} }
+      }
+    },
+    {
+      "id": "exec_accountant",
+      "name": "Prudence Vale",
+      "title": "The Accountant",
+      "desc": "A ruthless cost-cutter. Slashes all upkeep (x0.82) and squeezes +$5 income from every live show each season — but her penny-pinching saps ambition, dulling audience numbers (Views x0.93).",
+      "effects": {
+        "start_budget_delta": 20,
+        "budget_per_season": 0,
+        "target_mult": 1.0,
+        "reroll_cost_mult": 0.5,
+        "passive_mods": { "view_mult": 0.93, "upkeep_mult": 0.82, "income_flat": 5, "genre_view_mult": {} }
+      }
+    },
+    {
+      "id": "exec_populist",
+      "name": "Buck Rawlins",
+      "title": "The Populist",
+      "desc": "Gives the people what they want: spectacle. REALITY and SPORTS dominate (Views x1.35 each) — but he has no patience for highbrow fare, and DRAMA and SCIFI wither under him (Views x0.78 each).",
+      "effects": {
+        "start_budget_delta": 30,
+        "budget_per_season": 0,
+        "target_mult": 1.0,
+        "reroll_cost_mult": 1.0,
+        "passive_mods": { "view_mult": 1.0, "upkeep_mult": 1.0, "income_flat": 0, "genre_view_mult": { "REALITY": 1.35, "SPORTS": 1.35, "DRAMA": 0.78, "SCIFI": 0.78 } }
+      }
+    },
+    {
+      "id": "exec_visionary",
+      "name": "Iris Chen",
+      "title": "The Visionary",
+      "desc": "Plays the long game and demands the impossible. Audience quotas are 18% steeper every season — but her swing-for-the-fences slate has a colossal ceiling (Views x1.28) and she reinvests +$8 a season.",
+      "effects": {
+        "start_budget_delta": 0,
+        "budget_per_season": 8,
+        "target_mult": 1.18,
+        "reroll_cost_mult": 1.0,
+        "passive_mods": { "view_mult": 1.28, "upkeep_mult": 1.0, "income_flat": 0, "genre_view_mult": {} }
+      }
+    },
+    {
+      "id": "exec_closer",
+      "name": "Sal Moretti",
+      "title": "The Closer",
+      "desc": "A deal-maker who keeps the network's expectations low and the war chest full: quotas are 15% gentler and you start with +$60. But his shows are pure filler with no monetisation muscle (-$4 income per live show each season).",
+      "effects": {
+        "start_budget_delta": 60,
+        "budget_per_season": 0,
+        "target_mult": 0.85,
+        "reroll_cost_mult": 1.0,
+        "passive_mods": { "view_mult": 1.0, "upkeep_mult": 1.0, "income_flat": -4, "genre_view_mult": {} }
+      }
+    }
+  ]
+}

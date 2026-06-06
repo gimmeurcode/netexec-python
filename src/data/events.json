@@ -148,6 +148,104 @@
       "effect_type": "reduce_upkeep_and_budget",
       "effect_params": {"amount": 3, "min_upkeep": 0, "budget_bonus": 25},
       "desc": "NEXT SEASON: All shows permanently reduce upkeep by $3 (minimum $0) AND you gain +$25 budget. Upkeep is paid each season from income — reducing it improves net income permanently. Film in a state that really wants you there."
+    },
+
+    // -- TRADEOFF / UNIQUE EVENTS --
+    {
+      "id": "ev_fire_sale",
+      "name": "Ad Inventory Fire Sale",
+      "cost": 8,
+      "effect_type": "swap_budget_for_views",
+      "effect_params": {
+        "views_per_dollar": 9,
+        "max_spend": 50
+      },
+      "desc": "NEXT SEASON: dump up to $50 of budget into a blitz buy - converted to views at 9-to-1. A money-to-eyeballs cannon for cash-rich runs."
+    },
+
+    {
+      "id": "ev_syndication_windfall",
+      "name": "Syndication Windfall",
+      "cost": 18,
+      "effect_type": "multiply_total_views",
+      "effect_params": {
+        "factor": 1.18,
+        "budget_cost": 25
+      },
+      "desc": "NEXT SEASON: a back-catalogue deal multiplies your lifetime views x1.18 - strongest late in the run - for a $25 fee. Compounding payoff."
+    },
+
+    {
+      "id": "ev_ad_blitz",
+      "name": "Coordinated Ad Blitz",
+      "cost": 10,
+      "effect_type": "boost_views_per_ad",
+      "effect_params": {
+        "views_per_ad": 40
+      },
+      "desc": "NEXT SEASON: +40 views for every ad attached across your whole lineup. Ad-stacked schedules erupt; bare ones shrug."
+    },
+
+    {
+      "id": "ev_reality_craze",
+      "name": "Reality TV Craze",
+      "cost": 12,
+      "effect_type": "genre_surge",
+      "effect_params": {
+        "genre": "REALITY",
+        "boost": 120,
+        "penalty": 30
+      },
+      "desc": "NEXT SEASON: a trash-TV gold rush. REALITY shows gain +120 base views; everything else loses 30 as audiences chase the spectacle."
+    },
+
+    {
+      "id": "ev_emergency_injection",
+      "name": "Emergency View Injection",
+      "cost": 14,
+      "effect_type": "add_views_cost_budget",
+      "effect_params": {
+        "views": 400,
+        "budget_cost": 35
+      },
+      "desc": "NEXT SEASON: buy a massive +400 view spike for $35. Brute-force progress toward your quota when the milestone is just out of reach."
+    },
+
+    {
+      "id": "ev_network_retool",
+      "name": "Network-Wide Retool",
+      "cost": 11,
+      "effect_type": "retool_lineup_for_views",
+      "effect_params": {
+        "reset_age_to": 1,
+        "views_cost": 200
+      },
+      "desc": "NEXT SEASON: reset every show's age to fresh - re-triggering their prime - but burn 200 lifetime views to do it. Trade history for a second wind."
+    },
+
+    {
+      "id": "ev_scifi_renaissance_evt",
+      "name": "Sci-Fi Renaissance",
+      "cost": 12,
+      "effect_type": "genre_surge",
+      "effect_params": {
+        "genre": "SCIFI",
+        "boost": 130,
+        "penalty": 25
+      },
+      "desc": "NEXT SEASON: a genre moment. SCIFI shows gain +130 base views; the rest of the slate cools by 25 as the zeitgeist shifts."
+    },
+
+    {
+      "id": "ev_cash_for_clicks",
+      "name": "Cash For Clicks",
+      "cost": 9,
+      "effect_type": "swap_budget_for_views",
+      "effect_params": {
+        "views_per_dollar": 7,
+        "max_spend": 80
+      },
+      "desc": "NEXT SEASON: convert up to $80 of budget into views at 7-to-1. A bigger, slightly worse-rate money sink for when you are flush."
     }
   ]
 }
